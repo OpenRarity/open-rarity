@@ -17,7 +17,7 @@ repos:
     rev: 22.3.0
     hooks:
       - id: black
-        types: [text]
+        types: [python]
   # Flake8
   - repo: https://gitlab.com/pycqa/flake8
     rev: 4.0.1
