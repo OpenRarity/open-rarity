@@ -10,20 +10,20 @@ class Collection:
 
     Attributes
     ----------
-        name : str
-            name of an attribute
-        contract_address : str
-            contract address
-        creator_address : str
-            original creator address
-        token_standard : str
-            name of the token standard
-        chain : Chain
-            chain identifier
-        token_total_supply : int
-            total supply of the tokens for the address
-        tokens : list[Token]
-            list of all Tokens that belong to the collection
+    name : str
+        name of an attribute
+    contract_address : str
+        contract address
+    creator_address : str
+        original creator address
+    token_standard : str
+        name of the token standard
+    chain : Chain
+        chain identifier
+    token_total_supply : int
+        total supply of the tokens for the address
+    tokens : list[Token]
+        list of all Tokens that belong to the collection
     """
 
     name: str
