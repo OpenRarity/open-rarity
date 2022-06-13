@@ -9,11 +9,14 @@ class StringAttributeValue:
 
     Attributes
     ----------
-        attribute_name (AttributeName): name of an attribute
-        attribute_value (str): value of a string attribute
-        count (int): total value of tokens in collection
-                     that have this attribute
-        custom_values: dict of additional metadata related to attributes,
+        attribute_name : AttributeName
+            name of an attribute
+        attribute_value : str
+            value of a string attribute
+        count : int
+            total value of tokens in collection that have this attribute
+        custom_values : dict[str,str]
+            dict of additional metadata related to attributes,
     """
 
     attribute_name: AttributeName  # duplicate name here for ease of reduce
@@ -28,12 +31,14 @@ class NumericAttributeValue:
 
     Attributes
     ----------
-        attribute_name (AttributeName): name of an attribute
-        attribute_value (float): value of a string attribute
-        count (int): total value of tokens in collection
-                     that have this attribute
-        custom_values (dict[str,str]): dict of additional
-                     metadata related to attributes,
+        attribute_name : AttributeName
+            name of an attribute
+        attribute_value : float
+            value of a string attribute
+        count : int
+            total value of tokens in collection that have this attribute
+        custom_values : dict[str,str]
+            dict of additional metadata related to attributes,
     """
 
     attribute_name: AttributeName
@@ -51,10 +56,10 @@ class TokenMetadata:
 
     Attributes
     ----------
-        string_attributes (dict): mapping of atrribute name
-                                  to list of string attribute values
-        numeric_attributes (dict): mapping of atrribute name
-                                  to list of numeric attribute values
+        string_attributes : dict
+            mapping of atrribute name to list of string attribute values
+        numeric_attributes : dict
+            mapping of atrribute name to list of numeric attribute values
     """
 
     string_attributes: dict[AttributeName, list[StringAttributeValue]]

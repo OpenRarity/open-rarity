@@ -7,8 +7,10 @@ class Chain:
 
     Attributes
     ----------
-        chain_id (int): internal indeitifer of the chain
-        chain_name (str): name of the chain
+        chain_id : int
+            internal indeitifer of the chain
+        chain_name : str
+            name of the chain
     """
 
     chain_id: int
