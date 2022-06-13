@@ -7,7 +7,8 @@ AttributeName = str
 class StringAttributeValue:
     """Class represents string token attribute name and value
 
-    Attributes:
+    Attributes
+    ----------
         attribute_name (AttributeName): name of an attribute
         attribute_value (str): value of a string attribute
         count (int): total value of tokens in collection
@@ -16,7 +17,7 @@ class StringAttributeValue:
     """
 
     attribute_name: AttributeName  # duplicate name here for ease of reduce
-    atribute_value: str
+    attribute_value: str
     count: int
     custom_values: dict[str, str]
 
@@ -25,7 +26,8 @@ class StringAttributeValue:
 class NumericAttributeValue:
     """Class represents numeric token attribute name and value
 
-    Attributes:
+    Attributes
+    ----------
         attribute_name (AttributeName): name of an attribute
         attribute_value (float): value of a string attribute
         count (int): total value of tokens in collection
@@ -35,7 +37,7 @@ class NumericAttributeValue:
     """
 
     attribute_name: AttributeName
-    atribute_value: float
+    attribute_value: float
     custom_values: dict[str, str]
 
 
@@ -47,7 +49,8 @@ NumericAttributeValuesList = list[NumericAttributeValue]
 class TokenMetadata:
     """Class represents EIP-721 or EIP-1115 compatible metadata structure
 
-    Attributes:
+    Attributes
+    ----------
         string_attributes (dict): mapping of atrribute name
                                   to list of string attribute values
         numeric_attributes (dict): mapping of atrribute name

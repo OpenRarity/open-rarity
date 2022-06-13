@@ -8,7 +8,8 @@ from openrarity.models.token import Token
 class Collection:
     """Class represents collection of tokens
 
-    Attributes:
+    Attributes
+    ----------
         name (str): name of an attribute
         contract_address (str): contract address
         creator_address (str): original creator address

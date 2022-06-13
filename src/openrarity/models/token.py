@@ -8,7 +8,8 @@ from openrarity.models.token_metadata import TokenMetadata
 class Token:
     """Class represents Token class
 
-    Attributes:
+    Attributes
+    ----------
         token_id (int) : id of the token
         token_standard (str): name of token standard (e.g. EIP-721 or EIP-1155)
     """
