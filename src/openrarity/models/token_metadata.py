@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 
-AttirbuteName = str
-StringAttirbuteValue = str
-NumericAttirbuteValue = float
+AttributeName = str
 
 
 @dataclass
@@ -10,15 +8,15 @@ class StringAttributeValue:
     """Class represents string token attribute name and value
 
     Attributes:
-        attribute_name (AttirbuteName): name of an attribute
-        attribute_value (StringAttirbuteValue): value of a string attribute
+        attribute_name (AttributeName): name of an attribute
+        attribute_value (str): value of a string attribute
         count (int): total value of tokens in collection
                      that have this attribute
         custom_values: dict of additional metadata related to attributes,
     """
 
-    attribute_name: AttirbuteName  # duplicate name here for ease of reduce
-    atribute_value: StringAttirbuteValue
+    attribute_name: AttributeName  # duplicate name here for ease of reduce
+    atribute_value: str
     count: int
     custom_values: dict[str, str]
 
@@ -28,16 +26,16 @@ class NumericAttributeValue:
     """Class represents numeric token attribute name and value
 
     Attributes:
-        attribute_name (AttirbuteName): name of an attribute
-        attribute_value (NumericAttirbuteValue): value of a string attribute
+        attribute_name (AttributeName): name of an attribute
+        attribute_value (float): value of a string attribute
         count (int): total value of tokens in collection
                      that have this attribute
         custom_values (dict[str,str]): dict of additional
                      metadata related to attributes,
     """
 
-    attribute_name: AttirbuteName
-    atribute_value: NumericAttirbuteValue
+    attribute_name: AttributeName
+    atribute_value: float
     custom_values: dict[str, str]
 
 
@@ -56,5 +54,5 @@ class TokenMetadata:
                                   to list of numeric attribute values
     """
 
-    string_attributes: dict[AttirbuteName, list[StringAttributeValue]]
-    numeric_attributes: dict[AttirbuteName, list[NumericAttributeValue]]
+    string_attributes: dict[AttributeName, list[StringAttributeValue]]
+    numeric_attributes: dict[AttributeName, list[NumericAttributeValue]]
