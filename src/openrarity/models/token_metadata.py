@@ -62,5 +62,5 @@ class TokenMetadata:
             mapping of atrribute name to list of numeric attribute values
     """
 
-    string_attributes: dict[AttributeName, list[StringAttributeValue]]
-    numeric_attributes: dict[AttributeName, list[NumericAttributeValue]]
+    string_attributes: dict[AttributeName, StringAttributeValuesList]
+    numeric_attributes: dict[AttributeName, NumericAttributeValuesList]
