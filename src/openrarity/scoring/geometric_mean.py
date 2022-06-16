@@ -17,7 +17,10 @@ class GeometricMeanRarity(BaseRarityFormula):
     def score_token(self, token: Token) -> float:
         supply = token.collection.token_total_supply
 
-        attr_probs = [attr.count/supply for attr in token.metadata.string_attributes]
+        # flatten string_attributes dict
+        string_attr_list = [x for sublist in token.metadata.string_attributes.items() for x in sublist]
+
+        attr_probs = [attr.count/supply for attr in string_attr_list]
         token_prob = np.prod(attr_probs)
 
         return token_prob**(1/len(token.metadata.string_attributes))
