@@ -1,14 +1,8 @@
-from dataclasses import dataclass
 from models.token import Token
 from models.collection import Collection
 
-@dataclass
 class BaseRarityFormula:
-    "base rarity formula"
-
-    formula_name: str
-    formula_id: int
-    description: str
+    """base rarity class"""
 
     def score_token(token: Token) -> float:
         raise NotImplementedError
