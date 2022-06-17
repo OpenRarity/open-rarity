@@ -17,6 +17,5 @@ class GeometricMeanRarity(BaseRarityFormula):
         string_attr_list = [x for sublist in token.metadata.string_attributes.items() for x in sublist]
 
         attr_probs = [attr.count/supply for attr in string_attr_list]
-        token_prob = np.prod(attr_probs)
 
-        return token_prob**(1/len(token.metadata.string_attributes))
+        return np.prod(attr_probs)**(1/len(token.metadata.string_attributes))
