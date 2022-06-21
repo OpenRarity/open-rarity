@@ -1,10 +1,11 @@
-from models.token import Token
-from models.collection import Collection
+from openrarity.models.collection import Collection
+from openrarity.models.token import Token
+
 
 class BaseRarityFormula:
     """base rarity class"""
 
-    def score_token(token: Token) -> float:
+    def score_token(self, token: Token) -> float:
         raise NotImplementedError
 
     # base aggregate scorers: can override w/ more efficient methods
