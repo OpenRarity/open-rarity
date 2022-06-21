@@ -6,7 +6,9 @@ authors = ["Dan Meshkov <daniil.meshkov@opensea.io>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+numpy = "^1.21.4"
+pandas = "^1.3.5"
+python = ">=3.10,<3.11"
 pre-commit = "^2.19.0"
 
 [tool.poetry.dev-dependencies]
