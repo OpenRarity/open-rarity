@@ -17,5 +17,7 @@ class BaseRarityFormula:
         tokens = collection.tokens
         return [self.score_token(t) for t in tokens]
 
-    def score_collections(self, collections: list[Collection]) -> list[list[float]]:
+    def score_collections(
+        self, collections: list[Collection]
+    ) -> list[list[float]]:
         return [self.score_collection(c) for c in collections]

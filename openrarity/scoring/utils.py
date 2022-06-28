@@ -7,7 +7,9 @@ def flatten_attrs(
 ) -> list[StringAttributeValue]:
     """flatten string_attributes dict"""
 
-    return [x for sublist in string_attr_metadata_dict.values() for x in sublist]
+    return [
+        x for sublist in string_attr_metadata_dict.values() for x in sublist
+    ]
 
 
 def get_attr_probs(
