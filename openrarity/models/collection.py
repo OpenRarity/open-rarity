@@ -16,7 +16,7 @@ class Collection:
     ----------
     name : str
         name of the collection
-    name : str
+    slug : str
         collection slug
     contract_address : str
         contract address

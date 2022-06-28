@@ -31,6 +31,25 @@ HEADERS = {
 def get_collection_metadata(
     collection_slug: str, tokens: list[Token]
 ) -> Collection:
+    """Resolves collection metadata with OpenSea endpoint and API key
+
+    Parameters
+    ----------
+    collection_slug : str
+        collection slug
+    tokens : list[Token]
+        list of tokens to resolve metadata
+
+    Returns
+    -------
+    Collection
+        collection abstraction
+
+    Raises
+    ------
+    Exception
+        _description_
+    """
     collection_response = requests.get(
         OS_COLLECTION_URL.format(slug=collection_slug)
     )
@@ -68,39 +87,39 @@ def get_collection_metadata(
     return collection
 
 
-def get_assets(collection_slug: str, collection: Collection) -> list[Token]:
-    """Resolves assets
+def get_assets(collection: Collection) -> list[Token]:
+    """Resolves assets through OpenSea API asset endpoint.
+        Augment metadata with Gem rankings from Gem, RaritySniper and TraitSniper.
 
     Parameters
     ----------
-    collection_slug : str
-        _description_
     collection : Collection
-        _description_
+        collection
 
     Returns
     -------
     list[Token]
-        _description_
+        provide list of tokens augmented with assets metadata and ranking provider
     """
     rarity_resolver = GemRarityResolver()
-    i = 0
-    # TODO impreso handle the case with collections where mod 30 !=0
+    batch_id = 0
+    # TODO impreso@ handle the case with collections where mod 30 !=0
     range_end = int(collection.token_total_supply / 30)
     tokens: list[Token] = []
 
     t1_start = process_time()
 
-    while i < range_end:
+    while batch_id < range_end:
         logger.debug(
-            "starting batch {num} for collection {collection}".format(
-                num=i, collection=collection.slug
+            "Starting batch {num} for collection {collection}".format(
+                num=batch_id, collection=collection.slug
             )
         )
 
         querystring = {
             "token_ids": [
-                token_id for token_id in range(i * 30 + 1, i * 30 + 31)
+                token_id
+                for token_id in range(batch_id * 30 + 1, batch_id * 30 + 31)
             ],
             "collection_slug": collection.slug,
             "order_direction": "desc",
@@ -119,7 +138,7 @@ def get_assets(collection_slug: str, collection: Collection) -> list[Token]:
             )
             break
 
-        augment_tokens: list[Token] = []
+        augment_tokens_batch: list[Token] = []
         assets = response.json()["assets"]
 
         # convert all tokens to local models
@@ -143,15 +162,15 @@ def get_assets(collection_slug: str, collection: Collection) -> list[Token]:
                 metadata=token_metadata,
             )
 
-            augment_tokens.append(token_obj)
+            augment_tokens_batch.append(token_obj)
 
-        # convert tokens to all
         rarity_tokens = rarity_resolver.resovle_rank(
-            collection=collection, tokens=augment_tokens
+            collection=collection, tokens=augment_tokens_batch
         )
 
         tokens.extend(rarity_tokens)
-        i = i + 1
+
+        batch_id = batch_id + 1
 
     t1_stop = process_time()
     logger.debug(
@@ -164,13 +183,7 @@ def get_assets(collection_slug: str, collection: Collection) -> list[Token]:
 
 
 def resolve_collection_data():
-    """Resolves onchain collection information through OpenSea API
-
-    Parameters
-    ----------
-    api_key : opensea_api key
-        Provide Opensea API key for the resolution
-    """
+    """Resolves onchain collection information through OpenSea API"""
 
     golden_collections = pkgutil.get_data(
         "openrarity.data", "test_collections.json"
@@ -188,9 +201,7 @@ def resolve_collection_data():
             collection = get_collection_metadata(
                 collection_slug=slug, tokens=tokens
             )
-            tokens.extend(
-                get_assets(collection_slug=slug, collection=collection)
-            )
+            tokens.extend(get_assets(collection=collection))
             collections.append(collection)
 
             # TODO impreso@ serialization to file code here

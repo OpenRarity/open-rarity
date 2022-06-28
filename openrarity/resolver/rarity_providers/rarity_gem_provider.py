@@ -115,7 +115,6 @@ class GemRarityResolver:
             )
             # fmt: on
 
-            # close the session regardless of the
             driver.close()
 
         return tokens
