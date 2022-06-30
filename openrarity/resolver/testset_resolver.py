@@ -12,8 +12,8 @@ from openrarity.models.token_metadata import (
     StringAttributeValue,
     TokenMetadata,
 )
-from openrarity.resolver.rarity_providers.rarity_gem_provider import (
-    GemRarityResolver,
+from openrarity.resolver.rarity_providers.rarity_provider import (
+    ExternalRarityProvider,
 )
 import logging
 from time import strftime
@@ -101,7 +101,7 @@ def get_assets(collection: Collection) -> list[Token]:
     list[Token]
         provide list of tokens augmented with assets metadata and ranking provider
     """
-    rarity_resolver = GemRarityResolver()
+    rarity_resolver = ExternalRarityProvider()
     batch_id = 0
     # TODO impreso@ handle the case with collections where mod 30 !=0
     range_end = int(collection.token_total_supply / 30)
@@ -164,7 +164,7 @@ def get_assets(collection: Collection) -> list[Token]:
 
             augment_tokens_batch.append(token_obj)
 
-        rarity_tokens = rarity_resolver.resovle_rank(
+        rarity_tokens = rarity_resolver.resolve_rank(
             collection=collection, tokens=augment_tokens_batch
         )
 

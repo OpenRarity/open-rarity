@@ -6,9 +6,8 @@ from openrarity.models.collection import Collection
 
 
 class RankProvider(Enum):
-    GEM = 1
-    TRAITS_SNIPER = 2
-    RARITY_SNIPER = 3
+    TRAITS_SNIPER = 1
+    RARITY_SNIFFER = 2
 
 
 Rank = tuple[RankProvider, int]
