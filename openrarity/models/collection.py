@@ -1,7 +1,11 @@
 from dataclasses import dataclass
 
 from openrarity.models.chain import Chain
-from openrarity.models.token import Token
+from typing import TYPE_CHECKING
+
+# to avoid circular dependency
+if TYPE_CHECKING:
+    from openrarity.models.token import Token
 
 
 @dataclass
@@ -11,7 +15,9 @@ class Collection:
     Attributes
     ----------
     name : str
-        name of an attribute
+        name of the collection
+    slug : str
+        collection slug
     contract_address : str
         contract address
     creator_address : str
@@ -24,12 +30,16 @@ class Collection:
         total supply of the tokens for the address
     tokens : list[Token]
         list of all Tokens that belong to the collection
+    attributes_count: dict[str, dict[str, int]]
+        dictionary of attributes and their total counts
     """
 
     name: str
+    slug: str
     contract_address: str
     creator_address: str
     token_standard: str
     chain: Chain
     token_total_supply: int
-    tokens: list[Token]
+    tokens: list["Token"]
+    attributes_count: dict[str, dict[str, int]]

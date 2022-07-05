@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 AttributeName = str
 
@@ -15,14 +15,11 @@ class StringAttributeValue:
         value of a string attribute
     count : int
         total value of tokens in collection that have this attribute
-    custom_values : dict[str,str]
-        dict of additional metadata related to attributes,
     """
 
     attribute_name: AttributeName  # duplicate name here for ease of reduce
     attribute_value: str
     count: int
-    custom_values: dict[str, str]
 
 
 @dataclass
@@ -37,17 +34,10 @@ class NumericAttributeValue:
         value of a string attribute
     count : int
         total value of tokens in collection that have this attribute
-    custom_values : dict[str,str]
-        dict of additional metadata related to attributes,
     """
 
     attribute_name: AttributeName
     attribute_value: float
-    custom_values: dict[str, str]
-
-
-StringAttributeValuesList = list[StringAttributeValue]
-NumericAttributeValuesList = list[NumericAttributeValue]
 
 
 @dataclass
@@ -62,5 +52,9 @@ class TokenMetadata:
         mapping of atrribute name to list of numeric attribute values
     """
 
-    string_attributes: dict[AttributeName, StringAttributeValuesList]
-    numeric_attributes: dict[AttributeName, NumericAttributeValuesList]
+    string_attributes: dict[AttributeName, StringAttributeValue] = field(
+        default_factory=dict
+    )
+    numeric_attributes: dict[AttributeName, NumericAttributeValue] = field(
+        default_factory=dict
+    )

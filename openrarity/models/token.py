@@ -1,7 +1,16 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import Enum
 
-from openrarity.models.collection import Collection
 from openrarity.models.token_metadata import TokenMetadata
+from openrarity.models.collection import Collection
+
+
+class RankProvider(Enum):
+    TRAITS_SNIPER = 1
+    RARITY_SNIFFER = 2
+
+
+Rank = tuple[RankProvider, int]
 
 
 @dataclass
@@ -20,3 +29,4 @@ class Token:
     token_standard: str
     collection: Collection
     metadata: TokenMetadata
+    ranks: list[Rank] = field(default_factory=list)
