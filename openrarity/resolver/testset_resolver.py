@@ -7,7 +7,7 @@ import requests
 
 from openrarity.models.collection import Collection
 from openrarity.models.chain import Chain
-from openrarity.models.token import Token
+from openrarity.models.token import RankProvider, Token
 from openrarity.models.token_metadata import (
     StringAttributeValue,
     TokenMetadata,
@@ -17,14 +17,14 @@ from openrarity.resolver.rarity_providers.rarity_provider import (
 )
 import logging
 from time import strftime
-
+import csv
 
 OS_COLLECTION_URL = "https://api.opensea.io/api/v1/collection/{slug}"
 OS_ASSETS_URL = "https://api.opensea.io/api/v1/assets"
 
 HEADERS = {
     "Accept": "application/json",
-    "X-API-KEY": "",
+    "X-API-KEY": "3a7a1dbe91684f4b9ec2c9bc2e29a2c0",
 }
 
 
@@ -105,6 +105,7 @@ def get_assets(collection: Collection) -> list[Token]:
     batch_id = 0
     # TODO impreso@ handle the case with collections where mod 30 !=0
     range_end = int(collection.token_total_supply / 30)
+    # range_end = 1
     tokens: list[Token] = []
 
     t1_start = process_time()
@@ -124,10 +125,14 @@ def get_assets(collection: Collection) -> list[Token]:
             "collection_slug": collection.slug,
             "order_direction": "desc",
             "offset": "0",
+            "limit": 30,
         }
 
         response = requests.request(
-            "GET", OS_ASSETS_URL, headers=HEADERS, params=querystring
+            "GET",
+            OS_ASSETS_URL,
+            headers=HEADERS,
+            params=querystring,
         )
 
         if response.status_code != 200:
@@ -189,12 +194,8 @@ def resolve_collection_data():
         "openrarity.data", "test_collections.json"
     )
 
-    collections: list[Collection] = []
-
     if golden_collections:
         data = json.load(io.BytesIO(golden_collections))
-
-        # TODO impreso@ parallalize across multiple collections
         for collection_def in data:
             tokens: list[Token] = []
             slug = collection_def["collection_slug"]
@@ -202,11 +203,55 @@ def resolve_collection_data():
                 collection_slug=slug, tokens=tokens
             )
             tokens.extend(get_assets(collection=collection))
-            collections.append(collection)
 
-            # TODO impreso@ serialization to file code here
+            collection_to_csv(collection=collection)
     else:
         raise Exception("Can't resolve golden collections data file.")
+
+
+def collection_to_csv(collection: Collection):
+    """Serialize collection to CSV
+
+    Parameters
+    ----------
+    collection : Collection
+        collection
+    """
+    testset = open(
+        "testset_{slug}.csv".format(slug=collection.slug),
+        "w",
+    )
+    header = ["slug", "token_id", "traits_sniper", "rarity_sniffer"]
+
+    writer = csv.writer(testset)
+    writer.writerow(header)
+
+    for token in collection.tokens:
+        row = []
+
+        traits_sniper_rank = list(
+            filter(
+                lambda rank: rank[0] == RankProvider.TRAITS_SNIPER, token.ranks
+            )
+        )
+
+        rarity_sniffer_rank = list(
+            filter(
+                lambda rank: rank[0] == RankProvider.RARITY_SNIFFER,
+                token.ranks,
+            )
+        )
+
+        row.append(collection.slug)
+        row.append(token.token_id)
+        row.append(
+            traits_sniper_rank[0][1] if len(traits_sniper_rank) > 0 else None
+        )
+        row.append(
+            rarity_sniffer_rank[0][1] if len(rarity_sniffer_rank) > 0 else None
+        )
+
+        writer.writerow(row)
 
 
 if __name__ == "__main__":

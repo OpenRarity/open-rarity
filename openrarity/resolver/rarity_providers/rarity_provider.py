@@ -7,7 +7,9 @@ from openrarity.models.token import Rank, RankProvider, Token
 
 TRAIT_SNIPER_URL = "https://api.traitsniper.com/api/projects/{slug}/nfts"
 RARITY_SNIFFER_API_URL = "https://raritysniffer.com/api/index.php"
-
+USER_AGENT = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"  # noqa: E501
+}
 logger = logging.getLogger("testset_resolver")
 
 
@@ -18,51 +20,98 @@ class ExternalRarityProvider:
     def __resolver_trait_sniper(
         self, collection: Collection, tokens: list[Token]
     ) -> list[Token]:
+        """Resolves the rarity from the list
+            of tokens
 
+        Parameters
+        ----------
+        collection : Collection
+            collection
+        tokens : list[Token]
+            batch of tokens to resolve
+
+        Returns
+        -------
+        list[Token]
+            augmented tokens with trait_sniper rank
+        """
         logger.debug("Resolving trait sniper rarity")
-        try:
-            querystring = {
-                "trait_norm": "true",
-                "trait_count": "true",
-                "token_id": ",".join([str(t.token_id) for t in tokens]),
-            }
 
-            response = requests.request(
-                "GET",
-                TRAIT_SNIPER_URL.format(slug=collection.slug),
-                params=querystring,
-            )
-
-            if response.status_code != 200:
+        for token in tokens:
+            try:
                 logger.debug(
-                    "Failed to resolve token_ids Trait Sniper. Reason {resp}".format(
-                        resp=response
+                    "Resolving trait sniper rarity for token_id {id}".format(
+                        id=token.token_id
                     )
                 )
-                return tokens
 
-            scores: dict[int, Rank] = {
-                int(nft["token_id"]): (
-                    RankProvider.TRAITS_SNIPER,
-                    nft["rarity_rank"],
+                querystring = {
+                    "trait_norm": "true",
+                    "trait_count": "true",
+                    "token_id": token.token_id,
+                }
+
+                slug = collection.slug.replace("-nft", "")
+
+                url = TRAIT_SNIPER_URL.format(slug=slug)
+
+                logger.debug("{url}".format(url=url))
+
+                response = requests.request(
+                    "GET", url, params=querystring, headers=USER_AGENT
                 )
-                for nft in response.json()["nfts"]
-            }
 
-            logger.debug(
-                "Resolved rarity scores {scores}".format(scores=scores)
-            )
+                if response.status_code != 200:
+                    logger.debug(
+                        "Failed to resolve token_ids Trait Sniper.\
+                        Status {code} Reason {resp}".format(
+                            resp=response.json(), code=response.reason
+                        )
+                    )
+                    return tokens
 
-            for token in tokens:
-                token.ranks.append(scores[token.token_id])
-        except Exception:
-            logger.exception("Failed to resolve token_ids Traits Sniper")
+                asset = response.json()["nfts"][0]
+
+                token_rank: Rank = (
+                    RankProvider.TRAITS_SNIPER,
+                    asset["rarity_rank"],
+                )
+
+                logger.debug(
+                    "Resolved rarity scores {rank}".format(rank=token_rank)
+                )
+
+                token.ranks.append(token_rank)
+
+            except Exception:
+                logger.exception("Failed to resolve token_ids Traits Sniper")
 
         return tokens
 
     def __rarity_sniffer_nft_score(
         self, collection: Collection
     ) -> dict[int, Rank]:
+        """Pre-loads all available tokens and ranks
+            to the local dict for the fast processing.
+            Internal private method.
+
+        Parameters
+        ----------
+        collection : Collection
+            collection
+
+        Returns
+        -------
+        dict[int, Rank]
+            dictionary with token_id as key and rank as value
+
+        Raises
+        ------
+        Exception
+            If call to the rarity sniffer failed the
+            method throws exception
+        """
+
         if collection.contract_address not in self.rarity_sniffer_state:
             querystring = {
                 "query": "fetch",
@@ -74,7 +123,10 @@ class ExternalRarityProvider:
             }
 
             response = requests.request(
-                "GET", RARITY_SNIFFER_API_URL, params=querystring
+                "GET",
+                RARITY_SNIFFER_API_URL,
+                params=querystring,
+                headers=USER_AGENT,
             )
 
             if response.status_code != 200:
@@ -100,16 +152,35 @@ class ExternalRarityProvider:
     def __resolver_rarity_sniffer(
         self, collection: Collection, tokens: list[Token]
     ) -> list[Token]:
+        """Resolves rarity from RaritySniffer API
+
+        Parameters
+        ----------
+        collection : Collection
+            collection
+        tokens : list[Token]
+            list of tokens to augment
+
+        Returns
+        -------
+        list[Token]
+            list of augmeneted tokens
+        """
 
         logger.debug("Resolving rarity sniffer")
         try:
             for token in tokens:
 
-                token.ranks.append(
-                    self.__rarity_sniffer_nft_score(collection=collection)[
-                        token.token_id
-                    ]
+                collection_ranks = self.__rarity_sniffer_nft_score(
+                    collection=collection
                 )
+
+                rank = collection_ranks[int(token.token_id)]
+
+                token.ranks.append(rank)
+
+                logger.debug("Resolved rarity scores {rank}".format(rank=rank))
+
         except Exception:
             logger.exception("Failed to resolve token_ids Rarity Sniffer")
 
@@ -136,27 +207,18 @@ class ExternalRarityProvider:
         """
         augmented_tokens_final = []
 
-        for token in tokens:
-            logger.debug(
-                "Resolving token {token} from collection {coll}".format(
-                    token=token.token_id, coll=collection.slug
-                )
-            )
+        logger.debug(len(tokens))
 
-            augmented_tokens = self.__resolver_rarity_sniffer(
-                collection=collection, tokens=tokens
-            )
+        # resolve ranks from Rarity Sniffer
+        rarity_sniffer_tokens = self.__resolver_rarity_sniffer(
+            collection=collection, tokens=tokens
+        )
 
-            augmented_tokens_final.extend(
-                self.__resolver_trait_sniper(
-                    collection=collection, tokens=augmented_tokens
-                )
+        # resolve ranks from Rarity Sniper
+        augmented_tokens_final.extend(
+            self.__resolver_trait_sniper(
+                collection=collection, tokens=rarity_sniffer_tokens
             )
-
-            logger.debug(
-                """Computed ranks {ranks}""".format(
-                    ranks=augmented_tokens_final
-                )
-            )
+        )
 
         return augmented_tokens_final

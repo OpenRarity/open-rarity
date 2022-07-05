@@ -20,10 +20,6 @@
     "collection_slug": "boredapeyachtclub"
   },
   {
-    "collection_name": "CyberKongz",
-    "collection_slug": "cyberkongz"
-  },
-  {
     "collection_name": "Moonbirds",
     "collection_slug": "proof-moonbirds"
   },
@@ -40,10 +36,6 @@
     "collection_slug": "doodles-official"
   },
   {
-    "collection_name": "Otherdeed for Otherside",
-    "collection_slug": "otherdeed"
-  },
-  {
     "collection_name": "goblintown.wtf",
     "collection_slug": "goblintownwtf"
   },
@@ -58,5 +50,13 @@
   {
     "collection_name": "World of Women",
     "collection_slug": "world-of-women-nft"
+  },
+  {
+    "collection_name": "Project NANOPASS",
+    "collection_slug": "projectnanopass"
+  },
+  {
+    "collection_name": "The Flower Girl",
+    "collection_slug": "the-flower-girl"
   }
 ]
