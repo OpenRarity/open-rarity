@@ -24,7 +24,7 @@ OS_ASSETS_URL = "https://api.opensea.io/api/v1/assets"
 
 HEADERS = {
     "Accept": "application/json",
-    "X-API-KEY": "3a7a1dbe91684f4b9ec2c9bc2e29a2c0",
+    "X-API-KEY": "",
 }
 
 
