@@ -1,6 +1,6 @@
 import numpy as np
-from base import BaseRarityFormula
-from utils import get_attr_probs
+from openrarity.scoring.base import BaseRarityFormula
+from openrarity.scoring.utils import get_attr_probs
 
 from openrarity.models.token import Token
 
