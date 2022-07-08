@@ -12,11 +12,12 @@ def get_attr_probs_weights(
     ]
     supply = token.collection.token_total_supply
 
-    attr_weights = [1] * len(string_attr_keys)
     if normalized:
         attr_weights = [
             1 / len(token.collection.attributes_count[k])
             for k in string_attr_keys
         ]
+    else:
+        attr_weights = [1] * len(string_attr_keys)
 
     return [[attr.count / supply for attr in string_attr_list], attr_weights]
