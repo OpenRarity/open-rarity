@@ -8,7 +8,7 @@ from openrarity.models.token import Token
 class HarmonicMeanRarity(BaseRarityFormula):
     """harmonic mean of a token's n trait probabilities"""
 
-    def score_token(self, token: Token, normalized: bool = False) -> float:
+    def score_token(self, token: Token, normalized: bool = True) -> float:
         """calculate the score for a single token"""
 
         attr_probs, attr_weights = get_attr_probs_weights(token, normalized)
