@@ -1,8 +1,8 @@
 import numpy as np
-from base import BaseRarityFormula
-from utils import get_attr_probs_weights
+from openrarity.scoring.base import BaseRarityFormula
 
 from openrarity.models.token import Token
+from openrarity.scoring.utils import get_attr_probs_weights
 
 
 class HarmonicMeanRarity(BaseRarityFormula):

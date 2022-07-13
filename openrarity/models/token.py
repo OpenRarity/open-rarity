@@ -6,8 +6,13 @@ from openrarity.models.collection import Collection
 
 
 class RankProvider(Enum):
+    # external ranks
     TRAITS_SNIPER = 1
     RARITY_SNIFFER = 2
+    # open rarity scorring
+    OR_ARITHMETIC = 3
+    OR_GEOMETRIC = 4
+    OR_HARMONIC = 5
 
 
 Rank = tuple[RankProvider, int]
