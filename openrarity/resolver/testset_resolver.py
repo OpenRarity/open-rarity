@@ -289,9 +289,7 @@ def extract_rank(scores: ScorredTokens) -> RankedTokens:
     dict[int, RankScore]
         _description_
     """
-    logger.debug(scores.items())
     srt = dict(sorted(scores.items(), key=lambda item: item[1]))  # type: ignore
-    logger.debug(srt)
 
     res = {}
     for index, (key, value) in enumerate(srt.items()):
