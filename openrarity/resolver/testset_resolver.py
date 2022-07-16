@@ -23,6 +23,7 @@ from openrarity.scoring.arithmetic_mean import ArithmeticMeanRarity
 from openrarity.scoring.geometric_mean import GeometricMeanRarity
 
 from openrarity.scoring.harmonic_mean import HarmonicMeanRarity
+from openrarity.scoring.sum import SumRarity
 
 OS_COLLECTION_URL = "https://api.opensea.io/api/v1/collection/{slug}"
 OS_ASSETS_URL = "https://api.opensea.io/api/v1/assets"
@@ -36,12 +37,14 @@ HEADERS = {
 harmonic = HarmonicMeanRarity()
 arithmetic = ArithmeticMeanRarity()
 geometric = GeometricMeanRarity()
+sum = SumRarity()
 
 RankScore = tuple[int, float]
-RarityScore = float
-ScorredTokens = dict[int, RarityScore]
+ScorredTokens = dict[int, float]
 RankedTokens = dict[int, RankScore]
-OpenRartityScores = tuple[RankedTokens, RankedTokens, RankedTokens]
+OpenRarityScores = tuple[
+    RankedTokens, RankedTokens, RankedTokens, RankedTokens
+]
 
 
 def get_collection_metadata(
@@ -122,8 +125,8 @@ def get_assets(
     rarity_resolver = ExternalRarityProvider()
     batch_id = 0
     # TODO impreso@ handle the case with collections where mod 30 !=0
-    range_end = int(collection.token_total_supply / 30)
-    # range_end = 1
+    # range_end = int(collection.token_total_supply / 30)
+    range_end = 4
     tokens: list[Token] = []
 
     t1_start = process_time()
@@ -229,7 +232,7 @@ def resolve_collection_data(resolve_remote: bool):
             )
 
             open_rarity_ranks = resolve_open_rarity_score(
-                collection=collection
+                collection=collection, normalized=True
             )
 
             augment_with_or_rank(
@@ -242,20 +245,21 @@ def resolve_collection_data(resolve_remote: bool):
         raise Exception("Can't resolve golden collections data file.")
 
 
-def augment_with_or_rank(collection: Collection, or_ranks: OpenRartityScores):
+def augment_with_or_rank(collection: Collection, or_ranks: OpenRarityScores):
     """Augments collection tokens with ranks computed by OpenRarity scorrer
 
     Parameters
     ----------
     collection : Collection
-        _description_
-    or_ranks : OpenRartityScores
-        _description_
+        collection
+    or_ranks : OpenRarityScores
+        ranks
     """
 
     ariphm = or_ranks[0]
     geom = or_ranks[1]
     harm = or_ranks[2]
+    sum = or_ranks[3]
 
     for token in collection.tokens:
         try:
@@ -268,6 +272,7 @@ def augment_with_or_rank(collection: Collection, or_ranks: OpenRartityScores):
             token.ranks.append(
                 (RankProvider.OR_HARMONIC, harm[token.token_id][0])
             )
+            token.ranks.append((RankProvider.OR_SUM, sum[token.token_id][0]))
         except Exception:
             logger.exception(
                 "Error occured during OR rank resolution for token {id}".format(
@@ -282,27 +287,26 @@ def extract_rank(scores: ScorredTokens) -> RankedTokens:
     Parameters
     ----------
     scores : dict
-        _description_
+        dictionary of scores  token_id to  score
 
     Returns
     -------
     dict[int, RankScore]
-        _description_
+        dictionary of token to rank, score pair
     """
-    srt = dict(sorted(scores.items(), key=lambda item: item[1]))  # type: ignore
+    srt = dict(sorted(scores.items(), key=lambda x: x[1], reverse=True))  # type: ignore
 
     res = {}
     for index, (key, value) in enumerate(srt.items()):
-        res[key] = (index, value)
-
-    logger.debug(res)
+        # upsacle by 1 position since index start from 0
+        res[key] = (index + 1, value)
 
     return res
 
 
 def resolve_open_rarity_score(
-    collection: Collection,
-) -> OpenRartityScores:
+    collection: Collection, normalized: bool
+) -> OpenRarityScores:
     """Resolve scores from all scorrers with trait_normalization
 
     Parameters
@@ -315,19 +319,29 @@ def resolve_open_rarity_score(
     _type_
         _description_
     """
+    t1_start = process_time()
+
     arphimetic_dict = {}
     geometric_dict = {}
     harmonic_dict = {}
+    sum_dict = {}
 
     logger.debug("OpenRarity scorring")
 
     for token in collection.tokens:
         try:
-            harmonic_dict[token.token_id] = harmonic.score_token(token=token)
-            arphimetic_dict[token.token_id] = arithmetic.score_token(
-                token=token
+            harmonic_dict[token.token_id] = harmonic.score_token(
+                token=token, normalized=normalized
             )
-            geometric_dict[token.token_id] = geometric.score_token(token=token)
+            arphimetic_dict[token.token_id] = arithmetic.score_token(
+                token=token, normalized=normalized
+            )
+            geometric_dict[token.token_id] = geometric.score_token(
+                token=token, normalized=normalized
+            )
+            sum_dict[token.token_id] = sum.score_token(
+                token=token, normalized=normalized
+            )
 
         except Exception:
             logger.exception(
@@ -339,8 +353,37 @@ def resolve_open_rarity_score(
     arphimetic_dict = extract_rank(arphimetic_dict)
     harmonic_dict = extract_rank(harmonic_dict)
     geometric_dict = extract_rank(geometric_dict)
+    sum_dict = extract_rank(sum_dict)
 
-    return (arphimetic_dict, geometric_dict, harmonic_dict)
+    t1_stop = process_time()
+    logger.debug(
+        "OpenRarity scores resolution in seconds {seconds}".format(
+            seconds=t1_stop - t1_start
+        )
+    )
+
+    return (arphimetic_dict, geometric_dict, harmonic_dict, sum_dict)
+
+
+def __get_provider_rank(provider: RankProvider, token: Token) -> int | None:
+    """Get rank for the particular provider
+
+    Parameters
+    ----------
+    provider : RankProvider
+        rank provider
+    token : Token
+        token
+    """
+    rank = list(filter(lambda rank: rank[0] == provider, token.ranks))
+    return rank[0][1] if len(rank) > 0 else None
+
+
+def __rank_diff(rank1: int | None, rank2: int | None) -> int | None:
+    if not rank1 or not rank2:
+        return None
+
+    return abs(rank1 - rank2)
 
 
 def collection_to_csv(collection: Collection):
@@ -360,9 +403,19 @@ def collection_to_csv(collection: Collection):
         "token_id",
         "traits_sniper",
         "rarity_sniffer",
-        "ariphmetic",
+        "arithmetic",
         "geometric",
         "harmonic",
+        "sum",
+        "traits_sniper_rarity_sniffer_diff",
+        "traits_sniper_arithm_diff",
+        "traits_sniper_geom_diff",
+        "traits_sniper_harmo_diff",
+        "traits_sniper_sum_diff",
+        "rarity_sniffer_arithm_diff",
+        "rarity_sniffer_geom_diff",
+        "rarity_sniffer_harmo_diff",
+        "rarity_sniffer_sum_diff",
     ]
 
     writer = csv.writer(testset)
@@ -370,57 +423,46 @@ def collection_to_csv(collection: Collection):
 
     for token in collection.tokens:
         row = []
-        traits_sniper_rank = list(
-            filter(
-                lambda rank: rank[0] == RankProvider.TRAITS_SNIPER, token.ranks
-            )
+        traits_sniper_rank = __get_provider_rank(
+            provider=RankProvider.TRAITS_SNIPER, token=token
         )
 
-        rarity_sniffer_rank = list(
-            filter(
-                lambda rank: rank[0] == RankProvider.RARITY_SNIFFER,
-                token.ranks,
-            )
+        rarity_sniffer_rank = __get_provider_rank(
+            provider=RankProvider.RARITY_SNIFFER, token=token
         )
 
-        or_ariphmetic_rank = list(
-            filter(
-                lambda rank: rank[0] == RankProvider.OR_ARITHMETIC,
-                token.ranks,
-            )
+        or_arithmetic_rank = __get_provider_rank(
+            provider=RankProvider.OR_ARITHMETIC, token=token
         )
 
-        or_geometric_rank = list(
-            filter(
-                lambda rank: rank[0] == RankProvider.OR_GEOMETRIC,
-                token.ranks,
-            )
+        or_geometric_rank = __get_provider_rank(
+            provider=RankProvider.OR_GEOMETRIC, token=token
         )
 
-        or_harominc_rank = list(
-            filter(
-                lambda rank: rank[0] == RankProvider.OR_HARMONIC,
-                token.ranks,
-            )
+        or_harmonic_rank = __get_provider_rank(
+            provider=RankProvider.OR_HARMONIC, token=token
+        )
+        or_sum_rank = __get_provider_rank(
+            provider=RankProvider.OR_SUM, token=token
         )
 
         row.append(collection.slug)
         row.append(token.token_id)
-        row.append(
-            traits_sniper_rank[0][1] if len(traits_sniper_rank) > 0 else None
-        )
-        row.append(
-            rarity_sniffer_rank[0][1] if len(rarity_sniffer_rank) > 0 else None
-        )
-        row.append(
-            or_ariphmetic_rank[0][1] if len(or_ariphmetic_rank) > 0 else None
-        )
-        row.append(
-            or_geometric_rank[0][1] if len(or_geometric_rank) > 0 else None
-        )
-        row.append(
-            or_harominc_rank[0][1] if len(or_harominc_rank) > 0 else None
-        )
+        row.append(traits_sniper_rank)
+        row.append(rarity_sniffer_rank)
+        row.append(or_arithmetic_rank)
+        row.append(or_geometric_rank)
+        row.append(or_harmonic_rank)
+        row.append(or_sum_rank)
+        row.append(__rank_diff(traits_sniper_rank, rarity_sniffer_rank))
+        row.append(__rank_diff(traits_sniper_rank, or_arithmetic_rank))
+        row.append(__rank_diff(traits_sniper_rank, or_geometric_rank))
+        row.append(__rank_diff(traits_sniper_rank, or_harmonic_rank))
+        row.append(__rank_diff(traits_sniper_rank, or_sum_rank))
+        row.append(__rank_diff(rarity_sniffer_rank, or_arithmetic_rank))
+        row.append(__rank_diff(rarity_sniffer_rank, or_geometric_rank))
+        row.append(__rank_diff(rarity_sniffer_rank, or_harmonic_rank))
+        row.append(__rank_diff(rarity_sniffer_rank, or_sum_rank))
 
         writer.writerow(row)
 
@@ -430,7 +472,8 @@ if __name__ == "__main__":
     on test collections. Data resolved from opensea api"""
 
     resolve_remote = False
-    if len(argv) > 2:
+    print(argv)
+    if len(argv) > 1:
         resolve_remote = True
     logger = logging.getLogger("testset_resolver")
 
