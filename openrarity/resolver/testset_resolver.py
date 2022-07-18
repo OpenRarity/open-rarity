@@ -64,10 +64,6 @@ def get_collection_metadata(
     Collection
         collection abstraction
 
-    Raises
-    ------
-    Exception
-        _description_
     """
     collection_response = requests.get(
         OS_COLLECTION_URL.format(slug=collection_slug)
@@ -317,10 +313,6 @@ def resolve_open_rarity_score(
     collection : Collection
         collection
 
-    Returns
-    -------
-    _type_
-        _description_
     """
     t1_start = process_time()
 
