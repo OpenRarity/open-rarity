@@ -107,7 +107,7 @@ def get_collection_metadata(
 
 
 def get_assets(
-    collection: Collection, resolve_remote: bool = True
+    collection: Collection, resolve_remote_rarity: bool = True
 ) -> list[Token]:
     """Resolves assets through OpenSea API asset endpoint.
         Augment metadata with Gem rankings from Gem, RaritySniper and TraitSniper.
@@ -116,7 +116,7 @@ def get_assets(
     ----------
     collection : Collection
         collection
-    resolve_remote : bool
+    resolve_remote_rarity : bool
         True if we need to resolve rarity ranks from
         external providers , False if not
 
@@ -194,7 +194,7 @@ def get_assets(
             augment_tokens_batch.append(token_obj)
 
         rarity_tokens = augment_tokens_batch
-        if resolve_remote:
+        if resolve_remote_rarity:
             rarity_tokens = rarity_resolver.resolve_rank(
                 collection=collection, tokens=augment_tokens_batch
             )
@@ -230,7 +230,7 @@ def resolve_collection_data(resolve_remote: bool):
             )
             tokens.extend(
                 get_assets(
-                    collection=collection, resolve_rarity=resolve_remote
+                    collection=collection, resolve_remote_rarity=resolve_remote
                 )
             )
 
@@ -491,10 +491,10 @@ if __name__ == "__main__":
     command to run: python -m  openrarity.resolver.testset_resolver external
     """
 
-    resolve_remote = False
+    resolve_remote_rarity = False
     print(argv)
     if len(argv) > 1:
-        resolve_remote = True
+        resolve_remote_rarity = True
     logger = logging.getLogger("open_rarity_logger")
 
     logger.setLevel(logging.DEBUG)
@@ -505,7 +505,7 @@ if __name__ == "__main__":
     logger.addHandler(fh)
 
     logger.debug(
-        "Resolving external rarity {flag}".format(flag=resolve_remote)
+        "Resolving external rarity {flag}".format(flag=resolve_remote_rarity)
     )
 
-    resolve_collection_data(resolve_remote)
+    resolve_collection_data(resolve_remote_rarity)
