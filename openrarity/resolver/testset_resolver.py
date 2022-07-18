@@ -316,7 +316,7 @@ def resolve_open_rarity_score(
     """
     t1_start = process_time()
 
-    arphimetic_dict = {}
+    arthimetic_dict = {}
     geometric_dict = {}
     harmonic_dict = {}
     sum_dict = {}
@@ -328,7 +328,7 @@ def resolve_open_rarity_score(
             harmonic_dict[token.token_id] = harmonic.score_token(
                 token=token, normalized=normalized
             )
-            arphimetic_dict[token.token_id] = arithmetic.score_token(
+            arthimetic_dict[token.token_id] = arithmetic.score_token(
                 token=token, normalized=normalized
             )
             geometric_dict[token.token_id] = geometric.score_token(
@@ -345,7 +345,7 @@ def resolve_open_rarity_score(
                 )
             )
 
-    arphimetic_dict = extract_rank(arphimetic_dict)
+    arthimetic_dict = extract_rank(arthimetic_dict)
     harmonic_dict = extract_rank(harmonic_dict)
     geometric_dict = extract_rank(geometric_dict)
     sum_dict = extract_rank(sum_dict)
@@ -357,7 +357,7 @@ def resolve_open_rarity_score(
         )
     )
 
-    return (arphimetic_dict, geometric_dict, harmonic_dict, sum_dict)
+    return (arthimetic_dict, geometric_dict, harmonic_dict, sum_dict)
 
 
 def __get_provider_rank(provider: RankProvider, token: Token) -> int | None:
