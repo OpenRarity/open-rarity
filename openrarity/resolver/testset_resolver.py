@@ -107,7 +107,7 @@ def get_collection_metadata(
 
 
 def get_assets(
-    collection: Collection, resolve_rarity: bool = True
+    collection: Collection, resolve_remote: bool = True
 ) -> list[Token]:
     """Resolves assets through OpenSea API asset endpoint.
         Augment metadata with Gem rankings from Gem, RaritySniper and TraitSniper.
@@ -116,6 +116,9 @@ def get_assets(
     ----------
     collection : Collection
         collection
+    resolve_remote : bool
+        True if we need to resolve rarity ranks from
+        external providers , False if not
 
     Returns
     -------
@@ -125,8 +128,8 @@ def get_assets(
     rarity_resolver = ExternalRarityProvider()
     batch_id = 0
     # TODO impreso@ handle the case with collections where mod 30 !=0
-    # range_end = int(collection.token_total_supply / 30)
-    range_end = 4
+    range_end = int(collection.token_total_supply / 30)
+    # range_end = 4
     tokens: list[Token] = []
 
     t1_start = process_time()
@@ -191,7 +194,7 @@ def get_assets(
             augment_tokens_batch.append(token_obj)
 
         rarity_tokens = augment_tokens_batch
-        if resolve_rarity:
+        if resolve_remote:
             rarity_tokens = rarity_resolver.resolve_rank(
                 collection=collection, tokens=augment_tokens_batch
             )
@@ -256,7 +259,7 @@ def augment_with_or_rank(collection: Collection, or_ranks: OpenRarityScores):
         ranks
     """
 
-    ariphm = or_ranks[0]
+    arithm = or_ranks[0]
     geom = or_ranks[1]
     harm = or_ranks[2]
     sum = or_ranks[3]
@@ -264,7 +267,7 @@ def augment_with_or_rank(collection: Collection, or_ranks: OpenRarityScores):
     for token in collection.tokens:
         try:
             token.ranks.append(
-                (RankProvider.OR_ARITHMETIC, ariphm[token.token_id][0])
+                (RankProvider.OR_ARITHMETIC, arithm[token.token_id][0])
             )
             token.ranks.append(
                 (RankProvider.OR_GEOMETRIC, geom[token.token_id][0])
@@ -287,7 +290,7 @@ def extract_rank(scores: ScorredTokens) -> RankedTokens:
     Parameters
     ----------
     scores : dict
-        dictionary of scores  token_id to  score
+        dictionary of scores with token_id to score mapping
 
     Returns
     -------
@@ -380,6 +383,20 @@ def __get_provider_rank(provider: RankProvider, token: Token) -> int | None:
 
 
 def __rank_diff(rank1: int | None, rank2: int | None) -> int | None:
+    """Function that computes the rank difference
+
+    Parameters
+    ----------
+    rank1 : int | None
+        rank of the asset
+    rank2 : int | None
+        rank of the asset
+
+    Returns
+    -------
+    int | None
+        absolute difference of ranks for the specific asset
+    """
     if not rank1 or not rank2:
         return None
 
@@ -469,13 +486,16 @@ def collection_to_csv(collection: Collection):
 
 if __name__ == "__main__":
     """Script to resolve external datasets and compute rarity scores
-    on test collections. Data resolved from opensea api"""
+    on test collections. Data resolved from opensea api
+
+    command to run: python -m  openrarity.resolver.testset_resolver external
+    """
 
     resolve_remote = False
     print(argv)
     if len(argv) > 1:
         resolve_remote = True
-    logger = logging.getLogger("testset_resolver")
+    logger = logging.getLogger("open_rarity_logger")
 
     logger.setLevel(logging.DEBUG)
 

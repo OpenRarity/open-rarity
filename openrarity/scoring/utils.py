@@ -2,7 +2,7 @@ import logging
 
 from openrarity.models.token import Token
 
-logger = logging.getLogger("testset_resolver")
+logger = logging.getLogger("open_rarity_logger")
 
 
 def get_attr_probs_weights(
@@ -16,11 +16,23 @@ def get_attr_probs_weights(
         )
     )
 
-    string_attr_keys = sorted(list(token.metadata.string_attributes.keys()))
+    logger.debug(
+        "Attributes array with null-traits {attrs}".format(
+            attrs=token.collection.extract_null_attributes
+        )
+    )
 
-    string_attr_list = [
-        token.metadata.string_attributes[k] for k in string_attr_keys
-    ]
+    # Here we augment the attributes array with probabilities of the traits with
+    # Null traits to consider the probability of that trait not in set.
+    attrs = (
+        token.collection.extract_null_attributes
+        | token.metadata.string_attributes
+    )
+
+    logger.debug("Attributes array {attr}".format(attr=attrs))
+
+    string_attr_keys = sorted(list(attrs.keys()))
+    string_attr_list = [attrs[k] for k in string_attr_keys]
 
     logger.debug(
         "Asset attributes dict {attrs}".format(attrs=string_attr_list)
@@ -31,7 +43,12 @@ def get_attr_probs_weights(
     logger.debug("Collection supply {supl}".format(supl=supply))
 
     # normalize traits weight by applying  1/x function for each
-    # respective trait of the token
+    # respective trait of the token.
+    # The normalization factor takes into account the cardinality
+    # values for particual trait.
+    # Example: if Asset has a trait "Hat" and it has possible values
+    # {"Red","Yellow","Green"} the normalization factor will be 1/3 or
+    # 0.33.
     if normalized:
         logger.debug(
             "Attribute count {attr_count}".format(

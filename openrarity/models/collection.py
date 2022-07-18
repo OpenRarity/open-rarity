@@ -1,7 +1,10 @@
 from dataclasses import dataclass
+from functools import cached_property
 
 from openrarity.models.chain import Chain
 from typing import TYPE_CHECKING
+
+from openrarity.models.token_metadata import StringAttributeValue
 
 # to avoid circular dependency
 if TYPE_CHECKING:
@@ -43,3 +46,20 @@ class Collection:
     token_total_supply: int
     tokens: list["Token"]
     attributes_count: dict[str, dict[str, int]]
+
+    @cached_property
+    def extract_null_attributes(self):
+        result = {}
+
+        if self.attributes_count:
+            for trait_name, trait_values in self.attributes_count.items():
+
+                counts = 0
+                for _, count in trait_values.items():
+                    counts = counts + count  # type: ignore
+                # specify null -value for the trait
+                result[trait_name] = StringAttributeValue(
+                    trait_name, "Null", self.token_total_supply - counts
+                )
+
+        return result
