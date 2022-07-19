@@ -40,7 +40,7 @@ geometric = GeometricMeanRarity()
 sum = SumRarity()
 
 RankScore = tuple[int, float]
-ScorredTokens = dict[int, float]
+ScoredTokens = dict[int, float]
 RankedTokens = dict[int, RankScore]
 OpenRarityScores = tuple[
     RankedTokens, RankedTokens, RankedTokens, RankedTokens
@@ -209,7 +209,7 @@ def get_assets(
     return tokens
 
 
-def resolve_collection_data(resolve_remote: bool):
+def resolve_collection_data(resolve_remote_rarity: bool):
     """Resolves onchain collection information through OpenSea API"""
 
     golden_collections = pkgutil.get_data(
@@ -226,7 +226,8 @@ def resolve_collection_data(resolve_remote: bool):
             )
             tokens.extend(
                 get_assets(
-                    collection=collection, resolve_remote_rarity=resolve_remote
+                    collection=collection,
+                    resolve_remote_rarity=resolve_remote_rarity,
                 )
             )
 
@@ -280,7 +281,7 @@ def augment_with_or_rank(collection: Collection, or_ranks: OpenRarityScores):
             )
 
 
-def extract_rank(scores: ScorredTokens) -> RankedTokens:
+def extract_rank(scores: ScoredTokens) -> RankedTokens:
     """Sorts dictionary by float score and extract rank according to the score
 
     Parameters

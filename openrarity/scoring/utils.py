@@ -1,6 +1,7 @@
 import logging
 
 from openrarity.models.token import Token
+from openrarity.models.token_metadata import StringAttributeValue
 
 logger = logging.getLogger("open_rarity_logger")
 
@@ -22,17 +23,17 @@ def get_attr_probs_weights(
         )
     )
 
-    # Here we augment the attributes array with probabilities of the traits with
-    # Null traits to consider the probability of that trait not in set.
-    attrs = (
+    # Here we augment the attributes array with probabilities of the attributes with
+    # Null attributes consider the probability of that trait not in set.
+    combined_attributes: dict[str, StringAttributeValue] = (
         token.collection.extract_null_attributes
         | token.metadata.string_attributes
     )
 
-    logger.debug("Attributes array {attr}".format(attr=attrs))
+    logger.debug("Attributes array {attr}".format(attr=combined_attributes))
 
-    string_attr_keys = sorted(list(attrs.keys()))
-    string_attr_list = [attrs[k] for k in string_attr_keys]
+    string_attr_keys = sorted(list(combined_attributes.keys()))
+    string_attr_list = [combined_attributes[k] for k in string_attr_keys]
 
     logger.debug(
         "Asset attributes dict {attrs}".format(attrs=string_attr_list)
