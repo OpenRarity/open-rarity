@@ -1,6 +1,7 @@
 import io
 import json
 import pkgutil
+from sys import argv
 from time import process_time
 
 import requests
@@ -18,6 +19,11 @@ from openrarity.resolver.rarity_providers.rarity_provider import (
 import logging
 from time import strftime
 import csv
+from openrarity.scoring.arithmetic_mean import ArithmeticMeanRarity
+from openrarity.scoring.geometric_mean import GeometricMeanRarity
+
+from openrarity.scoring.harmonic_mean import HarmonicMeanRarity
+from openrarity.scoring.sum import SumRarity
 
 OS_COLLECTION_URL = "https://api.opensea.io/api/v1/collection/{slug}"
 OS_ASSETS_URL = "https://api.opensea.io/api/v1/assets"
@@ -26,6 +32,19 @@ HEADERS = {
     "Accept": "application/json",
     "X-API-KEY": "",
 }
+
+
+harmonic = HarmonicMeanRarity()
+arithmetic = ArithmeticMeanRarity()
+geometric = GeometricMeanRarity()
+sum = SumRarity()
+
+RankScore = tuple[int, float]
+ScoredTokens = dict[int, float]
+RankedTokens = dict[int, RankScore]
+OpenRarityScores = tuple[
+    RankedTokens, RankedTokens, RankedTokens, RankedTokens
+]
 
 
 def get_collection_metadata(
@@ -45,10 +64,6 @@ def get_collection_metadata(
     Collection
         collection abstraction
 
-    Raises
-    ------
-    Exception
-        _description_
     """
     collection_response = requests.get(
         OS_COLLECTION_URL.format(slug=collection_slug)
@@ -87,7 +102,9 @@ def get_collection_metadata(
     return collection
 
 
-def get_assets(collection: Collection) -> list[Token]:
+def get_assets(
+    collection: Collection, resolve_remote_rarity: bool = True
+) -> list[Token]:
     """Resolves assets through OpenSea API asset endpoint.
         Augment metadata with Gem rankings from Gem, RaritySniper and TraitSniper.
 
@@ -95,6 +112,9 @@ def get_assets(collection: Collection) -> list[Token]:
     ----------
     collection : Collection
         collection
+    resolve_remote_rarity : bool
+        True if we need to resolve rarity ranks from
+        external providers , False if not
 
     Returns
     -------
@@ -105,7 +125,7 @@ def get_assets(collection: Collection) -> list[Token]:
     batch_id = 0
     # TODO impreso@ handle the case with collections where mod 30 !=0
     range_end = int(collection.token_total_supply / 30)
-    # range_end = 1
+    # range_end = 4
     tokens: list[Token] = []
 
     t1_start = process_time()
@@ -169,9 +189,11 @@ def get_assets(collection: Collection) -> list[Token]:
 
             augment_tokens_batch.append(token_obj)
 
-        rarity_tokens = rarity_resolver.resolve_rank(
-            collection=collection, tokens=augment_tokens_batch
-        )
+        rarity_tokens = augment_tokens_batch
+        if resolve_remote_rarity:
+            rarity_tokens = rarity_resolver.resolve_rank(
+                collection=collection, tokens=augment_tokens_batch
+            )
 
         tokens.extend(rarity_tokens)
 
@@ -187,7 +209,7 @@ def get_assets(collection: Collection) -> list[Token]:
     return tokens
 
 
-def resolve_collection_data():
+def resolve_collection_data(resolve_remote_rarity: bool):
     """Resolves onchain collection information through OpenSea API"""
 
     golden_collections = pkgutil.get_data(
@@ -202,11 +224,176 @@ def resolve_collection_data():
             collection = get_collection_metadata(
                 collection_slug=slug, tokens=tokens
             )
-            tokens.extend(get_assets(collection=collection))
+            tokens.extend(
+                get_assets(
+                    collection=collection,
+                    resolve_remote_rarity=resolve_remote_rarity,
+                )
+            )
+
+            open_rarity_ranks = resolve_open_rarity_score(
+                collection=collection, normalized=True
+            )
+
+            augment_with_or_rank(
+                collection=collection, or_ranks=open_rarity_ranks
+            )
 
             collection_to_csv(collection=collection)
+
     else:
         raise Exception("Can't resolve golden collections data file.")
+
+
+def augment_with_or_rank(collection: Collection, or_ranks: OpenRarityScores):
+    """Augments collection tokens with ranks computed by OpenRarity scorrer
+
+    Parameters
+    ----------
+    collection : Collection
+        collection
+    or_ranks : OpenRarityScores
+        ranks
+    """
+
+    arithm = or_ranks[0]
+    geom = or_ranks[1]
+    harm = or_ranks[2]
+    sum = or_ranks[3]
+
+    for token in collection.tokens:
+        try:
+            token.ranks.append(
+                (RankProvider.OR_ARITHMETIC, arithm[token.token_id][0])
+            )
+            token.ranks.append(
+                (RankProvider.OR_GEOMETRIC, geom[token.token_id][0])
+            )
+            token.ranks.append(
+                (RankProvider.OR_HARMONIC, harm[token.token_id][0])
+            )
+            token.ranks.append((RankProvider.OR_SUM, sum[token.token_id][0]))
+        except Exception:
+            logger.exception(
+                "Error occured during OR rank resolution for token {id}".format(
+                    id=token.token_id
+                )
+            )
+
+
+def extract_rank(scores: ScoredTokens) -> RankedTokens:
+    """Sorts dictionary by float score and extract rank according to the score
+
+    Parameters
+    ----------
+    scores : dict
+        dictionary of scores with token_id to score mapping
+
+    Returns
+    -------
+    dict[int, RankScore]
+        dictionary of token to rank, score pair
+    """
+    srt = dict(sorted(scores.items(), key=lambda x: x[1], reverse=True))  # type: ignore
+
+    res = {}
+    for index, (key, value) in enumerate(srt.items()):
+        # upsacle by 1 position since index start from 0
+        res[key] = (index + 1, value)
+
+    return res
+
+
+def resolve_open_rarity_score(
+    collection: Collection, normalized: bool
+) -> OpenRarityScores:
+    """Resolve scores from all scorrers with trait_normalization
+
+    Parameters
+    ----------
+    collection : Collection
+        collection
+
+    """
+    t1_start = process_time()
+
+    arthimetic_dict = {}
+    geometric_dict = {}
+    harmonic_dict = {}
+    sum_dict = {}
+
+    logger.debug("OpenRarity scorring")
+
+    for token in collection.tokens:
+        try:
+            harmonic_dict[token.token_id] = harmonic.score_token(
+                token=token, normalized=normalized
+            )
+            arthimetic_dict[token.token_id] = arithmetic.score_token(
+                token=token, normalized=normalized
+            )
+            geometric_dict[token.token_id] = geometric.score_token(
+                token=token, normalized=normalized
+            )
+            sum_dict[token.token_id] = sum.score_token(
+                token=token, normalized=normalized
+            )
+
+        except Exception:
+            logger.exception(
+                "Can't score token {id} with OpenRarity".format(
+                    id=token.token_id
+                )
+            )
+
+    arthimetic_dict = extract_rank(arthimetic_dict)
+    harmonic_dict = extract_rank(harmonic_dict)
+    geometric_dict = extract_rank(geometric_dict)
+    sum_dict = extract_rank(sum_dict)
+
+    t1_stop = process_time()
+    logger.debug(
+        "OpenRarity scores resolution in seconds {seconds}".format(
+            seconds=t1_stop - t1_start
+        )
+    )
+
+    return (arthimetic_dict, geometric_dict, harmonic_dict, sum_dict)
+
+
+def __get_provider_rank(provider: RankProvider, token: Token) -> int | None:
+    """Get rank for the particular provider
+
+    Parameters
+    ----------
+    provider : RankProvider
+        rank provider
+    token : Token
+        token
+    """
+    rank = list(filter(lambda rank: rank[0] == provider, token.ranks))
+    return rank[0][1] if len(rank) > 0 else None
+
+
+def __rank_diff(rank1: int | None, rank2: int | None) -> int | None:
+    """Function that computes the rank difference
+
+    Parameters
+    ----------
+    rank1 : int | None
+        rank of the asset
+    rank2 : int | None
+        rank of the asset
+
+    Returns
+    -------
+    int | None
+        absolute difference of ranks for the specific asset
+    """
+    if not rank1 or not rank2:
+        return None
+
+    return abs(rank1 - rank2)
 
 
 def collection_to_csv(collection: Collection):
@@ -221,41 +408,88 @@ def collection_to_csv(collection: Collection):
         "testset_{slug}.csv".format(slug=collection.slug),
         "w",
     )
-    header = ["slug", "token_id", "traits_sniper", "rarity_sniffer"]
+    header = [
+        "slug",
+        "token_id",
+        "traits_sniper",
+        "rarity_sniffer",
+        "arithmetic",
+        "geometric",
+        "harmonic",
+        "sum",
+        "traits_sniper_rarity_sniffer_diff",
+        "traits_sniper_arithm_diff",
+        "traits_sniper_geom_diff",
+        "traits_sniper_harmo_diff",
+        "traits_sniper_sum_diff",
+        "rarity_sniffer_arithm_diff",
+        "rarity_sniffer_geom_diff",
+        "rarity_sniffer_harmo_diff",
+        "rarity_sniffer_sum_diff",
+    ]
 
     writer = csv.writer(testset)
     writer.writerow(header)
 
     for token in collection.tokens:
         row = []
-
-        traits_sniper_rank = list(
-            filter(
-                lambda rank: rank[0] == RankProvider.TRAITS_SNIPER, token.ranks
-            )
+        traits_sniper_rank = __get_provider_rank(
+            provider=RankProvider.TRAITS_SNIPER, token=token
         )
 
-        rarity_sniffer_rank = list(
-            filter(
-                lambda rank: rank[0] == RankProvider.RARITY_SNIFFER,
-                token.ranks,
-            )
+        rarity_sniffer_rank = __get_provider_rank(
+            provider=RankProvider.RARITY_SNIFFER, token=token
+        )
+
+        or_arithmetic_rank = __get_provider_rank(
+            provider=RankProvider.OR_ARITHMETIC, token=token
+        )
+
+        or_geometric_rank = __get_provider_rank(
+            provider=RankProvider.OR_GEOMETRIC, token=token
+        )
+
+        or_harmonic_rank = __get_provider_rank(
+            provider=RankProvider.OR_HARMONIC, token=token
+        )
+        or_sum_rank = __get_provider_rank(
+            provider=RankProvider.OR_SUM, token=token
         )
 
         row.append(collection.slug)
         row.append(token.token_id)
-        row.append(
-            traits_sniper_rank[0][1] if len(traits_sniper_rank) > 0 else None
-        )
-        row.append(
-            rarity_sniffer_rank[0][1] if len(rarity_sniffer_rank) > 0 else None
-        )
+        row.append(traits_sniper_rank)
+        row.append(rarity_sniffer_rank)
+        row.append(or_arithmetic_rank)
+        row.append(or_geometric_rank)
+        row.append(or_harmonic_rank)
+        row.append(or_sum_rank)
+        row.append(__rank_diff(traits_sniper_rank, rarity_sniffer_rank))
+        row.append(__rank_diff(traits_sniper_rank, or_arithmetic_rank))
+        row.append(__rank_diff(traits_sniper_rank, or_geometric_rank))
+        row.append(__rank_diff(traits_sniper_rank, or_harmonic_rank))
+        row.append(__rank_diff(traits_sniper_rank, or_sum_rank))
+        row.append(__rank_diff(rarity_sniffer_rank, or_arithmetic_rank))
+        row.append(__rank_diff(rarity_sniffer_rank, or_geometric_rank))
+        row.append(__rank_diff(rarity_sniffer_rank, or_harmonic_rank))
+        row.append(__rank_diff(rarity_sniffer_rank, or_sum_rank))
 
         writer.writerow(row)
 
 
 if __name__ == "__main__":
-    logger = logging.getLogger("testset_resolver")
+    """Script to resolve external datasets and compute rarity scores
+    on test collections. Data resolved from opensea api
+
+    command to run: python -m  openrarity.resolver.testset_resolver external
+    """
+
+    resolve_remote_rarity = False
+    print(argv)
+    if len(argv) > 1:
+        resolve_remote_rarity = True
+    logger = logging.getLogger("open_rarity_logger")
+
     logger.setLevel(logging.DEBUG)
 
     fh = logging.FileHandler(strftime("testsetresolverlog_%H_%M_%m_%d_%Y.log"))
@@ -263,4 +497,8 @@ if __name__ == "__main__":
 
     logger.addHandler(fh)
 
-    resolve_collection_data()
+    logger.debug(
+        "Resolving external rarity {flag}".format(flag=resolve_remote_rarity)
+    )
+
+    resolve_collection_data(resolve_remote_rarity)

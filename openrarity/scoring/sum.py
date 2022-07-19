@@ -5,14 +5,12 @@ from openrarity.models.token import Token
 from openrarity.scoring.utils import get_attr_probs_weights
 
 
-class HarmonicMeanRarity(BaseRarityFormula):
-    """harmonic mean of a token's n trait probabilities"""
+class SumRarity(BaseRarityFormula):
+    """sum of n trait probabilities"""
 
     def score_token(self, token: Token, normalized: bool = True) -> float:
         """calculate the score for a single token"""
 
-        attr_probs, attr_weights = get_attr_probs_weights(token, normalized)
+        attr_probs, _ = get_attr_probs_weights(token, normalized)
 
-        return (
-            np.average(np.reciprocal(attr_probs), weights=attr_weights) ** -1
-        )
+        return np.sum(attr_probs)

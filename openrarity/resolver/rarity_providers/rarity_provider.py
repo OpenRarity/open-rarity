@@ -10,7 +10,7 @@ RARITY_SNIFFER_API_URL = "https://raritysniffer.com/api/index.php"
 USER_AGENT = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"  # noqa: E501
 }
-logger = logging.getLogger("testset_resolver")
+logger = logging.getLogger("open_rarity_logger")
 
 
 class ExternalRarityProvider:

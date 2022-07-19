@@ -8,7 +8,7 @@ from openrarity.tests.utils import (
 import numpy as np
 
 
-class TestClass:
+class TestScorring:
     def test_geometric_mean(self) -> None:
         """test the geometric mean implementation of score_token"""
 

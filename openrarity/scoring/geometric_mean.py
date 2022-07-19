@@ -1,8 +1,8 @@
 import scipy.stats
-from base import BaseRarityFormula
-from utils import get_attr_probs_weights
+from openrarity.scoring.base import BaseRarityFormula
 
 from openrarity.models.token import Token
+from openrarity.scoring.utils import get_attr_probs_weights
 
 
 class GeometricMeanRarity(BaseRarityFormula):
@@ -11,7 +11,7 @@ class GeometricMeanRarity(BaseRarityFormula):
     - equivalent to the nth power of "statistical rarity"
     """
 
-    def score_token(self, token: Token, normalized: bool = False) -> float:
+    def score_token(self, token: Token, normalized: bool = True) -> float:
         """calculate the score for a single token"""
 
         attr_probs, attr_weights = get_attr_probs_weights(token, normalized)
