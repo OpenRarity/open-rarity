@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import cached_property
 
 from openrarity.models.chain import Chain
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Hashable
 
 from openrarity.models.token_metadata import StringAttributeValue
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class Collection:
+class Collection(Hashable):
     """Class represents collection of tokens
 
     Attributes

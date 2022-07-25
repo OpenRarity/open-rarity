@@ -1,4 +1,5 @@
 import numpy as np
+from openrarity.models.collection import Collection
 from openrarity.models.token import Token
 from openrarity.models.token_metadata import StringAttributeValue
 from openrarity.scoring.base import BaseRarityFormula
@@ -18,12 +19,24 @@ class InformationContentRarity(BaseRarityFormula):
         # information content.
         scores, _ = get_attr_probs_weights(token, normalized)
 
+        collection_probabilities = self.get_collection_probabilities(
+            collection=token.collection
+        )
+        # Scores are already inverted probabilities ,
+        # We need to take sum of logarithms to estimate
+        # information content.
+        information_content = sum(np.log2(scores))
+        collection_entropy = scipy.stats.entropy(collection_probabilities)
+
+        return information_content / collection_entropy
+
+    def get_collection_probabilities(self, collection: Collection):
         collection_attributes: dict[
             str, list[StringAttributeValue]
-        ] = token.collection.extract_collection_attributes
+        ] = collection.extract_collection_attributes
         collection_null_attributes: dict[
             str, StringAttributeValue
-        ] = token.collection.extract_null_attributes
+        ] = collection.extract_null_attributes
 
         # collect all probabilities into array
         collection_probabilities = []
@@ -34,15 +47,7 @@ class InformationContentRarity(BaseRarityFormula):
 
             collection_probabilities.extend(
                 [
-                    value.count / token.collection.token_total_supply
+                    value.count / collection.token_total_supply
                     for value in collection_attributes[value]
                 ]
             )
-
-        # Scores are already inverted probabilities ,
-        # We need to take sum of logarithms to estimate
-        # information content.
-        information_content = sum(np.log2(scores))
-        collection_entropy = scipy.stats.entropy(collection_probabilities)
-
-        return information_content / collection_entropy
