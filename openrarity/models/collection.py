@@ -1,3 +1,4 @@
+from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
 
@@ -80,3 +81,33 @@ class Collection:
                 )
 
         return result
+
+    @cached_property
+    def extract_collection_attributes(
+        self,
+    ) -> dict[str, list[StringAttributeValue]]:
+        """Extracts the map of collection traits with it's respective counts
+
+        Returns
+        -------
+        dict[str, StringAttributeValue]
+            dict of  attribute name to count of assets missing the attribute
+        """
+
+        collection_traits: dict[str, list[StringAttributeValue]] = defaultdict(
+            list
+        )
+
+        if self.attributes_count:
+
+            for trait_name, trait_value_dict in self.attributes_count.items():
+
+                for trait_value, trait_count in trait_value_dict.items():
+
+                    collection_traits[trait_name].append(
+                        StringAttributeValue(
+                            trait_name, trait_value, trait_count
+                        )
+                    )
+
+        return collection_traits
