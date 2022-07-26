@@ -71,7 +71,7 @@ class Collection(Hashable):
                 # attributes and subtract it from total supply.
                 # This number divided by total supply is a
                 # probability of Null attribute
-                for _, count in trait_values.items():
+                for count in trait_values.values():
                     total_trait_count = total_trait_count + count
 
                 # compute null trait probability

@@ -10,8 +10,33 @@ logger = logging.getLogger("open_rarity_logger")
 
 
 class InformationContentRarity(BaseRarityFormula):
-    """Computes rarity of each token
-    based on the idea of entropy and information content"""
+    """Rarity describes the information-theoretic "rarity" of a Collection.
+    The concept of "rarity" can be considered as a measure of "surprise" at the
+    occurrence of a particular token's properties, within the context of the
+    Collection from which it is derived. Self-information is a measure of such
+    surprise, and information entropy a measure of the expected value of
+    self-information across a distribution (i.e. across a Collection).
+
+    It is trivial to "stuff" a Collection with extra information by merely adding
+    additional properties to all tokens. This is reflected in the Entropy field,
+    measured in bits—all else held equal, a Collection with more token properties
+    will have higher Entropy. However, this information bloat is carried by the
+    tokens themselves, so their individual information-content grows in line with
+    Collection-wide Entropy. The Scores are therefore scaled down by the Entropy
+    to provide unitless "relative surprise", which can be safely compared between
+    Collections.
+
+    Rarity computes rarity of each token in the Collection based on information
+    entropy. Every TraitType is considered as a categorical probability
+    distribution with each TraitValue having an associated probability and hence
+    information content. The rarity of a particular token is the sum of
+    information content carried by each of its Attributes, divided by the entropy
+    of the Collection as a whole (see the Rarity struct for rationale).
+
+    Notably, the lack of a TraitType is considered as a null-Value Attribute as
+    the absence across the majority of a Collection implies rarity in those
+    tokens that do carry the TraitType.
+    """
 
     def score_token(self, token: Token, normalized: bool = True) -> float:
         """calculate the score for a single token"""
@@ -38,7 +63,7 @@ class InformationContentRarity(BaseRarityFormula):
         # Scores are already inverted probabilities ,
         # We need to take sum of logarithms to estimate
         # information content.
-        information_content = -sum(np.log2(np.reciprocal(scores)))
+        information_content = -np.sum(np.log2(np.reciprocal(scores)))
 
         # compute entropy for the whole collection
         collection_entropy = -np.dot(
