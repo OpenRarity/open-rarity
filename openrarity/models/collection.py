@@ -56,7 +56,7 @@ class Collection(Hashable):
         Returns
         -------
         dict[str, StringAttributeValue]
-            dict of  attribute name to count of assets missing the attribute
+            dict of attribute name to count of assets without the attribute
         """
         result = {}
 
@@ -105,11 +105,8 @@ class Collection(Hashable):
         )
 
         if self.attributes_count:
-
             for trait_name, trait_value_dict in self.attributes_count.items():
-
                 for trait_value, trait_count in trait_value_dict.items():
-
                     collection_traits[trait_name].append(
                         StringAttributeValue(
                             trait_name, trait_value, trait_count
