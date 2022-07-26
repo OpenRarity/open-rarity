@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 from openrarity.models.collection import Collection
 from openrarity.models.token import Token
@@ -6,9 +7,11 @@ from openrarity.scoring.base import BaseRarityFormula
 from openrarity.scoring.utils import get_attr_probs_weights
 import scipy
 
+logger = logging.getLogger("open_rarity_logger")
+
 
 class InformationContentRarity(BaseRarityFormula):
-    """This formula computes rarity of each token
+    """Computes rarity of each token
     based on the idea of entropy and information content"""
 
     def score_token(self, token: Token, normalized: bool = True) -> float:
@@ -22,11 +25,27 @@ class InformationContentRarity(BaseRarityFormula):
         collection_probabilities = self.get_collection_probabilities(
             collection=token.collection
         )
+        logger.debug(
+            "Collection_probabilities {probs}".format(
+                probs=collection_probabilities
+            )
+        )
+
         # Scores are already inverted probabilities ,
         # We need to take sum of logarithms to estimate
         # information content.
         information_content = sum(np.log2(scores))
         collection_entropy = scipy.stats.entropy(collection_probabilities)
+
+        logger.debug(
+            "Information content {probs}".format(probs=information_content)
+        )
+
+        logger.debug(
+            "Collection {collection} entropy {probs}".format(
+                collection=token.collection.name, probs=information_content
+            )
+        )
 
         return information_content / collection_entropy
 
@@ -51,3 +70,4 @@ class InformationContentRarity(BaseRarityFormula):
                     for value in collection_attributes[value]
                 ]
             )
+        return collection_probabilities
