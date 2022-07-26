@@ -74,15 +74,21 @@ class Collection(Hashable):
                 for _, count in trait_values.items():
                     total_trait_count = total_trait_count + count
 
-                result[trait_name] = StringAttributeValue(
-                    trait_name,
-                    "Null",
-                    self.token_total_supply - total_trait_count,
+                # compute null trait probability
+                # only if there is a positive number of assets without
+                # this trait
+                assets_without_trait = (
+                    self.token_total_supply - total_trait_count
                 )
+                if assets_without_trait > 0:
+                    result[trait_name] = StringAttributeValue(
+                        trait_name,
+                        "Null",
+                        assets_without_trait,
+                    )
 
         return result
 
-    @cached_property
     def extract_collection_attributes(
         self,
     ) -> dict[str, list[StringAttributeValue]]:

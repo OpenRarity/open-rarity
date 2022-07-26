@@ -102,14 +102,14 @@ class TestScorring:
         information_content_rarity = InformationContentRarity()
 
         uniform_token_to_test = self.uniform_collection.tokens[0]
-        uniform_ic_rarity = 4.24579315
+        uniform_ic_rarity = 1.0
         assert np.round(
             information_content_rarity.score_token(uniform_token_to_test),
             8,
         ) == np.round(uniform_ic_rarity, 8)
 
         onerare_token_to_test = self.onerare_collection.tokens[0]
-        onerare_ic_mean = 4.20697466
+        onerare_ic_mean = 0.99085719
         assert np.round(
             information_content_rarity.score_token(onerare_token_to_test),
             8,

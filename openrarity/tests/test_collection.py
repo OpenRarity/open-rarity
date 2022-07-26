@@ -46,7 +46,7 @@ class TestCollection:
 
     def test_extract_collection_attributes(self):
 
-        assert self.test_collection.extract_collection_attributes == {
+        assert self.test_collection.extract_collection_attributes() == {
             "attribute1": [
                 StringAttributeValue("attribute1", "value1", 20),
                 StringAttributeValue("attribute1", "value2", 30),
@@ -60,6 +60,6 @@ class TestCollection:
     def test_extract_empty_collection_attributes(self):
 
         assert (
-            self.test_no_attributes_collection.extract_collection_attributes
+            self.test_no_attributes_collection.extract_collection_attributes()
             == {}
         )
