@@ -43,6 +43,18 @@ def generate_uniform_rarity_collection(
 
     token_list = []
 
+    collection = Collection(
+        name="Uniform Rarity Collection",
+        slug="uniform_rarity_collection",
+        contract_address="0x0000000000000000000000000000000000000001",
+        creator_address="0x0000000000000000000000000000000000000000",
+        token_standard="ERC721",
+        chain=Chain.ETH,
+        token_total_supply=token_total_supply,
+        tokens=token_list,
+        attributes_count=collection_attributes_count,
+    )
+
     for k in range(token_total_supply):
 
         string_attribute_dict = {}
@@ -58,26 +70,16 @@ def generate_uniform_rarity_collection(
 
         token_list.append(
             Token(
-                token_id=str(k),
+                token_id=k,
                 token_standard="ERC721",
-                collection=None,
+                collection=collection,
                 metadata=TokenMetadata(
                     string_attributes=string_attribute_dict
                 ),
             )
         )
 
-    return Collection(
-        name="Uniform Rarity Collection",
-        slug="uniform_rarity_collection",
-        contract_address="0x0000000000000000000000000000000000000001",
-        creator_address="0x0000000000000000000000000000000000000000",
-        token_standard="ERC721",
-        chain=Chain.ETH,
-        token_total_supply=token_total_supply,
-        tokens=token_list,
-        attributes_count=collection_attributes_count,
-    )
+    return collection
 
 
 def generate_onerare_attributes_count(
@@ -128,6 +130,18 @@ def generate_onerare_rarity_collection(
 
     token_list = []
 
+    collection = Collection(
+        name="One Rare Rarity Collection",
+        slug="onerare_rarity_collection",
+        contract_address="0x0000000000000000000000000000000000000001",
+        creator_address="0x0000000000000000000000000000000000000000",
+        token_standard="ERC721",
+        chain=Chain.ETH,
+        token_total_supply=token_total_supply,
+        tokens=token_list,
+        attributes_count=collection_attributes_count,
+    )
+
     for k in range(token_total_supply):
         string_attribute_dict = {}
 
@@ -162,23 +176,13 @@ def generate_onerare_rarity_collection(
 
         token_list.append(
             Token(
-                token_id=str(k),
+                token_id=k,
                 token_standard="ERC721",
-                collection=None,
+                collection=collection,
                 metadata=TokenMetadata(
                     string_attributes=string_attribute_dict
                 ),
             )
         )
 
-    return Collection(
-        name="One Rare Rarity Collection",
-        slug="onerare_rarity_collection",
-        contract_address="0x0000000000000000000000000000000000000001",
-        creator_address="0x0000000000000000000000000000000000000000",
-        token_standard="ERC721",
-        chain=Chain.ETH,
-        token_total_supply=token_total_supply,
-        tokens=token_list,
-        attributes_count=collection_attributes_count,
-    )
+    return collection

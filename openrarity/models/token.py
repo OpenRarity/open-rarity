@@ -14,6 +14,7 @@ class RankProvider(Enum):
     OR_GEOMETRIC = 4
     OR_HARMONIC = 5
     OR_SUM = 6
+    OR_INFORMATION_CONTENT = 7
 
 
 Rank = tuple[RankProvider, int]

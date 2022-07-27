@@ -23,6 +23,7 @@ from openrarity.scoring.arithmetic_mean import ArithmeticMeanRarity
 from openrarity.scoring.geometric_mean import GeometricMeanRarity
 
 from openrarity.scoring.harmonic_mean import HarmonicMeanRarity
+from openrarity.scoring.information_content import InformationContentRarity
 from openrarity.scoring.sum import SumRarity
 
 OS_COLLECTION_URL = "https://api.opensea.io/api/v1/collection/{slug}"
@@ -38,12 +39,13 @@ harmonic = HarmonicMeanRarity()
 arithmetic = ArithmeticMeanRarity()
 geometric = GeometricMeanRarity()
 sum = SumRarity()
+ic = InformationContentRarity()
 
 RankScore = tuple[int, float]
 ScoredTokens = dict[int, float]
 RankedTokens = dict[int, RankScore]
 OpenRarityScores = tuple[
-    RankedTokens, RankedTokens, RankedTokens, RankedTokens
+    RankedTokens, RankedTokens, RankedTokens, RankedTokens, RankedTokens
 ]
 
 
@@ -260,6 +262,7 @@ def augment_with_or_rank(collection: Collection, or_ranks: OpenRarityScores):
     geom = or_ranks[1]
     harm = or_ranks[2]
     sum = or_ranks[3]
+    ic = or_ranks[4]
 
     for token in collection.tokens:
         try:
@@ -273,6 +276,10 @@ def augment_with_or_rank(collection: Collection, or_ranks: OpenRarityScores):
                 (RankProvider.OR_HARMONIC, harm[token.token_id][0])
             )
             token.ranks.append((RankProvider.OR_SUM, sum[token.token_id][0]))
+            token.ranks.append(
+                (RankProvider.OR_INFORMATION_CONTENT, ic[token.token_id][0])
+            )
+
         except Exception:
             logger.exception(
                 "Error occured during OR rank resolution for token {id}".format(
@@ -321,6 +328,7 @@ def resolve_open_rarity_score(
     geometric_dict = {}
     harmonic_dict = {}
     sum_dict = {}
+    ic_dict = {}
 
     logger.debug("OpenRarity scorring")
 
@@ -338,6 +346,9 @@ def resolve_open_rarity_score(
             sum_dict[token.token_id] = sum.score_token(
                 token=token, normalized=normalized
             )
+            ic_dict[token.token_id] = ic.score_token(
+                token=token, normalized=normalized
+            )
 
         except Exception:
             logger.exception(
@@ -350,6 +361,7 @@ def resolve_open_rarity_score(
     harmonic_dict = extract_rank(harmonic_dict)
     geometric_dict = extract_rank(geometric_dict)
     sum_dict = extract_rank(sum_dict)
+    ic_dict = extract_rank(ic_dict)
 
     t1_stop = process_time()
     logger.debug(
@@ -358,7 +370,7 @@ def resolve_open_rarity_score(
         )
     )
 
-    return (arthimetic_dict, geometric_dict, harmonic_dict, sum_dict)
+    return (arthimetic_dict, geometric_dict, harmonic_dict, sum_dict, ic_dict)
 
 
 def __get_provider_rank(provider: RankProvider, token: Token) -> int | None:
@@ -417,15 +429,18 @@ def collection_to_csv(collection: Collection):
         "geometric",
         "harmonic",
         "sum",
+        "information_content",
         "traits_sniper_rarity_sniffer_diff",
         "traits_sniper_arithm_diff",
         "traits_sniper_geom_diff",
         "traits_sniper_harmo_diff",
         "traits_sniper_sum_diff",
+        "traits_sniper_ic_diff",
         "rarity_sniffer_arithm_diff",
         "rarity_sniffer_geom_diff",
         "rarity_sniffer_harmo_diff",
         "rarity_sniffer_sum_diff",
+        "rarity_sniffer_ic_diff",
     ]
 
     writer = csv.writer(testset)
@@ -455,6 +470,9 @@ def collection_to_csv(collection: Collection):
         or_sum_rank = __get_provider_rank(
             provider=RankProvider.OR_SUM, token=token
         )
+        or_ic_rank = __get_provider_rank(
+            provider=RankProvider.OR_INFORMATION_CONTENT, token=token
+        )
 
         row.append(collection.slug)
         row.append(token.token_id)
@@ -464,15 +482,20 @@ def collection_to_csv(collection: Collection):
         row.append(or_geometric_rank)
         row.append(or_harmonic_rank)
         row.append(or_sum_rank)
+        row.append(or_ic_rank)
+
         row.append(__rank_diff(traits_sniper_rank, rarity_sniffer_rank))
         row.append(__rank_diff(traits_sniper_rank, or_arithmetic_rank))
         row.append(__rank_diff(traits_sniper_rank, or_geometric_rank))
         row.append(__rank_diff(traits_sniper_rank, or_harmonic_rank))
         row.append(__rank_diff(traits_sniper_rank, or_sum_rank))
+        row.append(__rank_diff(traits_sniper_rank, or_ic_rank))
+
         row.append(__rank_diff(rarity_sniffer_rank, or_arithmetic_rank))
         row.append(__rank_diff(rarity_sniffer_rank, or_geometric_rank))
         row.append(__rank_diff(rarity_sniffer_rank, or_harmonic_rank))
         row.append(__rank_diff(rarity_sniffer_rank, or_sum_rank))
+        row.append(__rank_diff(rarity_sniffer_rank, or_ic_rank))
 
         writer.writerow(row)
 
