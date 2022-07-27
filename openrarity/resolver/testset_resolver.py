@@ -127,7 +127,7 @@ def get_assets(
     batch_id = 0
     # TODO impreso@ handle the case with collections where mod 30 !=0
     range_end = int(collection.token_total_supply / 30)
-    # range_end = 4
+    range_end = 4
     tokens: list[Token] = []
 
     t1_start = process_time()
@@ -425,22 +425,30 @@ def collection_to_csv(collection: Collection):
         "token_id",
         "traits_sniper",
         "rarity_sniffer",
+        "rarity_sniper",
         "arithmetic",
         "geometric",
         "harmonic",
         "sum",
         "information_content",
         "traits_sniper_rarity_sniffer_diff",
+        "traits_sniper_rarity_sniper_diff",
         "traits_sniper_arithm_diff",
         "traits_sniper_geom_diff",
         "traits_sniper_harmo_diff",
         "traits_sniper_sum_diff",
         "traits_sniper_ic_diff",
+        "rarity_sniffer_rarity_sniper_diff",
         "rarity_sniffer_arithm_diff",
         "rarity_sniffer_geom_diff",
         "rarity_sniffer_harmo_diff",
         "rarity_sniffer_sum_diff",
         "rarity_sniffer_ic_diff",
+        "rarity_sniper_arithm_diff",
+        "rarity_sniper_geom_diff",
+        "rarity_sniper_harmo_diff",
+        "rarity_sniper_sum_diff",
+        "rarity_sniper_ic_diff",
     ]
 
     writer = csv.writer(testset)
@@ -454,6 +462,10 @@ def collection_to_csv(collection: Collection):
 
         rarity_sniffer_rank = __get_provider_rank(
             provider=RankProvider.RARITY_SNIFFER, token=token
+        )
+
+        rarity_sniper_rank = __get_provider_rank(
+            provider=RankProvider.RARITY_SNIPER, token=token
         )
 
         or_arithmetic_rank = __get_provider_rank(
@@ -478,6 +490,8 @@ def collection_to_csv(collection: Collection):
         row.append(token.token_id)
         row.append(traits_sniper_rank)
         row.append(rarity_sniffer_rank)
+        row.append(rarity_sniper_rank)
+
         row.append(or_arithmetic_rank)
         row.append(or_geometric_rank)
         row.append(or_harmonic_rank)
@@ -485,17 +499,25 @@ def collection_to_csv(collection: Collection):
         row.append(or_ic_rank)
 
         row.append(__rank_diff(traits_sniper_rank, rarity_sniffer_rank))
+        row.append(__rank_diff(traits_sniper_rank, rarity_sniper_rank))
         row.append(__rank_diff(traits_sniper_rank, or_arithmetic_rank))
         row.append(__rank_diff(traits_sniper_rank, or_geometric_rank))
         row.append(__rank_diff(traits_sniper_rank, or_harmonic_rank))
         row.append(__rank_diff(traits_sniper_rank, or_sum_rank))
         row.append(__rank_diff(traits_sniper_rank, or_ic_rank))
 
+        row.append(__rank_diff(rarity_sniffer_rank, rarity_sniper_rank))
         row.append(__rank_diff(rarity_sniffer_rank, or_arithmetic_rank))
         row.append(__rank_diff(rarity_sniffer_rank, or_geometric_rank))
         row.append(__rank_diff(rarity_sniffer_rank, or_harmonic_rank))
         row.append(__rank_diff(rarity_sniffer_rank, or_sum_rank))
         row.append(__rank_diff(rarity_sniffer_rank, or_ic_rank))
+
+        row.append(__rank_diff(rarity_sniper_rank, or_arithmetic_rank))
+        row.append(__rank_diff(rarity_sniper_rank, or_geometric_rank))
+        row.append(__rank_diff(rarity_sniper_rank, or_harmonic_rank))
+        row.append(__rank_diff(rarity_sniper_rank, or_sum_rank))
+        row.append(__rank_diff(rarity_sniper_rank, or_ic_rank))
 
         writer.writerow(row)
 

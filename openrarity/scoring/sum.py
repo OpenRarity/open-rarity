@@ -11,6 +11,6 @@ class SumRarity(BaseRarityFormula):
     def score_token(self, token: Token, normalized: bool = True) -> float:
         """calculate the score for a single token"""
 
-        attr_probs, _ = get_attr_probs_weights(token, normalized)
+        attr_probs, weights = get_attr_probs_weights(token, normalized)
 
-        return np.sum(attr_probs)
+        return np.dot(attr_probs, weights)

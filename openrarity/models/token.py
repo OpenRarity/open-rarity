@@ -9,12 +9,13 @@ class RankProvider(Enum):
     # external ranks
     TRAITS_SNIPER = 1
     RARITY_SNIFFER = 2
+    RARITY_SNIPER = 3
     # open rarity scorring
-    OR_ARITHMETIC = 3
-    OR_GEOMETRIC = 4
-    OR_HARMONIC = 5
-    OR_SUM = 6
-    OR_INFORMATION_CONTENT = 7
+    OR_ARITHMETIC = 4
+    OR_GEOMETRIC = 5
+    OR_HARMONIC = 6
+    OR_SUM = 7
+    OR_INFORMATION_CONTENT = 8
 
 
 Rank = tuple[RankProvider, int]
