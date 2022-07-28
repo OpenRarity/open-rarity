@@ -127,7 +127,7 @@ def get_assets(
     batch_id = 0
     # TODO impreso@ handle the case with collections where mod 30 !=0
     range_end = int(collection.token_total_supply / 30)
-    range_end = 4
+    # range_end = 4
     tokens: list[Token] = []
 
     t1_start = process_time()
