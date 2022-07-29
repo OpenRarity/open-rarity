@@ -1,39 +1,26 @@
-from dataclasses import dataclass, field
-from enum import Enum
+from dataclasses import dataclass
 
 from openrarity.models.token_metadata import TokenMetadata
-from openrarity.models.collection import Collection
-
-
-class RankProvider(Enum):
-    # external ranks
-    TRAITS_SNIPER = 1
-    RARITY_SNIFFER = 2
-    # open rarity scorring
-    OR_ARITHMETIC = 3
-    OR_GEOMETRIC = 4
-    OR_HARMONIC = 5
-    OR_SUM = 6
-    OR_INFORMATION_CONTENT = 7
-
-
-Rank = tuple[RankProvider, int]
-
+from openrarity.models.token_identifier import TokenIdentifier
+from openrarity.models.token_standard import TokenStandard
 
 @dataclass
 class Token:
-    """Class represents Token class
+    """Class represents a token on the blockchain.
+    Examples of these are non-fungible tokens, or semi-fungible tokens.
 
     Attributes
     ----------
-    token_id : int
-        id of the token
-    token_standard : str
+    token_identifier : TokenIdentifier
+        data representing how the token is identified, which may be based
+        on the token_standard or chain it lives on.
+    token_standard : TokenStandard
         name of token standard (e.g. EIP-721 or EIP-1155)
     """
 
-    token_id: int
-    token_standard: str
-    collection: Collection
+    token_identifier: TokenIdentifier
+    token_standard: TokenStandard
     metadata: TokenMetadata
-    ranks: list[Rank] = field(default_factory=list)
+
+    def __str(self):
+        return f"Token[{self.token_identifier}]"
