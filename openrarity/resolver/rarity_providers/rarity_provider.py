@@ -7,6 +7,10 @@ from openrarity.models.token import Rank, RankProvider, Token
 
 TRAIT_SNIPER_URL = "https://api.traitsniper.com/api/projects/{slug}/nfts"
 RARITY_SNIFFER_API_URL = "https://raritysniffer.com/api/index.php"
+RARITY_SNIPER_API_URL = (
+    "https://api.raritysniper.com/public/collection/{slug}/id/{token_id}"
+)
+
 USER_AGENT = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"  # noqa: E501
 }
@@ -51,9 +55,7 @@ class ExternalRarityProvider:
                     "token_id": token.token_id,
                 }
 
-                slug = collection.slug.replace("-nft", "")
-
-                url = TRAIT_SNIPER_URL.format(slug=slug)
+                url = TRAIT_SNIPER_URL.format(slug=collection.slug)
 
                 logger.debug("{url}".format(url=url))
 
@@ -186,6 +188,80 @@ class ExternalRarityProvider:
 
         return tokens
 
+    def __resolver_rarity_sniper(
+        self, collection: Collection, tokens: list[Token]
+    ) -> list[Token]:
+        """Resolves the rarity from the list
+            of tokens from RaritySniper
+
+        Parameters
+        ----------
+        collection : Collection
+            collection
+        tokens : list[Token]
+            batch of tokens to resolve
+
+        Returns
+        -------
+        list[Token]
+            augmented tokens with trait_sniper rank
+        """
+        logger.debug("Resolving trait sniper rarity")
+
+        for token in tokens:
+            try:
+                logger.debug(
+                    "Resolving rarity sniper rank for token_id {id}".format(
+                        id=token.token_id
+                    )
+                )
+
+                # custom fixes to normalize slug name
+                # used in rarity sniper
+                slug = collection.slug.replace("-nft", "")
+                slug = slug.replace("-official", "")
+                slug = slug.replace("proof-", "")
+                slug = slug.replace("wtf", "")
+                slug = slug.replace("invisiblefriends", "invisible-friends")
+                slug = slug.replace(
+                    "boredapeyachtclub", "bored-ape-yacht-club"
+                )
+
+                url = RARITY_SNIPER_API_URL.format(
+                    slug=slug, token_id=token.token_id
+                )
+
+                logger.debug("{url}".format(url=url))
+
+                response = requests.request("GET", url, headers=USER_AGENT)
+
+                if response.status_code != 200:
+                    logger.debug(
+                        "Failed to resolve token_ids Rarity Sniper.\
+                        Status {code} Reason {resp}".format(
+                            resp=response.json(), code=response.reason
+                        )
+                    )
+                    return tokens
+
+                rank = response.json()["rank"]
+
+                token_rank: Rank = (
+                    RankProvider.RARITY_SNIPER,
+                    rank,
+                )
+
+                logger.debug(
+                    "Resolved rarity rank {rank}".format(rank=token_rank)
+                )
+
+                token.ranks.append(token_rank)
+
+            except Exception:
+                logger.exception("Failed to resolve token_ids Rarity Sniper")
+
+        return tokens
+
     def resolve_rank(
         self,
         collection: Collection,
@@ -214,10 +290,15 @@ class ExternalRarityProvider:
             collection=collection, tokens=tokens
         )
 
+        # resolve ranks from Rrity Sniper
+        rarity_sniper_tokens = self.__resolver_rarity_sniper(
+            collection=collection, tokens=rarity_sniffer_tokens
+        )
+
         # resolve ranks from Rarity Sniper
         augmented_tokens_final.extend(
             self.__resolver_trait_sniper(
-                collection=collection, tokens=rarity_sniffer_tokens
+                collection=collection, tokens=rarity_sniper_tokens
             )
         )
 
