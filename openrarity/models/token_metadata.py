@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 
 AttributeName = str
+AttributeValue = str | float
 
 
 @dataclass
