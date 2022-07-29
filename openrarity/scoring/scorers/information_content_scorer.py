@@ -3,13 +3,13 @@ import numpy as np
 from openrarity.models.collection import Collection
 from openrarity.models.token import Token
 from openrarity.models.token_metadata import StringAttributeValue
-from openrarity.scoring.base import BaseRarityFormula
+from openrarity.scoring.scorer import Scorer
 from openrarity.scoring.utils import get_attr_probs_weights
 
 logger = logging.getLogger("open_rarity_logger")
 
 
-class InformationContentRarity(BaseRarityFormula):
+class InformationContentRarityScorer(Scorer):
     """Rarity describes the information-theoretic "rarity" of a Collection.
     The concept of "rarity" can be considered as a measure of "surprise" at the
     occurrence of a particular token's properties, within the context of the
@@ -38,27 +38,19 @@ class InformationContentRarity(BaseRarityFormula):
     tokens that do carry the TraitType.
     """
 
-    def score_token(self, token: Token, normalized: bool = True) -> float:
+    def score_token(self, collection: Collection, token: Token, normalized: bool = True) -> float:
         """calculate the score for a single token"""
 
-        logger.debug(
-            "Computing InformationContent for token {id}".format(
-                id=token.token_id
-            )
-        )
+        logger.debug(f"Computing InformationContent for token {token}")
         # Scores are already inverted probabilities ,
         # We need to take sum of logarithms to estimate
         # information content.
-        scores, _ = get_attr_probs_weights(token, normalized)
+        scores, _ = get_attr_probs_weights(collection, token, normalized)
 
         collection_probabilities = self.get_collection_probabilities(
-            collection=token.collection
+            collection=collection
         )
-        logger.debug(
-            "Collection_probabilities {probs}".format(
-                probs=collection_probabilities,
-            )
-        )
+        logger.debug(f"Collection_probabilities {collection_probabilities}")
 
         # Scores are already inverted probabilities ,
         # We need to take sum of logarithms to estimate
@@ -76,7 +68,7 @@ class InformationContentRarity(BaseRarityFormula):
 
         logger.debug(
             "Collection {collection} entropy {probs}".format(
-                collection=token.collection.name, probs=collection_entropy
+                collection=collection.name, probs=collection_entropy
             )
         )
 
