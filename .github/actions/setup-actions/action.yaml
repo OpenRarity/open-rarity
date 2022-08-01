@@ -1,0 +1,28 @@
+name: "Setup Python"
+description: "Setup Python using Poetry, install dependencies, and properly caches environment between re-runs"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v3
+      with:
+        python-version: "3.10.3"
+
+    - name: Load cached $HOME/.local
+      uses: actions/cache@v3
+      with:
+        path: ~/.local
+        key: dotlocal-${{"{{"}} runner.os {{"}}"}}-${{"{{"}} hashFiles('.github/actions/setup-python/action.yml') {{"}}"}}
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{"{{"}} runner.os {{"}}"}}-${{"{{"}} hashFiles('poetry.lock') {{"}}"}}-${{"{{"}} hashFiles('.github/actions/setup-python/action.yml') {{"}}"}}

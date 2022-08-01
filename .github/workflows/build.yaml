@@ -1,0 +1,34 @@
+name: Build
+on: [push]
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
+
+      - name: Code Formatting Check
+        run: poetry run black . --check
+
+  unit-tests:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
+
+      - name: Unit tests
+        run: poetry run pytest
