@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Setup Python
-        uses: ./.github/actions/setup-python
+        uses: ./.github/actions/setup-actions
 
       - name: Code Formatting Check
         run: poetry run black . --check
