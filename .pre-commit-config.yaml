@@ -24,11 +24,10 @@ repos:
     hooks:
       - id: flake8
         additional_dependencies: [flake8-bugbear, pep8-naming]
-  # Check static types with mypy
-  # TODO: impreso@ enable once we fix requests library registration bug
-  # - repo: https://github.com/pre-commit/mirrors-mypy
-  #   rev: v0.900
-  #   hooks:
-  #     - id: mypy
-  #       types: [python]
-  #       verbose: true
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.900
+    hooks:
+      - id: mypy
+        types: [python]
+        verbose: true

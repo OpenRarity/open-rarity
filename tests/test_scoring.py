@@ -2,7 +2,7 @@ from openrarity.scoring.geometric_mean import GeometricMeanRarity
 from openrarity.scoring.arithmetic_mean import ArithmeticMeanRarity
 from openrarity.scoring.harmonic_mean import HarmonicMeanRarity
 from openrarity.scoring.information_content import InformationContentRarity
-from openrarity.tests.test_utils import (
+from tests.test_utils import (
     generate_uniform_rarity_collection,
     generate_onerare_rarity_collection,
 )
