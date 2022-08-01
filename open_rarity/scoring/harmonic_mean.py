@@ -1,9 +1,9 @@
 import logging
 import numpy as np
-from openrarity.scoring.base import BaseRarityFormula
+from open_rarity.scoring.base import BaseRarityFormula
 
-from openrarity.models.token import Token
-from openrarity.scoring.utils import get_attr_probs_weights
+from open_rarity.models.token import Token
+from open_rarity.scoring.utils import get_attr_probs_weights
 
 logger = logging.getLogger("open_rarity_logger")
 
