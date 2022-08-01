@@ -48,6 +48,9 @@ class Collection(Hashable):
     tokens: list["Token"]
     attributes_count: dict[str, dict[str, int]]
 
+    def __hash__(self):
+        return hash(self.name)
+
     @cached_property
     def extract_null_attributes(self) -> dict[str, StringAttributeValue]:
         """Compute probabilities of Null attributes.

@@ -3,6 +3,7 @@ import json
 import pkgutil
 from sys import argv
 from time import process_time
+from typing import Optional
 
 import requests
 
@@ -373,7 +374,7 @@ def resolve_open_rarity_score(
     return (arthimetic_dict, geometric_dict, harmonic_dict, sum_dict, ic_dict)
 
 
-def __get_provider_rank(provider: RankProvider, token: Token) -> int | None:
+def __get_provider_rank(provider: RankProvider, token: Token) -> Optional[int]:
     """Get rank for the particular provider
 
     Parameters
@@ -387,7 +388,7 @@ def __get_provider_rank(provider: RankProvider, token: Token) -> int | None:
     return rank[0][1] if len(rank) > 0 else None
 
 
-def __rank_diff(rank1: int | None, rank2: int | None) -> int | None:
+def __rank_diff(rank1: Optional[int], rank2: Optional[int]) -> Optional[int]:
     """Function that computes the rank difference
 
     Parameters
