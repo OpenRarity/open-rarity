@@ -1,11 +1,11 @@
-from openrarity.models.token import Token
-from openrarity.models.token_metadata import (
+from open_rarity.models.token import Token
+from open_rarity.models.token_metadata import (
     TokenMetadata,
     StringAttributeValue,
     AttributeName,
 )
-from openrarity.models.collection import Collection
-from openrarity.models.chain import Chain
+from open_rarity.models.collection import Collection
+from open_rarity.models.chain import Chain
 
 
 def generate_uniform_attributes_count(
