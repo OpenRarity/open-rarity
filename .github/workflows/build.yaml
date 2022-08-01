@@ -15,7 +15,7 @@ jobs:
         uses: ./.github/actions/setup-actions
 
       - name: Code Formatting Check
-        run: poetry run black . --check
+        run: poetry run python black . --check
 
   unit-tests:
     runs-on: ubuntu-latest
@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Setup Python
-        uses: ./.github/actions/setup-python
+        uses: ./.github/actions/setup-actions
 
       - name: Unit tests
-        run: poetry run pytest
+        run: poetry run python pytest
