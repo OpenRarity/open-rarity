@@ -1,0 +1,11 @@
+name: Code Formatting
+
+on: [push]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/setup-actions
+      - uses: psf/black@stable
