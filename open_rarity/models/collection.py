@@ -2,14 +2,14 @@ from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
 
-from openrarity.models.chain import Chain
+from open_rarity.models.chain import Chain
 from typing import TYPE_CHECKING, Hashable
 
-from openrarity.models.token_metadata import StringAttributeValue
+from open_rarity.models.token_metadata import StringAttributeValue
 
 # to avoid circular dependency
 if TYPE_CHECKING:
-    from openrarity.models.token import Token
+    from open_rarity.models.token import Token
 
 
 @dataclass
