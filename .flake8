@@ -6,5 +6,6 @@ exclude =
     settings.py
     env
     .env
+    .venv
     .github
     .pytest_cache
