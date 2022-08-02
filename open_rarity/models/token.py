@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
-from openrarity.models.token_metadata import TokenMetadata
-from openrarity.models.collection import Collection
+from open_rarity.models.token_metadata import TokenMetadata
+from open_rarity.models.collection import Collection
 
 
 class RankProvider(Enum):

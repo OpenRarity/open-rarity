@@ -7,25 +7,25 @@ from typing import Optional
 
 import requests
 
-from openrarity.models.collection import Collection
-from openrarity.models.chain import Chain
-from openrarity.models.token import RankProvider, Token
-from openrarity.models.token_metadata import (
+from open_rarity.models.collection import Collection
+from open_rarity.models.chain import Chain
+from open_rarity.models.token import RankProvider, Token
+from open_rarity.models.token_metadata import (
     StringAttributeValue,
     TokenMetadata,
 )
-from openrarity.resolver.rarity_providers.rarity_provider import (
+from open_rarity.resolver.rarity_providers.rarity_provider import (
     ExternalRarityProvider,
 )
 import logging
 from time import strftime
 import csv
-from openrarity.scoring.arithmetic_mean import ArithmeticMeanRarity
-from openrarity.scoring.geometric_mean import GeometricMeanRarity
+from open_rarity.scoring.arithmetic_mean import ArithmeticMeanRarity
+from open_rarity.scoring.geometric_mean import GeometricMeanRarity
 
-from openrarity.scoring.harmonic_mean import HarmonicMeanRarity
-from openrarity.scoring.information_content import InformationContentRarity
-from openrarity.scoring.sum import SumRarity
+from open_rarity.scoring.harmonic_mean import HarmonicMeanRarity
+from open_rarity.scoring.information_content import InformationContentRarity
+from open_rarity.scoring.sum import SumRarity
 
 OS_COLLECTION_URL = "https://api.opensea.io/api/v1/collection/{slug}"
 OS_ASSETS_URL = "https://api.opensea.io/api/v1/assets"

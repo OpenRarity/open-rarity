@@ -1,8 +1,8 @@
 import logging
 
 import requests
-from openrarity.models.collection import Collection
-from openrarity.models.token import Rank, RankProvider, Token
+from open_rarity.models.collection import Collection
+from open_rarity.models.token import Rank, RankProvider, Token
 
 
 TRAIT_SNIPER_URL = "https://api.traitsniper.com/api/projects/{slug}/nfts"

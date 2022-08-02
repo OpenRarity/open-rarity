@@ -1,7 +1,7 @@
 import logging
 
-from openrarity.models.token import Token
-from openrarity.models.token_metadata import StringAttributeValue
+from open_rarity.models.token import Token
+from open_rarity.models.token_metadata import StringAttributeValue
 
 logger = logging.getLogger("open_rarity_logger")
 

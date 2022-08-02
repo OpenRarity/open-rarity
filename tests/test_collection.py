@@ -1,6 +1,6 @@
-from openrarity.models.chain import Chain
-from openrarity.models.collection import Collection
-from openrarity.models.token_metadata import StringAttributeValue
+from open_rarity.models.chain import Chain
+from open_rarity.models.collection import Collection
+from open_rarity.models.token_metadata import StringAttributeValue
 
 
 class TestCollection:

@@ -1,5 +1,5 @@
-from openrarity.models.collection import Collection
-from openrarity.models.token import Token
+from open_rarity.models.collection import Collection
+from open_rarity.models.token import Token
 
 
 class BaseRarityFormula:
