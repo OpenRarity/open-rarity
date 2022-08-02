@@ -1,0 +1,24 @@
+name: Formatting and unit tests
+on: [push]
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: ./.github/actions/setup-actions
+
+      - name: Linter
+        run: poetry run flake8
+
+      - name: Code Formatting
+        uses: psf/black@stable
+
+      - name: Unit tests
+        run: poetry run pytest
