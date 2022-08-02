@@ -1,10 +1,10 @@
 import logging
 import scipy.stats
-from openrarity.scoring.scorer import Scorer
+from open_rarity.scoring.scorer import Scorer
 
-from openrarity.models.token import Token
-from openrarity.models.collection import Collection
-from openrarity.scoring.utils import get_attr_probs_weights
+from open_rarity.models.token import Token
+from open_rarity.models.collection import Collection
+from open_rarity.scoring.utils import get_attr_probs_weights
 
 logger = logging.getLogger("open_rarity_logger")
 

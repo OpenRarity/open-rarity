@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from openrarity.models.collection import Collection
+from open_rarity.models.collection import Collection
 
 @dataclass
 class CollectionWithMetadata:

@@ -1,9 +1,9 @@
 import numpy as np
-from openrarity.scoring.scorer import Scorer
-from openrarity.models.collection import Collection
-from openrarity.models.token import Token
+from open_rarity.scoring.scorer import Scorer
+from open_rarity.models.collection import Collection
+from open_rarity.models.token import Token
 
-from openrarity.scoring.utils import get_attr_probs_weights
+from open_rarity.scoring.utils import get_attr_probs_weights
 
 
 class SumRarityScorer(Scorer):

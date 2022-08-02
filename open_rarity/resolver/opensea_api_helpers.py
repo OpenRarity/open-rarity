@@ -1,12 +1,12 @@
 import requests
-from openrarity.models.token_metadata import (
+from open_rarity.models.token_metadata import (
     StringAttributeValue,
     TokenMetadata,
 )
-from openrarity.models.collection import Collection
-from openrarity.models.collection_identifier import OpenseaCollectionIdentifier
-from openrarity.resolver.models.collection_with_metadata import CollectionWithMetadata
-from openrarity.models.chain import Chain
+from open_rarity.models.collection import Collection
+from open_rarity.models.collection_identifier import OpenseaCollectionIdentifier
+from open_rarity.resolver.models.collection_with_metadata import CollectionWithMetadata
+from open_rarity.models.chain import Chain
 import logging
 
 logger = logging.getLogger("opensea_api_helpers")

@@ -7,24 +7,25 @@ import pkgutil
 from dataclasses import dataclass
 from sys import argv
 from time import process_time, strftime
+from typing import Optional
 
-from openrarity.models.collection import Collection
-from openrarity.models.token import Token
-from openrarity.models.token_identifier import EVMContractTokenIdentifier
-from openrarity.models.token_standard import TokenStandard
-from openrarity.resolver.models.collection_with_metadata import CollectionWithMetadata
-from openrarity.resolver.models.token_with_rarity_data import RankProvider, RarityData, TokenWithRarityData
-from openrarity.resolver.opensea_api_helpers import (
+from open_rarity.models.collection import Collection
+from open_rarity.models.token import Token
+from open_rarity.models.token_identifier import EVMContractTokenIdentifier
+from open_rarity.models.token_standard import TokenStandard
+from open_rarity.resolver.models.collection_with_metadata import CollectionWithMetadata
+from open_rarity.resolver.models.token_with_rarity_data import RankProvider, RarityData, TokenWithRarityData
+from open_rarity.resolver.opensea_api_helpers import (
     fetch_opensea_assets_data,
     get_collection_with_metadata,
     opensea_traits_to_token_metadata,
 )
-from openrarity.resolver.rarity_providers.external_rarity_provider import ExternalRarityProvider
-from openrarity.scoring.scorers.arithmetic_mean_scorer import ArithmeticMeanRarityScorer
-from openrarity.scoring.scorers.geometric_mean_scorer import GeometricMeanRarityScorer
-from openrarity.scoring.scorers.harmonic_mean_scorer import HarmonicMeanRarityScorer
-from openrarity.scoring.scorers.information_content_scorer import InformationContentRarityScorer
-from openrarity.scoring.scorers.sum_scorer import SumRarityScorer
+from open_rarity.resolver.rarity_providers.external_rarity_provider import ExternalRarityProvider
+from open_rarity.scoring.scorers.arithmetic_mean_scorer import ArithmeticMeanRarityScorer
+from open_rarity.scoring.scorers.geometric_mean_scorer import GeometricMeanRarityScorer
+from open_rarity.scoring.scorers.harmonic_mean_scorer import HarmonicMeanRarityScorer
+from open_rarity.scoring.scorers.information_content_scorer import InformationContentRarityScorer
+from open_rarity.scoring.scorers.sum_scorer import SumRarityScorer
 
 harmonic_scorer = HarmonicMeanRarityScorer()
 arithmetic_scorer = ArithmeticMeanRarityScorer()
@@ -342,22 +343,30 @@ def serialize_to_csv(collection: Collection, tokens_with_rarity: list[TokenWithR
         "token_id",
         "traits_sniper",
         "rarity_sniffer",
+        "rarity_sniper",
         "arithmetic",
         "geometric",
         "harmonic",
         "sum",
         "information_content",
         "traits_sniper_rarity_sniffer_diff",
+        "traits_sniper_rarity_sniper_diff",
         "traits_sniper_arithm_diff",
         "traits_sniper_geom_diff",
         "traits_sniper_harmo_diff",
         "traits_sniper_sum_diff",
         "traits_sniper_ic_diff",
+        "rarity_sniffer_rarity_sniper_diff",
         "rarity_sniffer_arithm_diff",
         "rarity_sniffer_geom_diff",
         "rarity_sniffer_harmo_diff",
         "rarity_sniffer_sum_diff",
         "rarity_sniffer_ic_diff",
+        "rarity_sniper_arithm_diff",
+        "rarity_sniper_geom_diff",
+        "rarity_sniper_harmo_diff",
+        "rarity_sniper_sum_diff",
+        "rarity_sniper_ic_diff",
     ]
 
     writer = csv.writer(testset)
@@ -366,6 +375,7 @@ def serialize_to_csv(collection: Collection, tokens_with_rarity: list[TokenWithR
     for token_with_rarity in tokens_with_rarity:
         traits_sniper_rank = _get_provider_rank(RankProvider.TRAITS_SNIPER, token_with_rarity)
         rarity_sniffer_rank = _get_provider_rank(RankProvider.RARITY_SNIFFER, token_with_rarity)
+        rarity_sniper_rank = _get_provider_rank(RankProvider.RARITY_SNIPER, token_with_rarity)
         or_arithmetic_rank = _get_provider_rank(RankProvider.OR_ARITHMETIC, token_with_rarity)
         or_geometric_rank = _get_provider_rank(RankProvider.OR_GEOMETRIC, token_with_rarity)
         or_harmonic_rank = _get_provider_rank(RankProvider.OR_HARMONIC, token_with_rarity)
@@ -376,22 +386,30 @@ def serialize_to_csv(collection: Collection, tokens_with_rarity: list[TokenWithR
             token_with_rarity.token.token_identifier.token_id,  # type: ignore
             traits_sniper_rank,
             rarity_sniffer_rank,
+            rarity_sniper_rank,
             or_arithmetic_rank,
             or_geometric_rank,
             or_harmonic_rank,
             or_sum_rank,
             or_ic_rank,
             _rank_diff(traits_sniper_rank, rarity_sniffer_rank),
+            _rank_diff(traits_sniper_rank, rarity_sniper_rank),
             _rank_diff(traits_sniper_rank, or_arithmetic_rank),
             _rank_diff(traits_sniper_rank, or_geometric_rank),
             _rank_diff(traits_sniper_rank, or_harmonic_rank),
             _rank_diff(traits_sniper_rank, or_sum_rank),
             _rank_diff(traits_sniper_rank, or_ic_rank),
+            _rank_diff(rarity_sniffer_rank, rarity_sniper_rank),
             _rank_diff(rarity_sniffer_rank, or_arithmetic_rank),
             _rank_diff(rarity_sniffer_rank, or_geometric_rank),
             _rank_diff(rarity_sniffer_rank, or_harmonic_rank),
             _rank_diff(rarity_sniffer_rank, or_sum_rank),
             _rank_diff(rarity_sniffer_rank, or_ic_rank),
+            _rank_diff(rarity_sniper_rank, or_arithmetic_rank),
+            _rank_diff(rarity_sniper_rank, or_geometric_rank),
+            _rank_diff(rarity_sniper_rank, or_harmonic_rank),
+            _rank_diff(rarity_sniper_rank, or_sum_rank),
+            _rank_diff(rarity_sniper_rank, or_ic_rank),
         ]
         writer.writerow(row)
 

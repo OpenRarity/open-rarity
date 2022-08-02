@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from openrarity.models.token_metadata import TokenMetadata
-from openrarity.models.token_identifier import TokenIdentifier
-from openrarity.models.token_standard import TokenStandard
+from open_rarity.models.token_metadata import TokenMetadata
+from open_rarity.models.token_identifier import TokenIdentifier
+from open_rarity.models.token_standard import TokenStandard
 
 @dataclass
 class Token:
@@ -22,5 +22,5 @@ class Token:
     token_standard: TokenStandard
     metadata: TokenMetadata
 
-    def __str(self):
+    def __str__(self):
         return f"Token[{self.token_identifier}]"

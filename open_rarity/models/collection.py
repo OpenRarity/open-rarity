@@ -2,22 +2,22 @@ from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
 
-from openrarity.models.chain import Chain
+from open_rarity.models.chain import Chain
 from typing import Hashable
-from openrarity.models.collection_identifier import (
+from open_rarity.models.collection_identifier import (
     CollectionIdentifier,
     OpenseaCollectionIdentifier,
     ContractAddressCollectionIdentifier,
 )
-from openrarity.models.token_identifier import EVMContractTokenIdentifier
+from open_rarity.models.token_identifier import EVMContractTokenIdentifier
 
-from openrarity.models.token_metadata import (
+from open_rarity.models.token_metadata import (
     AttributeName,
     AttributeValue,
     StringAttributeValue,
 )
 
-from openrarity.models.token import Token
+from open_rarity.models.token import Token
 
 
 @dataclass
@@ -68,6 +68,16 @@ class Collection(Hashable):
     def token_total_supply(self) -> int:
         return len(self.tokens)
 
+    @property
+    def opensea_slug(self) -> str | None:
+        """Sugar for a collection's slug in opensea.
+        Made as a property since other api's also use the same slug as input and may be needed
+        to pull rarity data (e.g. raritysniper api).
+        """
+        if isinstance(self.identifier, OpenseaCollectionIdentifier):
+            return self.identifier.slug
+        return None
+
     @cached_property
     def token_identifier_types(self) -> list[str]:
         """Returns the list of unique token identifier types that tokens
@@ -88,16 +98,6 @@ class Collection(Hashable):
             return list(set([token.token_identifier.contract_address for token in self.tokens]))  # type: ignore
         else:
             return []
-
-    @property
-    def opensea_slug(self) -> str | None:
-        """Sugar for a collection's slug in opensea.
-        Made as a property since other api's also use the same slug as input and may be needed
-        to pull rarity data (e.g. raritysniper api).
-        """
-        if isinstance(self.identifier, OpenseaCollectionIdentifier):
-            return self.identifier.slug
-        return None
 
     @cached_property
     def extract_null_attributes(self) -> dict[AttributeName, StringAttributeValue]:
@@ -160,5 +160,8 @@ class Collection(Hashable):
 
         return collection_traits
 
-    def __str(self):
+    def __hash__(self):
+        return hash(self.name)
+
+    def __str__(self):
         return f"Collection[{self.identifier}]"
