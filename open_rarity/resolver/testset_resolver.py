@@ -7,24 +7,33 @@ import pkgutil
 from dataclasses import dataclass
 from sys import argv
 from time import process_time, strftime
-from typing import Optional
 
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
 from open_rarity.models.token_identifier import EVMContractTokenIdentifier
 from open_rarity.models.token_standard import TokenStandard
 from open_rarity.resolver.models.collection_with_metadata import CollectionWithMetadata
-from open_rarity.resolver.models.token_with_rarity_data import RankProvider, RarityData, TokenWithRarityData
+from open_rarity.resolver.models.token_with_rarity_data import (
+    RankProvider,
+    RarityData,
+    TokenWithRarityData,
+)
 from open_rarity.resolver.opensea_api_helpers import (
     fetch_opensea_assets_data,
     get_collection_with_metadata,
     opensea_traits_to_token_metadata,
 )
-from open_rarity.resolver.rarity_providers.external_rarity_provider import ExternalRarityProvider
-from open_rarity.scoring.scorers.arithmetic_mean_scorer import ArithmeticMeanRarityScorer
+from open_rarity.resolver.rarity_providers.external_rarity_provider import (
+    ExternalRarityProvider,
+)
+from open_rarity.scoring.scorers.arithmetic_mean_scorer import (
+    ArithmeticMeanRarityScorer,
+)
 from open_rarity.scoring.scorers.geometric_mean_scorer import GeometricMeanRarityScorer
 from open_rarity.scoring.scorers.harmonic_mean_scorer import HarmonicMeanRarityScorer
-from open_rarity.scoring.scorers.information_content_scorer import InformationContentRarityScorer
+from open_rarity.scoring.scorers.information_content_scorer import (
+    InformationContentRarityScorer,
+)
 from open_rarity.scoring.scorers.sum_scorer import SumRarityScorer
 
 harmonic_scorer = HarmonicMeanRarityScorer()
