@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 
-from open_rarity.models.token_metadata import TokenMetadata
 from open_rarity.models.token_identifier import TokenIdentifier
+from open_rarity.models.token_metadata import TokenMetadata
 from open_rarity.models.token_standard import TokenStandard
+
 
 @dataclass
 class Token:

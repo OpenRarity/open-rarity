@@ -1,6 +1,8 @@
 from dataclasses import dataclass
-from typing import Literal, Annotated
+from typing import Annotated, Literal
+
 from pydantic import Field
+
 
 @dataclass
 class OpenseaCollectionIdentifier:
@@ -9,8 +11,8 @@ class OpenseaCollectionIdentifier:
     This may contain nfts belonging to several contract addresses if the
     collection creators/owners chose to merge.
     '''
-    identifier_type: Literal['opensea']
     slug: str
+    identifier_type: Literal['opensea'] = 'opensea'
 
     def __str__(self):
         return f"slug={self.slug}"
@@ -19,8 +21,8 @@ class OpenseaCollectionIdentifier:
 class ContractAddressCollectionIdentifier:
     '''This collection only consists of nfts from these contract addresses
     '''
-    identifier_type: Literal['contract_address']
     contract_addresses: list[str]
+    identifier_type: Literal['contract_address'] = 'contract_address'
 
     def __str__(self):
         return f"contract_addresses={self.contract_addresses}"
@@ -31,8 +33,8 @@ class SolanaMetaplexCollectionIdentifier:
     This collection consists of nfts that have the same on-chain verified
     collection address defined in metaplex metadata.
     '''
-    identifier_type: Literal['solana_metaplex_collection_address']
     metaplex_collection_address: str
+    identifier_type: Literal['solana_metaplex_collection_address'] = 'solana_metaplex_collection_address'
 
     def __str__(self):
         return f"metaplex_collection_address={self.metaplex_collection_address}"

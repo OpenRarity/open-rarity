@@ -2,7 +2,6 @@ import logging
 
 import requests
 from open_rarity.models.collection import Collection
-from open_rarity.models.token import Token
 from open_rarity.models.token_identifier import EVMContractTokenIdentifier
 from open_rarity.resolver.models.token_with_rarity_data import RankProvider, RarityData, TokenWithRarityData
 
@@ -298,7 +297,7 @@ class ExternalRarityProvider:
         self,
         collection: Collection,
         tokens_with_rarity: list[TokenWithRarityData],
-        rank_providers: list[RankProvider] = [RankProvider.TRAITS_SNIPER, RankProvider.RARITY_SNIFFER],
+        rank_providers: list[RankProvider] = [RankProvider.TRAITS_SNIPER, RankProvider.RARITY_SNIFFER, RankProvider.RARITY_SNIPER],
     ) -> list[TokenWithRarityData]:
         """Fetches ranks from available providers gem, rarity sniper and/or trait sniper
         and adds them to the rarities field in `tokens_with_rarity`
@@ -323,5 +322,7 @@ class ExternalRarityProvider:
                 self._add_rarity_sniffer_rarity_data(collection=collection, tokens_with_rarity=tokens_with_rarity)
             if rank_provider == RankProvider.TRAITS_SNIPER:
                 self._add_trait_sniper_rarity_data(collection=collection, tokens_with_rarity=tokens_with_rarity)
+            if rank_provider == RankProvider.RARITY_SNIPER:
+                self._add_rarity_sniper_rarity_data(collection=collection, tokens_with_rarity=tokens_with_rarity)
 
         return tokens_with_rarity

@@ -1,23 +1,21 @@
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cached_property
+from typing import Hashable
 
 from open_rarity.models.chain import Chain
-from typing import Hashable
 from open_rarity.models.collection_identifier import (
     CollectionIdentifier,
-    OpenseaCollectionIdentifier,
     ContractAddressCollectionIdentifier,
+    OpenseaCollectionIdentifier,
 )
+from open_rarity.models.token import Token
 from open_rarity.models.token_identifier import EVMContractTokenIdentifier
-
 from open_rarity.models.token_metadata import (
     AttributeName,
     AttributeValue,
     StringAttributeValue,
 )
-
-from open_rarity.models.token import Token
 
 
 @dataclass
@@ -49,7 +47,7 @@ class Collection(Hashable):
     name: str
     chain: Chain
     attributes_distribution: dict[AttributeName, dict[AttributeValue, int]]
-    _tokens: list[Token] = []
+    _tokens: list[Token] = field(default_factory=list)
 
     @property
     def tokens(self) -> list[Token]:
@@ -63,6 +61,8 @@ class Collection(Hashable):
             del self.token_identifier_types
         if self.extract_null_attributes:
             del self.extract_null_attributes
+        if self.contract_addresses:
+            del self.contract_addresses
 
     @property
     def token_total_supply(self) -> int:

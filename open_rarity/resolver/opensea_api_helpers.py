@@ -105,7 +105,7 @@ def get_collection_with_metadata(collection_slug: str) -> CollectionWithMetadata
         raise Exception("We currently do not support non EVM standards at the moment")
 
     collection = Collection(
-        identifier=OpenseaCollectionIdentifier(identifier_type="opensea", slug=collection_slug),
+        identifier=OpenseaCollectionIdentifier(slug=collection_slug),
         name=collection_obj["name"],
         chain=Chain.ETH,
         attributes_distribution=collection_obj["traits"],
