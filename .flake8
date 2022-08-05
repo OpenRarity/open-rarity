@@ -1,3 +1,11 @@
 [flake8]
 max-line-length = 88
-exclude = __init__.py
+exclude =
+    __init__.py
+    __pycache__
+    settings.py
+    env
+    .env
+    .venv
+    .github
+    .pytest_cache

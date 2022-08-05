@@ -6,6 +6,8 @@ from open_rarity.models.token_metadata import (
     AttributeName,
     StringAttributeValue,
 )
+from open_rarity.models.token import Token
+from open_rarity.models.token_metadata import StringAttributeValue
 
 logger = logging.getLogger("open_rarity_logger")
 
@@ -14,7 +16,9 @@ def get_attr_probs_weights(
     collection: Collection,
     token: Token,
     normalized: bool,
-    collection_null_attributes: dict[AttributeName, StringAttributeValue] = None,
+    collection_null_attributes: dict[
+        AttributeName, StringAttributeValue
+    ] = None,
 ) -> tuple[list[float], list[float]]:
     """get attribute probabilities & weights"""
     logger.debug(f"> Collection {collection} Token {token} evaluation")

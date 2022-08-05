@@ -33,11 +33,11 @@ class SumRarityScorer(Scorer):
     ) -> float:
         logger.debug(f"Computing arithmetic mean for token {token}")
 
-        attr_probs, _ = get_attr_probs_weights(
+        attr_probs, attr_weights = get_attr_probs_weights(
             collection=collection,
             token=token,
             normalized=normalized,
             collection_null_attributes=collection_null_attributes,
         )
 
-        return np.sum(attr_probs)
+        return np.dot(attr_probs, attr_weights)

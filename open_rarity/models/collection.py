@@ -37,7 +37,9 @@ class Collection:
     def token_total_supply(self) -> int:
         return len(self.tokens)
 
-    def extract_null_attributes(self) -> dict[AttributeName, StringAttributeValue]:
+    def extract_null_attributes(
+        self,
+    ) -> dict[AttributeName, StringAttributeValue]:
         """Compute probabilities of Null attributes.
 
         Returns
@@ -48,7 +50,10 @@ class Collection:
         """
         result = {}
 
-        for trait_name, trait_values in self.attributes_frequency_counts.items():
+        for (
+            trait_name,
+            trait_values,
+        ) in self.attributes_frequency_counts.items():
             # To obtain probabilities for missing attributes
             # e.g. value of trait not set for the asset
             #
@@ -82,12 +87,19 @@ class Collection:
             dict of  attribute name to count of assets missing the attribute
         """
 
-        collection_traits: dict[str, list[StringAttributeValue]] = defaultdict(list)
+        collection_traits: dict[str, list[StringAttributeValue]] = defaultdict(
+            list
+        )
 
-        for trait_name, trait_value_dict in self.attributes_frequency_counts.items():
+        for (
+            trait_name,
+            trait_value_dict,
+        ) in self.attributes_frequency_counts.items():
             for trait_value, trait_count in trait_value_dict.items():
                 collection_traits[trait_name].append(
-                    StringAttributeValue(trait_name, str(trait_value), trait_count)
+                    StringAttributeValue(
+                        trait_name, str(trait_value), trait_count
+                    )
                 )
 
         return collection_traits

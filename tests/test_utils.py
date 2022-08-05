@@ -6,7 +6,6 @@ from open_rarity.models.token_metadata import (
     AttributeName,
 )
 from open_rarity.models.collection import Collection
-from open_rarity.models.chain import Chain
 from open_rarity.models.token_standard import TokenStandard
 
 

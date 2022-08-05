@@ -1,7 +1,15 @@
-from open_rarity.scoring.scorers.geometric_mean_scorer import GeometricMeanRarityScorer
-from open_rarity.scoring.scorers.arithmetic_mean_scorer import ArithmeticMeanRarityScorer
-from open_rarity.scoring.scorers.harmonic_mean_scorer import HarmonicMeanRarityScorer
-from open_rarity.scoring.scorers.information_content_scorer import InformationContentRarityScorer
+from open_rarity.scoring.scorers.geometric_mean_scorer import (
+    GeometricMeanRarityScorer,
+)
+from open_rarity.scoring.scorers.arithmetic_mean_scorer import (
+    ArithmeticMeanRarityScorer,
+)
+from open_rarity.scoring.scorers.harmonic_mean_scorer import (
+    HarmonicMeanRarityScorer,
+)
+from open_rarity.scoring.scorers.information_content_scorer import (
+    InformationContentRarityScorer,
+)
 from tests.test_utils import (
     generate_uniform_rarity_collection,
     generate_onerare_rarity_collection,
@@ -35,7 +43,10 @@ class TestScoring:
         uniform_token_to_test = self.uniform_collection.tokens[0]
         uniform_geometric_mean = 10.0
         assert np.round(
-            geometric_mean_rarity.score_token(collection=self.uniform_collection, token=uniform_token_to_test), 8
+            geometric_mean_rarity.score_token(
+                collection=self.uniform_collection, token=uniform_token_to_test
+            ),
+            8,
         ) == np.round(uniform_geometric_mean, 8)
 
         onerare_token_to_test = self.onerare_collection.tokens[
@@ -43,7 +54,10 @@ class TestScoring:
         ]  # test the common token
         onerare_geometric_mean = 9.79167947
         assert np.round(
-            geometric_mean_rarity.score_token(collection=self.onerare_collection, token=onerare_token_to_test), 8
+            geometric_mean_rarity.score_token(
+                collection=self.onerare_collection, token=onerare_token_to_test
+            ),
+            8,
         ) == np.round(onerare_geometric_mean, 8)
 
         onerare_token_to_test = self.onerare_collection.tokens[
@@ -63,7 +77,10 @@ class TestScoring:
         uniform_arithmetic_mean = 10
 
         assert np.round(
-            arithmetic_mean_rarity.score_token(collection=self.uniform_collection, token=uniform_token_to_test), 8
+            arithmetic_mean_rarity.score_token(
+                collection=self.uniform_collection, token=uniform_token_to_test
+            ),
+            8,
         ) == np.round(uniform_arithmetic_mean, 8)
 
         # onerare_token_to_test = self.onerare_collection.tokens[0]
@@ -86,7 +103,10 @@ class TestScoring:
         uniform_token_to_test = self.uniform_collection.tokens[0]
         uniform_harmonic_mean = 10
         assert np.round(
-            harmonic_mean_rarity.score_token(collection=self.uniform_collection, token=uniform_token_to_test), 8
+            harmonic_mean_rarity.score_token(
+                collection=self.uniform_collection, token=uniform_token_to_test
+            ),
+            8,
         ) == np.round(uniform_harmonic_mean, 8)
 
         # onerare_token_to_test = self.onerare_collection.tokens[0]
@@ -108,7 +128,9 @@ class TestScoring:
         uniform_token_to_test = self.uniform_collection.tokens[0]
         uniform_ic_rarity = 1.0
         assert np.round(
-            information_content_rarity.score_token(collection=self.uniform_collection, token=uniform_token_to_test),
+            information_content_rarity.score_token(
+                collection=self.uniform_collection, token=uniform_token_to_test
+            ),
             8,
         ) == np.round(uniform_ic_rarity, 8)
 
