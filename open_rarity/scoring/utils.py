@@ -2,26 +2,25 @@ import logging
 
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
-from open_rarity.models.token_metadata import StringAttributeValue
+from open_rarity.models.token_metadata import AttributeName, StringAttributeValue
 
 logger = logging.getLogger("open_rarity_logger")
 
 
 def get_attr_probs_weights(
-    collection: Collection, token: Token, normalized: bool
+    collection: Collection,
+    token: Token,
+    normalized: bool,
+    collection_null_attributes: dict[AttributeName, StringAttributeValue] = None,
 ) -> tuple[list[float], list[float]]:
     """get attribute probabilities & weights"""
     logger.debug(f"> Collection {collection} Token {token} evaluation")
-    null_attributes = collection.extract_null_attributes
 
     logger.debug(f"Attributes array with null-traits {null_attributes}")
+    null_attributes = collection_null_attributes or collection.extract_null_attributes()
 
     # Here we augment the attributes array with probabilities of the attributes with
     # Null attributes consider the probability of that trait not in set.
-    combined_attributes: dict[str, StringAttributeValue] = (
-        null_attributes
-        | token.metadata.string_attributes
-    )
 
     logger.debug(f"Attributes array {combined_attributes}")
 
@@ -35,7 +34,7 @@ def get_attr_probs_weights(
     supply = collection.token_total_supply
     logger.debug(f"Collection supply {supply}")
 
-    # normalize traits weight by applying  1/x function for each
+    # Normalize traits weight by applying  1/x function for each
     # respective trait of the token.
     # The normalization factor takes into account the cardinality
     # values for particual trait.
@@ -49,10 +48,7 @@ def get_attr_probs_weights(
             )
         )
 
-        attr_weights = [
-            1 / len(collection.attributes_distribution[k])
-            for k in string_attr_keys
-        ]
+        attr_weights = [1 / len(collection.attributes_frequency_counts[k]) for k in string_attr_keys]
     else:
         attr_weights = [1.0] * len(string_attr_keys)
 

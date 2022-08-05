@@ -8,3 +8,4 @@ class CollectionWithMetadata:
     collection: Collection
     contract_addresses: list[str]
     token_total_supply: int
+    opensea_slug: str

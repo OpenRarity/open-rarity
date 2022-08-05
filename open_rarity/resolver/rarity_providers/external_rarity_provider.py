@@ -2,14 +2,13 @@ import logging
 
 import requests
 from open_rarity.models.collection import Collection
+from open_rarity.resolver.models.collection_with_metadata import CollectionWithMetadata
 from open_rarity.models.token_identifier import EVMContractTokenIdentifier
 from open_rarity.resolver.models.token_with_rarity_data import RankProvider, RarityData, TokenWithRarityData
 
 TRAIT_SNIPER_URL = "https://api.traitsniper.com/api/projects/{slug}/nfts"
 RARITY_SNIFFER_API_URL = "https://raritysniffer.com/api/index.php"
-RARITY_SNIPER_API_URL = (
-    "https://api.raritysniper.com/public/collection/{slug}/id/{token_id}"
-)
+RARITY_SNIPER_API_URL = "https://api.raritysniper.com/public/collection/{slug}/id/{token_id}"
 USER_AGENT = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"  # noqa: E501
 }
@@ -103,7 +102,8 @@ def fetch_rarity_sniffer_rank_for_collection(contract_address: str) -> dict[int,
         raise Exception("RaritySniffer fetching failed for {contract_address}")
 
     tokens_to_rarity_data: dict[int, RarityData] = {
-        int(nft["id"]): RarityData(provider=RankProvider.RARITY_SNIFFER, rank=nft["positionId"]) for nft in response.json()["data"]
+        int(nft["id"]): RarityData(provider=RankProvider.RARITY_SNIFFER, rank=nft["positionId"])
+        for nft in response.json()["data"]
     }
 
     return tokens_to_rarity_data
@@ -117,15 +117,12 @@ def get_rarity_sniper_slug(opensea_slug: str) -> str:
     slug = slug.replace("proof-", "")
     slug = slug.replace("wtf", "")
     slug = slug.replace("invisiblefriends", "invisible-friends")
-    slug = slug.replace(
-        "boredapeyachtclub", "bored-ape-yacht-club"
-    )
+    slug = slug.replace("boredapeyachtclub", "bored-ape-yacht-club")
     return slug
 
+
 def fetch_rarity_sniper_rank_for_evm_token(collection_slug: str, token_id: int) -> int | None:
-    url = RARITY_SNIPER_API_URL.format(
-        slug=collection_slug, token_id=token_id
-    )
+    url = RARITY_SNIPER_API_URL.format(slug=collection_slug, token_id=token_id)
     logger.debug("{url}".format(url=url))
     response = requests.request("GET", url, headers=USER_AGENT)
     if response.status_code == 200:
@@ -147,17 +144,14 @@ class ExternalRarityProvider:
     rarity_sniffer_state: dict[str, dict[int, RarityData]] = {}
 
     def _add_trait_sniper_rarity_data(
-        self, collection: Collection, tokens_with_rarity: list[TokenWithRarityData]
+        self, collection_with_metadata: CollectionWithMetadata, tokens_with_rarity: list[TokenWithRarityData]
     ) -> list[TokenWithRarityData]:
         """Modifies `tokens_with_rarity` by adding trait sniper rank
         If trait sniper API is not reachable, rank for that token will not be added.
 
         Parameters
         ----------
-        collection : Collection
-            collection. We currently only support Collection's that have an identifer type of
-            OpenseaCollectionIdentifier since we use the opensea slug to help determine
-            the url/collection to fetch.
+        collection_with_metadata : CollectionWithMetadata
         tokens : list[TokenWithRarityData]
             batch of tokens to resolve with existing rarity data
             This may not be all the tokens in collection.tokens
@@ -169,16 +163,9 @@ class ExternalRarityProvider:
         """
         logger.debug("Resolving trait sniper rarity")
 
-        # We currently only support EVM collections on trait sniper
-        if collection.token_identifier_types != [EVMContractTokenIdentifier.identifier_type]:
-            error_message = f"Cannot fetch rarity sniper rankings for non EVM collection {collection.name}"
-            logger.exception(error_message)
-            raise Exception(error_message)
-
         # We're currently using opensea slug to calculate trait sniper slug
-        slug = collection.opensea_slug
-        assert slug
-        slug = get_trait_sniper_slug(opensea_slug=slug)
+        opensea_slug = collection_with_metadata.opensea_slug
+        slug = get_trait_sniper_slug(opensea_slug=opensea_slug)
 
         for token_with_rarity in tokens_with_rarity:
             token = token_with_rarity.token
@@ -195,7 +182,7 @@ class ExternalRarityProvider:
                 if rank is None:
                     continue
 
-                token_rarity_data=RarityData(provider=RankProvider.TRAITS_SNIPER, rank=rank)
+                token_rarity_data = RarityData(provider=RankProvider.TRAITS_SNIPER, rank=rank)
                 logger.debug(f"Resolved trait sniper rarity for collection {slug} token_id {token_id}: {rank}")
                 token_with_rarity.rarities.append(token_rarity_data)
 
@@ -205,15 +192,14 @@ class ExternalRarityProvider:
         return tokens_with_rarity
 
     def _add_rarity_sniffer_rarity_data(
-        self, collection: Collection, tokens_with_rarity: list[TokenWithRarityData]
+        self, collection_with_metadata: CollectionWithMetadata, tokens_with_rarity: list[TokenWithRarityData]
     ) -> list[TokenWithRarityData]:
         """Modifies `tokens_with_rarity` by adding rarity sniffer rank data
         Currently only works for EVM collections
 
         Parameters
         ----------
-        collection : Collection
-            collection
+        collection_with_metadata : CollectionWithMetadata
         tokens_with_rarity : list[TokenWithRarityData]
             list of tokens with rarity to augment
 
@@ -224,7 +210,7 @@ class ExternalRarityProvider:
         """
 
         logger.debug("Resolving rarity sniffer")
-        contract_addresses = collection.contract_addresses
+        contract_addresses = collection_with_metadata.contract_addresses
         if len(contract_addresses) != 1:
             raise Exception(
                 "We cannot calculate rarity sniffer score for collections "
@@ -251,23 +237,19 @@ class ExternalRarityProvider:
             rarity_data = token_rarity_data[int(token_identifer.token_id)]
 
             token_with_rarity.rarities.append(rarity_data)
-            logger.debug(f"Fetched Rarirty Sniffer rarity score for [{collection}]{token_identifer}: {rarity_data}")
+            logger.debug(
+                f"Fetched Rarirty Sniffer rarity score for [{collection_with_metadata.opensea_slug}]"
+                f"{token_identifer}: {rarity_data}"
+            )
 
         return tokens_with_rarity
 
     def _add_rarity_sniper_rarity_data(
-        self, collection: Collection, tokens_with_rarity: list[TokenWithRarityData]
+        self, collection_with_metadata: CollectionWithMetadata, tokens_with_rarity: list[TokenWithRarityData]
     ) -> list[TokenWithRarityData]:
-        # We currently only support EVM collections on rarity sniper
-        if collection.token_identifier_types != [EVMContractTokenIdentifier.identifier_type]:
-            error_message = f"Cannot fetch rarity sniper rankings for non EVM collection {collection.name}"
-            logger.exception(error_message)
-            raise Exception(error_message)
-
         # We're currently using opensea slug to calculate trait sniper slug
-        slug = collection.opensea_slug
-        assert slug
-        slug = get_rarity_sniper_slug(opensea_slug=slug)
+        opensea_slug = collection_with_metadata.opensea_slug
+        slug = get_rarity_sniper_slug(opensea_slug=opensea_slug)
 
         for token_with_rarity in tokens_with_rarity:
             token = token_with_rarity.token
@@ -295,9 +277,13 @@ class ExternalRarityProvider:
 
     def fetch_and_update_ranks(
         self,
-        collection: Collection,
+        collection_with_metadata: CollectionWithMetadata,
         tokens_with_rarity: list[TokenWithRarityData],
-        rank_providers: list[RankProvider] = [RankProvider.TRAITS_SNIPER, RankProvider.RARITY_SNIFFER, RankProvider.RARITY_SNIPER],
+        rank_providers: list[RankProvider] = [
+            RankProvider.TRAITS_SNIPER,
+            RankProvider.RARITY_SNIFFER,
+            RankProvider.RARITY_SNIPER,
+        ],
     ) -> list[TokenWithRarityData]:
         """Fetches ranks from available providers gem, rarity sniper and/or trait sniper
         and adds them to the rarities field in `tokens_with_rarity`
@@ -319,10 +305,16 @@ class ExternalRarityProvider:
 
         for rank_provider in rank_providers:
             if rank_provider == RankProvider.RARITY_SNIFFER:
-                self._add_rarity_sniffer_rarity_data(collection=collection, tokens_with_rarity=tokens_with_rarity)
+                self._add_rarity_sniffer_rarity_data(
+                    collection_with_metadata=collection_with_metadata, tokens_with_rarity=tokens_with_rarity
+                )
             if rank_provider == RankProvider.TRAITS_SNIPER:
-                self._add_trait_sniper_rarity_data(collection=collection, tokens_with_rarity=tokens_with_rarity)
+                self._add_trait_sniper_rarity_data(
+                    collection_with_metadata=collection_with_metadata, tokens_with_rarity=tokens_with_rarity
+                )
             if rank_provider == RankProvider.RARITY_SNIPER:
-                self._add_rarity_sniper_rarity_data(collection=collection, tokens_with_rarity=tokens_with_rarity)
+                self._add_rarity_sniper_rarity_data(
+                    collection_with_metadata=collection_with_metadata, tokens_with_rarity=tokens_with_rarity
+                )
 
         return tokens_with_rarity

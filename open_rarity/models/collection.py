@@ -1,18 +1,7 @@
 from collections import defaultdict
-from dataclasses import dataclass, field
-from functools import cached_property
-from typing import Hashable
-
-from open_rarity.models.chain import Chain
-from open_rarity.models.collection_identifier import (
-    CollectionIdentifier,
-    ContractAddressCollectionIdentifier,
-    OpenseaCollectionIdentifier,
-)
 from dataclasses import dataclass
 
 from open_rarity.models.token import Token
-from open_rarity.models.token_identifier import EVMContractTokenIdentifier
 from open_rarity.models.token_metadata import (
     AttributeName,
     AttributeValue,
@@ -40,8 +29,6 @@ class Collection:
 
     """
 
-    identifier: CollectionIdentifier
-    chain: Chain
     attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
     tokens: list[Token]
     name: str | None = ""
@@ -49,37 +36,6 @@ class Collection:
     @property
     def token_total_supply(self) -> int:
         return len(self.tokens)
-
-    @property
-    def opensea_slug(self) -> str | None:
-        """Sugar for a collection's slug in opensea.
-        Made as a property since other api's also use the same slug as input and may be needed
-        to pull rarity data (e.g. raritysniper api).
-        """
-        if isinstance(self.identifier, OpenseaCollectionIdentifier):
-            return self.identifier.slug
-        return None
-
-    @cached_property
-    def token_identifier_types(self) -> list[str]:
-        """Returns the list of unique token identifier types that tokens
-        in this collection exhibits.
-        This property is intended for easier processing for identifier/chain-specific logic.
-        """
-        return list(set([token.token_identifier.identifier_type for token in self.tokens]))
-
-    @cached_property
-    def contract_addresses(self) -> list[str]:
-        """Returns unique list of all contract addresses that tokens of this collection
-        belong to, if relevant.
-        Note: Currently only relevant to EVM tokens
-        """
-        if isinstance(self.identifier, ContractAddressCollectionIdentifier):
-            return self.identifier.contract_addresses
-        elif self.token_identifier_types == [EVMContractTokenIdentifier.identifier_type]:
-            return list(set([token.token_identifier.contract_address for token in self.tokens]))  # type: ignore
-        else:
-            return []
 
     def extract_null_attributes(self) -> dict[AttributeName, StringAttributeValue]:
         """Compute probabilities of Null attributes.

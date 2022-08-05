@@ -91,17 +91,15 @@ def get_tokens_with_rarity(
         return [token_id for token_id in range(token_id_start, token_id_end)]
 
     t1_start = process_time()
-    collection = collection_with_metadata.collection
     for batch_id in range(num_batches):
         token_ids = get_token_ids(batch_id)
         logger.debug(
-            f"Starting batch {batch_id} for collection {collection.opensea_slug}: "
+            f"Starting batch {batch_id} for collection {collection_with_metadata.opensea_slug}: "
             f"Processing {len(token_ids)} tokens"
         )
 
-        assert collection.opensea_slug
         try:
-            assets = fetch_opensea_assets_data(slug=collection.opensea_slug, token_ids=token_ids)
+            assets = fetch_opensea_assets_data(slug=collection_with_metadata.opensea_slug, token_ids=token_ids)
         except:
             print(f"FAILED: get_assets: could not fetch opensea assets data for {token_ids}")
             break
@@ -136,7 +134,7 @@ def get_tokens_with_rarity(
 
         if resolve_remote_rarity:
             external_rarity_provider.fetch_and_update_ranks(
-                collection=collection, tokens_with_rarity=tokens_rarity_batch
+                collection_with_metadata=collection_with_metadata, tokens_with_rarity=tokens_rarity_batch
             )
 
         # Add the batch of augmented tokens with rarity into return value
@@ -156,10 +154,10 @@ def resolve_collection_data(resolve_remote_rarity: bool):
     if golden_collections:
         data = json.load(io.BytesIO(golden_collections))
         for collection_def in data:
-            slug = collection_def["collection_slug"]
+            opensea_slug = collection_def["collection_slug"]
             # Fetch collection metadata and tokens that belong to this collection
             # from opensea and other external api's.
-            collection_with_metadata = get_collection_with_metadata(collection_slug=slug)
+            collection_with_metadata = get_collection_with_metadata(opensea_collection_slug=opensea_slug)
             tokens_with_rarity: list[TokenWithRarityData] = get_tokens_with_rarity(
                 collection_with_metadata=collection_with_metadata,
                 resolve_remote_rarity=resolve_remote_rarity,
@@ -172,7 +170,7 @@ def resolve_collection_data(resolve_remote_rarity: bool):
             open_rarity_scores = resolve_open_rarity_score(collection, collection.tokens, normalized=True)
             augment_with_open_rarity_scores(tokens_with_rarity=tokens_with_rarity, scores=open_rarity_scores)
 
-            serialize_to_csv(collection=collection, tokens_with_rarity=tokens_with_rarity)
+            serialize_to_csv(collection_with_metadata=collection_with_metadata, tokens_with_rarity=tokens_with_rarity)
 
     else:
         raise Exception("Can't resolve golden collections data file.")
@@ -337,7 +335,7 @@ def _rank_diff(rank1: int | None, rank2: int | None) -> int | None:
     return abs(rank1 - rank2)
 
 
-def serialize_to_csv(collection: Collection, tokens_with_rarity: list[TokenWithRarityData]):
+def serialize_to_csv(collection_with_metadata: CollectionWithMetadata, tokens_with_rarity: list[TokenWithRarityData]):
     """Serialize collection and ranking data to CSV
 
     Parameters
@@ -345,7 +343,7 @@ def serialize_to_csv(collection: Collection, tokens_with_rarity: list[TokenWithR
     collection : Collection
         collection
     """
-    slug = collection.opensea_slug
+    slug = collection_with_metadata.opensea_slug
     testset = open(f"testset_{slug}.csv", "w")
     headers = [
         "slug",

@@ -95,13 +95,13 @@ def opensea_traits_to_token_metadata(asset_traits: dict) -> TokenMetadata:
     )
 
 
-def get_collection_with_metadata(collection_slug: str) -> CollectionWithMetadata:
+def get_collection_with_metadata(opensea_collection_slug: str) -> CollectionWithMetadata:
     """Fetches collection metadata with OpenSea endpoint and API key
     and stores it in the Collection object
 
     Parameters
     ----------
-    collection_slug : str
+    opensea_collection_slug : str
         collection slug on opensea's system
     tokens : list[Token]
         list of tokens to resolve metadata for
@@ -112,7 +112,7 @@ def get_collection_with_metadata(collection_slug: str) -> CollectionWithMetadata
         collection abstraction
 
     """
-    collection_obj = fetch_opensea_collection_data(slug=collection_slug)
+    collection_obj = fetch_opensea_collection_data(slug=opensea_collection_slug)
     contracts = collection_obj["primary_asset_contracts"]
     interfaces = set([contract["schema_name"] for contract in contracts])
     stats = collection_obj["stats"]
@@ -120,16 +120,16 @@ def get_collection_with_metadata(collection_slug: str) -> CollectionWithMetadata
         raise Exception("We currently do not support non EVM standards at the moment")
 
     collection = Collection(
-        identifier=OpenseaCollectionIdentifier(slug=collection_slug),
         name=collection_obj["name"],
-        chain=Chain.ETH,
-        attributes_distribution=collection_obj["traits"],
+        attributes_frequency_counts=collection_obj["traits"],
+        tokens=[],
     )
 
     collection_with_metadata = CollectionWithMetadata(
         collection=collection,
         contract_addresses=[contract["address"] for contract in contracts],
         token_total_supply=stats["total_supply"],
+        opensea_slug=opensea_collection_slug
     )
 
     return collection_with_metadata
