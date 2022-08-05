@@ -19,6 +19,10 @@ HEADERS = {
 }
 
 def fetch_opensea_collection_data(slug: str):
+    """Fetches collection data from Opensea's GET collection endpoint for the given slug.
+    Raises:
+        Exception: If API request fails
+    """
     response = requests.get(OS_COLLECTION_URL.format(slug=slug))
 
     if response.status_code != 200:
@@ -76,6 +80,9 @@ def fetch_opensea_assets_data(slug: str, token_ids: list[int], limit=30):
 
 def opensea_traits_to_token_metadata(asset_traits: dict) -> TokenMetadata:
     """
+    Converts asset traits dictionary returned by opensea assets API and converts
+    it into a TokenMetadata.
+
     Args:
         asset_traits (dict): the "traits" field for an asset in the return value
         of Opensea's asset(s) endpoint

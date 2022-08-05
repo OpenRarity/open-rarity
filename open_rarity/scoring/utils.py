@@ -2,7 +2,10 @@ import logging
 
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
-from open_rarity.models.token_metadata import AttributeName, StringAttributeValue
+from open_rarity.models.token_metadata import (
+    AttributeName,
+    StringAttributeValue,
+)
 
 logger = logging.getLogger("open_rarity_logger")
 
@@ -16,21 +19,22 @@ def get_attr_probs_weights(
     """get attribute probabilities & weights"""
     logger.debug(f"> Collection {collection} Token {token} evaluation")
 
+    null_attributes = (
+        collection_null_attributes or collection.extract_null_attributes()
+    )
     logger.debug(f"Attributes array with null-traits {null_attributes}")
-    null_attributes = collection_null_attributes or collection.extract_null_attributes()
 
     # Here we augment the attributes array with probabilities of the attributes with
     # Null attributes consider the probability of that trait not in set.
-
+    combined_attributes: dict[str, StringAttributeValue] = (
+        null_attributes | token.metadata.string_attributes
+    )
     logger.debug(f"Attributes array {combined_attributes}")
-    combined_attributes: dict[str, StringAttributeValue] = null_attributes | token.metadata.string_attributes
 
     string_attr_keys = sorted(list(combined_attributes.keys()))
     string_attr_list = [combined_attributes[k] for k in string_attr_keys]
 
-    logger.debug(
-        "Asset attributes dict {attrs}".format(attrs=string_attr_list)
-    )
+    logger.debug("Asset attributes dict {attrs}".format(attrs=string_attr_list))
 
     supply = collection.token_total_supply
     logger.debug(f"Collection supply {supply}")
@@ -45,11 +49,14 @@ def get_attr_probs_weights(
     if normalized:
         logger.debug(
             "Attribute count {attr_count}".format(
-                attr_count=collection.attributes_distribution
+                attr_count=collection.attributes_frequency_counts
             )
         )
 
-        attr_weights = [1 / len(collection.attributes_frequency_counts[k]) for k in string_attr_keys]
+        attr_weights = [
+            1 / len(collection.attributes_frequency_counts[k])
+            for k in string_attr_keys
+        ]
     else:
         attr_weights = [1.0] * len(string_attr_keys)
 

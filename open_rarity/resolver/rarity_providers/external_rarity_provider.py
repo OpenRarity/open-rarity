@@ -35,7 +35,9 @@ def fetch_trait_sniper_rank_for_evm_token(collection_slug: str, token_id: int) -
     }
 
     if not collection_slug:
-        raise Exception(f"Unable to fetch trait sniper rank as slug is invalid. Slug={collection_slug}")
+        msg = f"Unable to fetch trait sniper rank as slug is invalid. Slug={collection_slug}"
+        logger.exception(msg)
+        raise Exception(msg)
 
     url = TRAIT_SNIPER_URL.format(slug=collection_slug)
     response = requests.request("GET", url, params=querystring, headers=USER_AGENT)

@@ -86,7 +86,9 @@ class Collection:
 
         for trait_name, trait_value_dict in self.attributes_frequency_counts.items():
             for trait_value, trait_count in trait_value_dict.items():
-                collection_traits[trait_name].append(StringAttributeValue(trait_name, str(trait_value), trait_count))
+                collection_traits[trait_name].append(
+                    StringAttributeValue(trait_name, str(trait_value), trait_count)
+                )
 
         return collection_traits
 

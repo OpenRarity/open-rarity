@@ -24,7 +24,10 @@ def generate_uniform_attributes_count(
         )
 
     return {
-        str(i): {str(j): token_total_supply // values_per_attribute for j in range(values_per_attribute)}
+        str(i): {
+            str(j): token_total_supply // values_per_attribute
+            for j in range(values_per_attribute)
+        }
         for i in range(attribute_count)
     }
 
@@ -47,13 +50,17 @@ def generate_uniform_rarity_collection(
         for j in range(attribute_count):
             string_attribute_dict[AttributeName(j)] = StringAttributeValue(
                 attribute_name=AttributeName(j),
-                attribute_value=str(i // (token_total_supply // values_per_attribute)),
+                attribute_value=str(
+                    i // (token_total_supply // values_per_attribute)
+                ),
                 count=token_total_supply // values_per_attribute,
             )
 
         token_list.append(
             Token(
-                token_identifier=EVMContractTokenIdentifier(contract_address="0x0", token_id=i),
+                token_identifier=EVMContractTokenIdentifier(
+                    contract_address="0x0", token_id=i
+                ),
                 token_standard=TokenStandard.ERC721,
                 metadata=TokenMetadata(string_attributes=string_attribute_dict),
             )
@@ -114,18 +121,27 @@ def generate_onerare_rarity_collection(
         for i in range(attribute_count - 1):
             string_attribute_dict[AttributeName(i)] = StringAttributeValue(
                 attribute_name=AttributeName(i),
-                attribute_value=str(k // (token_total_supply // values_per_attribute)),
+                attribute_value=str(
+                    k // (token_total_supply // values_per_attribute)
+                ),
                 count=token_total_supply // values_per_attribute,
             )
 
         if k < token_total_supply - 1:
-            string_attribute_dict[AttributeName(attribute_count - 1)] = StringAttributeValue(
+            string_attribute_dict[
+                AttributeName(attribute_count - 1)
+            ] = StringAttributeValue(
                 attribute_name=AttributeName(attribute_count - 1),
-                attribute_value=str(k // ((token_total_supply - 1) // (values_per_attribute - 1))),
+                attribute_value=str(
+                    k
+                    // ((token_total_supply - 1) // (values_per_attribute - 1))
+                ),
                 count=((token_total_supply - 1) // (values_per_attribute - 1)),
             )
         else:
-            string_attribute_dict[AttributeName(attribute_count - 1)] = StringAttributeValue(
+            string_attribute_dict[
+                AttributeName(attribute_count - 1)
+            ] = StringAttributeValue(
                 attribute_name=AttributeName(attribute_count - 1),
                 attribute_value=str(values_per_attribute - 1),
                 count=1,
@@ -133,7 +149,9 @@ def generate_onerare_rarity_collection(
 
         token_list.append(
             Token(
-                token_identifier=EVMContractTokenIdentifier(contract_address="0x0", token_id=k),
+                token_identifier=EVMContractTokenIdentifier(
+                    contract_address="0x0", token_id=k
+                ),
                 token_standard=TokenStandard.ERC721,
                 metadata=TokenMetadata(string_attributes=string_attribute_dict),
             )
