@@ -1,7 +1,6 @@
 import logging
 
 import requests
-from open_rarity.models.collection import Collection
 from open_rarity.resolver.models.collection_with_metadata import CollectionWithMetadata
 from open_rarity.models.token_identifier import EVMContractTokenIdentifier
 from open_rarity.resolver.models.token_with_rarity_data import RankProvider, RarityData, TokenWithRarityData

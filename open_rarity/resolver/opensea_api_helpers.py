@@ -4,9 +4,7 @@ from open_rarity.models.token_metadata import (
     TokenMetadata,
 )
 from open_rarity.models.collection import Collection
-from open_rarity.models.collection_identifier import OpenseaCollectionIdentifier
 from open_rarity.resolver.models.collection_with_metadata import CollectionWithMetadata
-from open_rarity.models.chain import Chain
 import logging
 
 logger = logging.getLogger("opensea_api_helpers")
