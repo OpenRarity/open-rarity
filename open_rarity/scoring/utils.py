@@ -23,6 +23,7 @@ def get_attr_probs_weights(
     # Null attributes consider the probability of that trait not in set.
 
     logger.debug(f"Attributes array {combined_attributes}")
+    combined_attributes: dict[str, StringAttributeValue] = null_attributes | token.metadata.string_attributes
 
     string_attr_keys = sorted(list(combined_attributes.keys()))
     string_attr_list = [combined_attributes[k] for k in string_attr_keys]
