@@ -38,28 +38,39 @@ class TestCollection:
     )
 
     def test_tokens(self):
-        assert self.test_collection.tokens == self.tokens
-        assert self.test_no_attributes_collection.tokens == self.tokens
-        assert self.test_collection.token_total_supply == 100
-        assert self.test_no_attributes_collection.token_total_supply == 100
+        collection_1 = Collection(
+            name="test",
+            tokens=self.tokens,
+            attributes_frequency_counts=self.attributes,
+        )
+        collection_2 = Collection(
+            name="test",
+            tokens=self.tokens[0:50],
+            attributes_frequency_counts={},
+        )
+
+        assert collection_1.tokens == self.tokens
+        assert collection_2.tokens == self.tokens[0:50]
+        assert collection_1.token_total_supply == 100
+        assert collection_2.token_total_supply == 50
 
         new_tokens = [create_evm_token(token_id=100_000)]
-        self.test_collection.tokens = new_tokens
-        assert self.test_collection.tokens == new_tokens
+        collection_1.tokens = new_tokens
+        assert collection_1.tokens == new_tokens
+        assert collection_1.token_total_supply == 1
 
-        self.test_no_attributes_collection.tokens = []
-        assert self.test_collection.tokens == []
-        assert self.test_collection.token_total_supply == 1
-        assert self.test_no_attributes_collection.token_total_supply == 0
+        collection_2.tokens = []
+        assert collection_2.tokens == []
+        assert collection_2.token_total_supply == 0
 
     def test_extract_null_attributes(self):
-        assert self.test_collection.extract_null_attributes == {
+        assert self.test_collection.extract_null_attributes() == {
             "attribute1": StringAttributeValue("attribute1", "Null", 50),
             "attribute2": StringAttributeValue("attribute2", "Null", 40),
         }
 
     def test_extract_null_attributes_empty(self):
-        assert self.test_no_attributes_collection.extract_null_attributes == {}
+        assert self.test_no_attributes_collection.extract_null_attributes() == {}
 
     def test_extract_collection_attributes(self):
         assert self.test_collection.extract_collection_attributes() == {
