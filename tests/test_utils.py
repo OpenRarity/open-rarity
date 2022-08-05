@@ -6,7 +6,6 @@ from open_rarity.models.token_metadata import (
     AttributeName,
 )
 from open_rarity.models.collection import Collection
-from open_rarity.models.collection_identifier import OpenseaCollectionIdentifier
 from open_rarity.models.chain import Chain
 from open_rarity.models.token_standard import TokenStandard
 
@@ -61,11 +60,9 @@ def generate_uniform_rarity_collection(
         )
 
     return Collection(
-        identifier=OpenseaCollectionIdentifier(slug="uniform-rarity-collection"),
         name="Uniform Rarity Collection",
-        chain=Chain.ETH,
-        _tokens=token_list,
-        attributes_distribution=collection_attributes_count,
+        tokens=token_list,
+        attributes_frequency_counts=collection_attributes_count,
     )
 
 
@@ -143,9 +140,7 @@ def generate_onerare_rarity_collection(
         )
 
     return Collection(
-        identifier=OpenseaCollectionIdentifier(slug="onerare-rarity-collection"),
         name="One Rare Rarity Collection",
-        chain=Chain.ETH,
-        _tokens=token_list,
-        attributes_distribution=collection_attributes_count,
+        tokens=token_list,
+        attributes_frequency_counts=collection_attributes_count,
     )
