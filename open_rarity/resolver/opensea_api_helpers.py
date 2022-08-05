@@ -35,7 +35,22 @@ def fetch_opensea_collection_data(slug: str):
 
 
 def fetch_opensea_assets_data(slug: str, token_ids: list[int], limit=30):
+    """Fetches asset data from Opensea's GET assets endpoint for the given token ids
+
+    Args:
+        slug (str): Opensea collection slug
+        token_ids (list[int]): the token id
+        limit (int, optional): How many to fetch at once. Defaults to 30, with a max of 30.
+
+    Raises:
+        Exception: If api request fails
+
+    Returns:
+        _type_: dictionary data response in "assets" field
+    """
     assert len(token_ids) < limit
+    # Max 30 limit enforced on API
+    assert limit <= 30
     querystring = {
         "token_ids": token_ids,
         "collection_slug": slug,

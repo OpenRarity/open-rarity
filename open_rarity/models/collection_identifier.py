@@ -43,9 +43,9 @@ class SolanaMetaplexCollectionIdentifier:
 # logic used to group the NFTs together
 CollectionIdentifier = Annotated[
     (
-		OpenseaCollectionIdentifier |
-		ContractAddressCollectionIdentifier |
-		SolanaMetaplexCollectionIdentifier
+        OpenseaCollectionIdentifier |
+        ContractAddressCollectionIdentifier |
+        SolanaMetaplexCollectionIdentifier
     )
   ,
   Field(discriminator='identifier_type')
