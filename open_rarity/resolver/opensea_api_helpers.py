@@ -4,7 +4,9 @@ from open_rarity.models.token_metadata import (
     TokenMetadata,
 )
 from open_rarity.models.collection import Collection
-from open_rarity.resolver.models.collection_with_metadata import CollectionWithMetadata
+from open_rarity.resolver.models.collection_with_metadata import (
+    CollectionWithMetadata,
+)
 import logging
 
 logger = logging.getLogger("opensea_api_helpers")
@@ -18,8 +20,11 @@ HEADERS = {
     "X-API-KEY": "",
 }
 
+
 def fetch_opensea_collection_data(slug: str):
-    """Fetches collection data from Opensea's GET collection endpoint for the given slug.
+    """Fetches collection data from Opensea's GET collection endpoint for
+    the given slug.
+
     Raises:
         Exception: If API request fails
     """
@@ -31,7 +36,9 @@ def fetch_opensea_collection_data(slug: str):
             f"Received {response.status_code}: {response.reason}. {response.json()}"
         )
 
-        raise Exception(f"[Opensea] Failed to resolve collection with slug {slug}")
+        raise Exception(
+            f"[Opensea] Failed to resolve collection with slug {slug}"
+        )
 
     return response.json()["collection"]
 
@@ -42,7 +49,8 @@ def fetch_opensea_assets_data(slug: str, token_ids: list[int], limit=30):
     Args:
         slug (str): Opensea collection slug
         token_ids (list[int]): the token id
-        limit (int, optional): How many to fetch at once. Defaults to 30, with a max of 30.
+        limit (int, optional): How many to fetch at once. Defaults to 30, with a
+            max of 30.
 
     Raises:
         Exception: If api request fails
@@ -100,7 +108,9 @@ def opensea_traits_to_token_metadata(asset_traits: dict) -> TokenMetadata:
     )
 
 
-def get_collection_with_metadata(opensea_collection_slug: str) -> CollectionWithMetadata:
+def get_collection_with_metadata(
+    opensea_collection_slug: str,
+) -> CollectionWithMetadata:
     """Fetches collection metadata with OpenSea endpoint and API key
     and stores it in the Collection object
 
@@ -117,12 +127,16 @@ def get_collection_with_metadata(opensea_collection_slug: str) -> CollectionWith
         collection abstraction
 
     """
-    collection_obj = fetch_opensea_collection_data(slug=opensea_collection_slug)
+    collection_obj = fetch_opensea_collection_data(
+        slug=opensea_collection_slug
+    )
     contracts = collection_obj["primary_asset_contracts"]
     interfaces = set([contract["schema_name"] for contract in contracts])
     stats = collection_obj["stats"]
     if not interfaces.issubset(set(["ERC721", "ERC1155"])):
-        raise Exception("We currently do not support non EVM standards at the moment")
+        raise Exception(
+            "We currently do not support non EVM standards at the moment"
+        )
 
     collection = Collection(
         name=collection_obj["name"],
@@ -134,8 +148,7 @@ def get_collection_with_metadata(opensea_collection_slug: str) -> CollectionWith
         collection=collection,
         contract_addresses=[contract["address"] for contract in contracts],
         token_total_supply=stats["total_supply"],
-        opensea_slug=opensea_collection_slug
+        opensea_slug=opensea_collection_slug,
     )
 
     return collection_with_metadata
-

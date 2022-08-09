@@ -32,7 +32,8 @@ class TestScoring:
     )
 
     # NOTE: All the previous unit tests verifying one rarity collections were wrong
-    # because since the helper method wasn't actually calling the correct one rarity probability helper method.
+    # because since the helper method wasn't actually calling the correct one
+    # rarity probability helper method.
     # TODO [dan, vicky]: To add replacement tests for rarity ones later.
 
     def test_geometric_mean_scorer(self) -> None:
@@ -65,7 +66,9 @@ class TestScoring:
         ]  # test the rare token
         # onerare_geometric_mean = 39.81071706
         # assert np.round(
-        #     geometric_mean_rarity.score_token(collection=self.onerare_collection, token=onerare_token_to_test), 8
+        #     geometric_mean_rarity.score_token(
+        #           collection=self.onerare_collection, token=onerare_token_to_test
+        #       ), 8
         # ) == np.round(onerare_geometric_mean, 8)
 
     def test_arithmetic_mean(self) -> None:
@@ -86,13 +89,17 @@ class TestScoring:
         # onerare_token_to_test = self.onerare_collection.tokens[0]
         # onerare_arithmetic_mean = 9.80018002
         # assert np.round(
-        #     arithmetic_mean_rarity.score_token(collection=self.onerare_collection, token=onerare_token_to_test), 8
+        #     arithmetic_mean_rarity.score_token(
+        #       collection=self.onerare_collection, token=onerare_token_to_test
+        #       ), 8
         # ) == np.round(onerare_arithmetic_mean, 8)
 
         # onerare_token_to_test = self.onerare_collection.tokens[-1]
         # onerare_arithmetic_mean = 2008.0
         # assert np.round(
-        #     arithmetic_mean_rarity.score_token(collection=self.onerare_collection, token=onerare_token_to_test), 8
+        #     arithmetic_mean_rarity.score_token(
+        #           collection=self.onerare_collection, token=onerare_token_to_test
+        #       ), 8
         # ) == np.round(onerare_arithmetic_mean, 8)
 
     def test_harmonic_mean(self) -> None:
@@ -112,14 +119,18 @@ class TestScoring:
         # onerare_token_to_test = self.onerare_collection.tokens[0]
         # onerare_harmonic_mean = 9.78282137
         # assert np.round(
-        #     harmonic_mean_rarity.score_token(collection=self.onerare_collection, token=onerare_token_to_test), 8
+        #     harmonic_mean_rarity.score_token(
+        #           collection=self.onerare_collection, token=onerare_token_to_test
+        #       ), 8
         # ) == np.round(onerare_harmonic_mean, 8)
 
         # onerare_token_to_test = self.onerare_collection.tokens[-1]
         # onerare_harmonic_mean = 12.49687578
 
         # assert np.round(
-        #     harmonic_mean_rarity.score_token(collection=self.onerare_collection, token=onerare_token_to_test), 8
+        #     harmonic_mean_rarity.score_token(
+        #       collection=self.onerare_collection, token=onerare_token_to_test
+        #       ), 8
         # ) == np.round(onerare_harmonic_mean, 8)
 
     def test_information_content_rarity(self):
@@ -137,6 +148,7 @@ class TestScoring:
         # onerare_token_to_test = self.onerare_collection.tokens[0]
         # onerare_ic_mean = 0.99085719
         # assert np.round(
-        #     information_content_rarity.score_token(collection=self.onerare_collection, token=onerare_token_to_test),
+        #     information_content_rarity.score_token(
+        #       collection=self.onerare_collection, token=onerare_token_to_test),
         #     8,
         # ) == np.round(onerare_ic_mean, 8)

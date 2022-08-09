@@ -12,15 +12,16 @@ from open_rarity.models.token_metadata import (
 @dataclass
 class Collection:
     """Class represents collection of tokens used to determine token rarity score.
-    A token's rarity is influenced by the attribute frequency of all the tokens in a collection.
+    A token's rarity is influenced by the attribute frequency of all the tokens
+    in a collection.
 
     Attributes
     ----------
     tokens : list[Token]
         list of all Tokens that belong to the collection
     attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
-        dictionary of attributes to the number of tokens in this collection that has a specific value
-        for every possible value for the given attribute.
+        dictionary of attributes to the number of tokens in this collection that has
+        a specific value for every possible value for the given attribute.
 
         Example:
             {"hair": {"brown": 500, "blonde": 100}

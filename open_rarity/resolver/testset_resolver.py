@@ -70,7 +70,8 @@ def get_tokens_with_rarity(
     batch_size: int = 30,
 ) -> list[TokenWithRarityData]:
     """Resolves assets through OpenSea API asset endpoint and turns them
-    into token with rarity data, augmented with rankings from Gem, RaritySniper and TraitSniper.
+    into token with rarity data, augmented with rankings from Gem, RaritySniper
+    and TraitSniper.
 
     Parameters
     ----------
@@ -104,7 +105,8 @@ def get_tokens_with_rarity(
     for batch_id in range(num_batches):
         token_ids = get_token_ids(batch_id)
         logger.debug(
-            f"Starting batch {batch_id} for collection {collection_with_metadata.opensea_slug}: "
+            f"Starting batch {batch_id} for collection "
+            f"{collection_with_metadata.opensea_slug}: "
             f"Processing {len(token_ids)} tokens"
         )
 
@@ -112,9 +114,9 @@ def get_tokens_with_rarity(
             assets = fetch_opensea_assets_data(
                 slug=collection_with_metadata.opensea_slug, token_ids=token_ids
             )
-        except:
+        except Exception:
             print(
-                f"FAILED: get_assets: could not fetch opensea assets data for {token_ids}"
+                f"FAILED: get_assets: could not fetch opensea assets for {token_ids}"
             )
             break
 
@@ -123,7 +125,9 @@ def get_tokens_with_rarity(
         for asset in assets:
             token_metadata = opensea_traits_to_token_metadata(asset["traits"])
             asset_contract_address = asset["asset_contract"]["address"]
-            asset_contract_type = asset["asset_contract"]["asset_contract_type"]
+            asset_contract_type = asset["asset_contract"][
+                "asset_contract_type"
+            ]
             if asset_contract_type == "non-fungible":
                 token_standard = TokenStandard.ERC721
             elif asset_contract_type == "semi-fungible":
@@ -198,7 +202,8 @@ def resolve_collection_data(resolve_remote_rarity: bool):
                 collection, collection.tokens, normalized=True
             )
             augment_with_open_rarity_scores(
-                tokens_with_rarity=tokens_with_rarity, scores=open_rarity_scores
+                tokens_with_rarity=tokens_with_rarity,
+                scores=open_rarity_scores,
             )
 
             serialize_to_csv(
@@ -213,7 +218,8 @@ def resolve_collection_data(resolve_remote_rarity: bool):
 def augment_with_open_rarity_scores(
     tokens_with_rarity: list[TokenWithRarityData], scores: OpenRarityScores
 ):
-    """Augments tokens_with_rarity with ranks and scores computed by OpenRarity scorers'"""
+    """Augments tokens_with_rarity with ranks and scores computed by
+    OpenRarity scorers'"""
     for token_with_rarity in tokens_with_rarity:
         token_id = token_with_rarity.token.token_identifier.token_id  # type: ignore
         try:
@@ -248,7 +254,7 @@ def augment_with_open_rarity_scores(
             )
         except Exception:
             logger.exception(
-                f"Error occured during OR rank resolution for token {token_with_rarity.token}"
+                f"Error occured with OR rank calc for token {token_with_rarity.token}"
             )
 
 
@@ -265,7 +271,9 @@ def extract_rank(token_id_to_scores: ScoredTokens) -> RankedTokens:
     dict[int, RankScore]
         dictionary of token to rank, score pair
     """
-    srt = dict(sorted(token_id_to_scores.items(), key=lambda x: x[1], reverse=True))  # type: ignore
+    srt = dict(
+        sorted(token_id_to_scores.items(), key=lambda x: x[1], reverse=True)
+    )
 
     res = {}
     for index, (key, value) in enumerate(srt.items()):
@@ -283,8 +291,8 @@ def resolve_open_rarity_score(
     Parameters
     ----------
     collection : Collection
-        collection is needed since the score is based on the invdividual's traits probability across
-        the entire collection
+        collection is needed since the score is based on the invdividual's traits
+        probability across the entire collection
     tokens: Subset of tokens belonging to Collection to resolve open rarity scores for
 
     """
@@ -453,7 +461,9 @@ def serialize_to_csv(
         or_harmonic_rank = _get_provider_rank(
             RankProvider.OR_HARMONIC, token_with_rarity
         )
-        or_sum_rank = _get_provider_rank(RankProvider.OR_SUM, token_with_rarity)
+        or_sum_rank = _get_provider_rank(
+            RankProvider.OR_SUM, token_with_rarity
+        )
         or_ic_rank = _get_provider_rank(
             RankProvider.OR_INFORMATION_CONTENT, token_with_rarity
         )

@@ -4,7 +4,10 @@ import numpy as np
 
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
-from open_rarity.models.token_metadata import AttributeName, StringAttributeValue
+from open_rarity.models.token_metadata import (
+    AttributeName,
+    StringAttributeValue,
+)
 from open_rarity.scoring.scorer import Scorer
 from open_rarity.scoring.utils import get_attr_probs_weights
 
@@ -40,27 +43,46 @@ class InformationContentRarityScorer(Scorer):
     tokens that do carry the TraitType.
     """
 
-    def score_token(self, collection: Collection, token: Token, normalized: bool = True) -> float:
+    # TODO [@danmeshkov]: To support numeric types in a follow-up version.
+
+    def score_token(
+        self, collection: Collection, token: Token, normalized: bool = True
+    ) -> float:
         return self._score_token(collection, token, normalized)
 
-    def score_tokens(self, collection: Collection, tokens: list[Token], normalized: bool = True) -> list[float]:
+    def score_tokens(
+        self,
+        collection: Collection,
+        tokens: list[Token],
+        normalized: bool = True,
+    ) -> list[float]:
         # Memoize for performance
         collection_null_attributes = collection.extract_null_attributes()
         collection_attributes = collection.extract_collection_attributes()
         return [
-            self._score_token(collection, t, normalized, collection_attributes, collection_null_attributes)
+            self._score_token(
+                collection,
+                t,
+                normalized,
+                collection_attributes,
+                collection_null_attributes,
+            )
             for t in tokens
         ]
 
-    ##### Private methods
+    # Private methods
     def _score_token(
         self,
         collection: Collection,
         token: Token,
         normalized: bool = True,
         # If provided, will be used instead of re-calculating on @collection
-        collection_attributes: dict[AttributeName, list[StringAttributeValue]] = None,
-        collection_null_attributes: dict[AttributeName, StringAttributeValue] = None,
+        collection_attributes: dict[
+            AttributeName, list[StringAttributeValue]
+        ] = None,
+        collection_null_attributes: dict[
+            AttributeName, StringAttributeValue
+        ] = None,
     ) -> float:
         """calculate the score for a single token"""
 
@@ -84,12 +106,18 @@ class InformationContentRarityScorer(Scorer):
         information_content = -np.sum(np.log2(np.reciprocal(attr_probs)))
 
         # Now, compute entropy for the whole collection
-        collection_entropy = -np.dot(collection_probabilities, np.log2(collection_probabilities))
-
-        logger.debug("Information content {probs}".format(probs=information_content))
+        collection_entropy = -np.dot(
+            collection_probabilities, np.log2(collection_probabilities)
+        )
 
         logger.debug(
-            "Collection {collection} entropy {probs}".format(collection=collection.name, probs=collection_entropy)
+            "Information content {probs}".format(probs=information_content)
+        )
+
+        logger.debug(
+            "Collection {collection} entropy {probs}".format(
+                collection=collection.name, probs=collection_entropy
+            )
         )
 
         return information_content / collection_entropy
@@ -97,8 +125,12 @@ class InformationContentRarityScorer(Scorer):
     def _get_collection_probabilities(
         self,
         collection: Collection,
-        collection_attributes: dict[AttributeName, list[StringAttributeValue]] = None,
-        collection_null_attributes: dict[AttributeName, StringAttributeValue] = None,
+        collection_attributes: dict[
+            AttributeName, list[StringAttributeValue]
+        ] = None,
+        collection_null_attributes: dict[
+            AttributeName, StringAttributeValue
+        ] = None,
     ):
         attributes: dict[str, list[StringAttributeValue]] = (
             collection_attributes or collection.extract_collection_attributes()
@@ -110,13 +142,18 @@ class InformationContentRarityScorer(Scorer):
         # collect all probabilities into array
         collection_probabilities = []
         for value, _ in attributes.items():
-            null_attr = null_attributes[value] if value in null_attributes else None
+            null_attr = (
+                null_attributes[value] if value in null_attributes else None
+            )
 
             if null_attr:
                 attributes[value].append(null_attr)
 
             collection_probabilities.extend(
-                [value.count / collection.token_total_supply for value in attributes[value]]
+                [
+                    value.count / collection.token_total_supply
+                    for value in attributes[value]
+                ]
             )
 
         return collection_probabilities

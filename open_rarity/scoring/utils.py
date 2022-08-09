@@ -6,8 +6,6 @@ from open_rarity.models.token_metadata import (
     AttributeName,
     StringAttributeValue,
 )
-from open_rarity.models.token import Token
-from open_rarity.models.token_metadata import StringAttributeValue
 
 logger = logging.getLogger("open_rarity_logger")
 
@@ -38,7 +36,9 @@ def get_attr_probs_weights(
     string_attr_keys = sorted(list(combined_attributes.keys()))
     string_attr_list = [combined_attributes[k] for k in string_attr_keys]
 
-    logger.debug("Asset attributes dict {attrs}".format(attrs=string_attr_list))
+    logger.debug(
+        "Asset attributes dict {attrs}".format(attrs=string_attr_list)
+    )
 
     supply = collection.token_total_supply
     logger.debug(f"Collection supply {supply}")

@@ -2,7 +2,10 @@ from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
 from open_rarity.models.token_standard import TokenStandard
 from open_rarity.models.token_identifier import EVMContractTokenIdentifier
-from open_rarity.models.token_metadata import TokenMetadata, StringAttributeValue
+from open_rarity.models.token_metadata import (
+    TokenMetadata,
+    StringAttributeValue,
+)
 
 
 def create_evm_token(
@@ -12,7 +15,9 @@ def create_evm_token(
     metadata: TokenMetadata = TokenMetadata(),
 ) -> Token:
     return Token(
-        token_identifier=EVMContractTokenIdentifier(contract_address=contract_address, token_id=token_id),
+        token_identifier=EVMContractTokenIdentifier(
+            contract_address=contract_address, token_id=token_id
+        ),
         token_standard=token_standard,
         metadata=metadata,
     )
@@ -70,7 +75,9 @@ class TestCollection:
         }
 
     def test_extract_null_attributes_empty(self):
-        assert self.test_no_attributes_collection.extract_null_attributes() == {}
+        assert (
+            self.test_no_attributes_collection.extract_null_attributes() == {}
+        )
 
     def test_extract_collection_attributes(self):
         assert self.test_collection.extract_collection_attributes() == {
@@ -85,4 +92,7 @@ class TestCollection:
         }
 
     def test_extract_empty_collection_attributes(self):
-        assert self.test_no_attributes_collection.extract_collection_attributes() == {}
+        assert (
+            self.test_no_attributes_collection.extract_collection_attributes()
+            == {}
+        )
