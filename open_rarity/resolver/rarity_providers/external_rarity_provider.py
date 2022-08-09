@@ -9,6 +9,7 @@ from open_rarity.resolver.models.token_with_rarity_data import (
     RankProvider,
     RarityData,
     TokenWithRarityData,
+    EXTERNAL_RANK_PROVIDERS,
 )
 
 TRAIT_SNIPER_URL = "https://api.traitsniper.com/api/projects/{slug}/nfts"
@@ -326,11 +327,7 @@ class ExternalRarityProvider:
         self,
         collection_with_metadata: CollectionWithMetadata,
         tokens_with_rarity: list[TokenWithRarityData],
-        rank_providers: list[RankProvider] = [
-            RankProvider.TRAITS_SNIPER,
-            RankProvider.RARITY_SNIFFER,
-            RankProvider.RARITY_SNIPER,
-        ],
+        rank_providers: list[RankProvider] = EXTERNAL_RANK_PROVIDERS,
     ) -> list[TokenWithRarityData]:
         """Fetches ranks from available providers gem, rarity sniper and/or trait sniper
         and adds them to the rarities field in `tokens_with_rarity`

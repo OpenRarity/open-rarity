@@ -12,8 +12,9 @@ def create_evm_token(
     token_id: int,
     contract_address: str = "0xaaa",
     token_standard: TokenStandard = TokenStandard.ERC721,
-    metadata: TokenMetadata = TokenMetadata(),
+    metadata: TokenMetadata | None = None,
 ) -> Token:
+    metadata = metadata or TokenMetadata()
     return Token(
         token_identifier=EVMContractTokenIdentifier(
             contract_address=contract_address, token_id=token_id

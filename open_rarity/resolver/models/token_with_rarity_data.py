@@ -17,6 +17,12 @@ class RankProvider(Enum):
     OR_INFORMATION_CONTENT = "or_information_content"
 
 
+EXTERNAL_RANK_PROVIDERS = [
+    RankProvider.TRAITS_SNIPER,
+    RankProvider.RARITY_SNIFFER,
+    RankProvider.RARITY_SNIPER,
+]
+
 Rank = int
 Score = float
 
