@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 
 AttributeName = str
+AttributeValue = str
 
 
 @dataclass
@@ -19,6 +20,9 @@ class StringAttributeValue:
 
     attribute_name: AttributeName  # duplicate name here for ease of reduce
     attribute_value: str
+    # TODO [vicky]: I will pull this out in a follow-up PR. This is a calculated
+    # number based on the attributes frequency of all tokens in a collection
+    # and should only be userd in scorer.
     count: int
 
 
