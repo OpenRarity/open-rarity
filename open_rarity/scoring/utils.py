@@ -8,9 +8,10 @@ from open_rarity.models.token_metadata import (
 )
 
 logger = logging.getLogger("open_rarity_logger")
+log_prefix = "\t >"
 
 
-def get_attr_probs_weights(
+def get_token_attributes_scores_and_weights(
     collection: Collection,
     token: Token,
     normalized: bool,
@@ -18,55 +19,77 @@ def get_attr_probs_weights(
         AttributeName, StringAttributeValue
     ] = None,
 ) -> tuple[list[float], list[float]]:
-    """get attribute probabilities & weights"""
-    logger.debug(f"> Collection {collection} Token {token} evaluation")
+    """Calculates the scores and normalization weights for a token
+    based on its attributes. If the token does not have an attribute, the probability of
+    the attribute being null is used instead.
 
+    Args:
+        collection (Collection): The collection to calculate probability on
+        token (Token): The token to score
+        normalized (bool):
+            Set to true to enable individual trait normalizations based on
+            total number of possible values for an attribute.
+            Defaults to True.
+        collection_null_attributes
+            (dict[AttributeName, StringAttributeValue], optional):
+                Optional memoization of collection.extract_null_attributes().
+                Defaults to None.
+
+    Returns:
+        tuple[list[float], list[float]]: attribute scores, attribute weights
+            attribute scores: scores for an attribute is defined to be the inverse of
+                the probability of that attribute existing across the collection. e.g.
+                (total token supply / total tokens with that attribute name and value)
+            attribute weights: The weights for each score that should be applied
+                if normalization is to occur.
+
+    """
+    # Create a combined attributes dictionary such that if the token has the attribute,
+    # it uses the value's probability, and if it doesn't have the attribute,
+    # uses the probability of that attribute being null.
     null_attributes = (
         collection_null_attributes or collection.extract_null_attributes()
     )
-    logger.debug(f"Attributes array with null-traits {null_attributes}")
-
-    # Here we augment the attributes array with probabilities of the attributes with
-    # Null attributes consider the probability of that trait not in set.
     combined_attributes: dict[str, StringAttributeValue] = (
         null_attributes | token.metadata.string_attributes
     )
-    logger.debug(f"Attributes array {combined_attributes}")
 
-    string_attr_keys = sorted(list(combined_attributes.keys()))
-    string_attr_list = [combined_attributes[k] for k in string_attr_keys]
+    sorted_attr_names = sorted(list(combined_attributes.keys()))
+    sorted_attrs = [
+        combined_attributes[attr_name] for attr_name in sorted_attr_names
+    ]
 
-    logger.debug(
-        "Asset attributes dict {attrs}".format(attrs=string_attr_list)
-    )
+    total_supply = collection.token_total_supply
 
-    supply = collection.token_total_supply
-    logger.debug(f"Collection supply {supply}")
-
-    # Normalize traits weight by applying  1/x function for each
-    # respective trait of the token.
-    # The normalization factor takes into account the cardinality
-    # values for particual trait.
-    # Example: if Asset has a trait "Hat" and it has possible values
+    # Normalize traits by dividing by the total number of possible values for
+    # that trait. The normalization factor takes into account the cardinality
+    # values for particual traits, such that high cardinality traits aren't
+    # over-indexed in rarity.
+    # Example: If Asset has a trait "Hat" and it has possible values
     # {"Red","Yellow","Green"} the normalization factor will be 1/3 or
-    # 0.33.
+    # 0.33. If a trait has 10,000 options, than the normalization factor is 1/10,000.
     if normalized:
-        logger.debug(
-            "Attribute count {attr_count}".format(
-                attr_count=collection.attributes_frequency_counts
-            )
-        )
+        logger.debug(f"{log_prefix} Normalizing attribute weights")
 
         attr_weights = [
-            1 / len(collection.attributes_frequency_counts[k])
-            for k in string_attr_keys
+            1 / collection.total_attribute_values(attr_name)
+            for attr_name in sorted_attr_names
         ]
     else:
-        attr_weights = [1.0] * len(string_attr_keys)
+        attr_weights = [1.0] * len(sorted_attr_names)
 
-    scores = [supply / attr.count for attr in string_attr_list]
+    # scores = [
+    #     total_supply / attr.count
+    #     for attr in sorted_attrs
+    # ]
+    scores = [
+        total_supply / collection.total_tokens_with_attribute(attr)
+        for attr in sorted_attrs
+    ]
 
-    logger.debug("Weights {attr_weights}".format(attr_weights=attr_weights))
-    logger.debug("Scores {scores}".format(scores=scores))
+    logger.debug(
+        f"{log_prefix} Calculated for {collection=} {token=}: "
+        f"{scores=} {attr_weights=}"
+    )
 
     return (scores, attr_weights)

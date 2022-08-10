@@ -9,7 +9,8 @@ from open_rarity.models.token_metadata import (
     StringAttributeValue,
 )
 from open_rarity.scoring.scorer import Scorer
-from open_rarity.scoring.utils import get_attr_probs_weights
+from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
+
 
 logger = logging.getLogger("open_rarity_logger")
 
@@ -43,18 +44,36 @@ class SumRarityScorer(Scorer):
         collection: Collection,
         token: Token,
         normalized: bool = True,
-        # If provided, will be used instead of re-calculating on @collection
         collection_null_attributes: dict[
             AttributeName, StringAttributeValue
         ] = None,
     ) -> float:
-        logger.debug(f"Computing arithmetic mean for token {token}")
+        """Calculates the score of the token by taking the sum of the attribute
+        scores with weights.
 
-        attr_probs, attr_weights = get_attr_probs_weights(
+        Args:
+            collection (Collection): The collection with the attributes frequency counts
+                to base the token trait probabilities on.
+            token (Token): The token to score
+            normalized (bool, optional):
+                Set to true to enable individual trait normalizations based on
+                total number of possible values for an attribute.
+                Defaults to True.
+            collection_null_attributes
+                (dict[ AttributeName, StringAttributeValue ], optional):
+                Optional memoization of collection.extract_null_attributes().
+                Defaults to None.
+
+        Returns:
+            float: The token score
+        """
+        logger.debug(f"Computing sum score for token {token}")
+
+        attr_scores, attr_weights = get_token_attributes_scores_and_weights(
             collection=collection,
             token=token,
             normalized=normalized,
             collection_null_attributes=collection_null_attributes,
         )
 
-        return np.dot(attr_probs, attr_weights)
+        return np.dot(attr_scores, attr_weights)
