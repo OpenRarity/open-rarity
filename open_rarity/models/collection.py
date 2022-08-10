@@ -38,6 +38,22 @@ class Collection:
     def token_total_supply(self) -> int:
         return len(self.tokens)
 
+    def total_tokens_with_attribute(
+        self, string_attribute: StringAttributeValue
+    ) -> int:
+        """Returns the numbers of tokens in this collection with the attribute
+        based on the attributes frequency counts.
+
+        Returns:
+            int: The number of tokens with attribute (attribute_name, attribute_value)
+        """
+        return self.attributes_frequency_counts.get(
+            string_attribute.attribute_name, {}
+        ).get(string_attribute.attribute_value, 0)
+
+    def total_attribute_values(self, attribute_name: str) -> int:
+        return len(self.attributes_frequency_counts.get(attribute_name, {}))
+
     def extract_null_attributes(
         self,
     ) -> dict[AttributeName, StringAttributeValue]:
@@ -85,7 +101,7 @@ class Collection:
         Returns
         -------
         dict[str, StringAttributeValue]
-            dict of  attribute name to count of assets missing the attribute
+            dict of attribute name to count of assets missing the attribute
         """
 
         collection_traits: dict[str, list[StringAttributeValue]] = defaultdict(
