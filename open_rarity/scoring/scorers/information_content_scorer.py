@@ -2,12 +2,9 @@ import logging
 
 import numpy as np
 
-from open_rarity.models.collection import Collection
+from open_rarity.models.collection import Collection, CollectionAttribute
 from open_rarity.models.token import Token
-from open_rarity.models.token_metadata import (
-    AttributeName,
-    StringAttributeValue,
-)
+from open_rarity.models.token_metadata import AttributeName
 from open_rarity.scoring.scorer import Scorer
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 
@@ -80,10 +77,10 @@ class InformationContentRarityScorer(Scorer):
         token: Token,
         normalized: bool = True,
         collection_attributes: dict[
-            AttributeName, list[StringAttributeValue]
+            AttributeName, list[CollectionAttribute]
         ] = None,
         collection_null_attributes: dict[
-            AttributeName, StringAttributeValue
+            AttributeName, CollectionAttribute
         ] = None,
     ) -> float:
         """Calculates the score of the token using information entropy with a
@@ -98,11 +95,11 @@ class InformationContentRarityScorer(Scorer):
                 total number of possible values for an attribute name.
                 Defaults to True.
             collection_attributes
-                (dict[ AttributeName, list[StringAttributeValue] ], optional):
+                (dict[ AttributeName, list[CollectionAttribute] ], optional):
                 Optional memoization of collection.extract_collection_attributes().
                 Defaults to None.
             collection_null_attributes
-                (dict[ AttributeName, StringAttributeValue ], optional):
+                (dict[ AttributeName, CollectionAttribute ], optional):
                 Optional memoization of collection.extract_null_attributes().
                 Defaults to None.
 
@@ -150,10 +147,10 @@ class InformationContentRarityScorer(Scorer):
         self,
         collection: Collection,
         collection_attributes: dict[
-            AttributeName, list[StringAttributeValue]
+            AttributeName, list[CollectionAttribute]
         ] = None,
         collection_null_attributes: dict[
-            AttributeName, StringAttributeValue
+            AttributeName, CollectionAttribute
         ] = None,
     ) -> list[float]:
         """Calculates the probability of every possible attribute name/value pair that
@@ -162,11 +159,11 @@ class InformationContentRarityScorer(Scorer):
         Args:
             collection (Collection): The collection to calculate probability on
             collection_attributes
-                (dict[ AttributeName, list[StringAttributeValue] ], optional):
+                (dict[ AttributeName, list[CollectionAttribute] ], optional):
                 Optional memoization of collection.extract_collection_attributes().
                 Defaults to None.
             collection_null_attributes
-                (dict[ AttributeName, StringAttributeValue ], optional):
+                (dict[ AttributeName, CollectionAttribute ], optional):
                 Optional memoization of collection.extract_null_attributes().
                 Defaults to None.
 
@@ -174,10 +171,10 @@ class InformationContentRarityScorer(Scorer):
             list[float]: List of all probabilities for every attribute name/value pair,
             in the order of collection.attributes_frequency_counts.items()
         """
-        attributes: dict[str, list[StringAttributeValue]] = (
+        attributes: dict[str, list[CollectionAttribute]] = (
             collection_attributes or collection.extract_collection_attributes()
         )
-        null_attributes: dict[str, StringAttributeValue] = (
+        null_attributes: dict[str, CollectionAttribute] = (
             collection_null_attributes or collection.extract_null_attributes()
         )
 
@@ -191,8 +188,7 @@ class InformationContentRarityScorer(Scorer):
             # existing in the collection
             collection_probabilities.extend(
                 [
-                    collection.total_tokens_with_attribute(attr_value)
-                    / collection.token_total_supply
+                    attr_value.total_tokens / collection.token_total_supply
                     for attr_value in attr_values
                 ]
             )

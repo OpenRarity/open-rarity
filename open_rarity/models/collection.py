@@ -5,8 +5,26 @@ from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import (
     AttributeName,
     AttributeValue,
-    StringAttributeValue,
+    StringAttribute,
 )
+
+
+@dataclass
+class CollectionAttribute:
+    """Class represents an attribute that is exhibited in at least one token in a Collection.
+    E.g. "hat" = "cap" would be one atttribute, and "hat" = "beanie" would be another
+    unique attribute, even though they may belong to the same attribute type (id=name).
+
+    Attributes
+     ----------
+    attribute : StringAttribute | NumericAttribute
+        the unique attribute pair
+    total_tokens : int
+        total number of tokens in the collection that have this attribute
+    """
+
+    attribute: StringAttribute
+    total_tokens: int
 
 
 @dataclass
@@ -38,30 +56,28 @@ class Collection:
     def token_total_supply(self) -> int:
         return len(self.tokens)
 
-    def total_tokens_with_attribute(
-        self, string_attribute: StringAttributeValue
-    ) -> int:
+    def total_tokens_with_attribute(self, attribute: StringAttribute) -> int:
         """Returns the numbers of tokens in this collection with the attribute
         based on the attributes frequency counts.
 
         Returns:
             int: The number of tokens with attribute (attribute_name, attribute_value)
         """
-        return self.attributes_frequency_counts.get(
-            string_attribute.attribute_name, {}
-        ).get(string_attribute.attribute_value, 0)
+        return self.attributes_frequency_counts.get(attribute.name, {}).get(
+            attribute.value, 0
+        )
 
     def total_attribute_values(self, attribute_name: str) -> int:
         return len(self.attributes_frequency_counts.get(attribute_name, {}))
 
     def extract_null_attributes(
         self,
-    ) -> dict[AttributeName, StringAttributeValue]:
+    ) -> dict[AttributeName, CollectionAttribute]:
         """Compute probabilities of Null attributes.
 
         Returns
         -------
-        dict[AttributeName(str), StringAttributeValue(str)]
+        dict[AttributeName(str), CollectionAttribute(str)]
             dict of attribute name to the number of assets without the attribute
             (e.g. # of assets where AttributeName=NULL)
         """
@@ -85,26 +101,25 @@ class Collection:
             # this trait
             assets_without_trait = self.token_total_supply - total_trait_count
             if assets_without_trait > 0:
-                result[trait_name] = StringAttributeValue(
-                    trait_name,
-                    "Null",
-                    assets_without_trait,
+                result[trait_name] = CollectionAttribute(
+                    attribute=StringAttribute(trait_name, "Null"),
+                    total_tokens=assets_without_trait,
                 )
 
         return result
 
     def extract_collection_attributes(
         self,
-    ) -> dict[AttributeName, list[StringAttributeValue]]:
+    ) -> dict[AttributeName, list[CollectionAttribute]]:
         """Extracts the map of collection traits with it's respective counts
 
         Returns
         -------
-        dict[str, StringAttributeValue]
+        dict[str, CollectionAttribute]
             dict of attribute name to count of assets missing the attribute
         """
 
-        collection_traits: dict[str, list[StringAttributeValue]] = defaultdict(
+        collection_traits: dict[str, list[CollectionAttribute]] = defaultdict(
             list
         )
 
@@ -114,8 +129,11 @@ class Collection:
         ) in self.attributes_frequency_counts.items():
             for trait_value, trait_count in trait_value_dict.items():
                 collection_traits[trait_name].append(
-                    StringAttributeValue(
-                        trait_name, str(trait_value), trait_count
+                    CollectionAttribute(
+                        attribute=StringAttribute(
+                            trait_name, str(trait_value)
+                        ),
+                        total_tokens=trait_count,
                     )
                 )
 

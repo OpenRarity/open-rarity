@@ -2,12 +2,9 @@ import logging
 
 import numpy as np
 
-from open_rarity.models.collection import Collection
+from open_rarity.models.collection import Collection, CollectionAttribute
 from open_rarity.models.token import Token
-from open_rarity.models.token_metadata import (
-    AttributeName,
-    StringAttributeValue,
-)
+from open_rarity.models.token_metadata import AttributeName
 from open_rarity.scoring.scorer import Scorer
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 
@@ -44,7 +41,7 @@ class HarmonicMeanRarityScorer(Scorer):
         token: Token,
         normalized: bool = True,
         collection_null_attributes: dict[
-            AttributeName, StringAttributeValue
+            AttributeName, CollectionAttribute
         ] = None,
     ) -> float:
         """Calculates the score of the token by taking the harmonic mean of the
@@ -59,7 +56,7 @@ class HarmonicMeanRarityScorer(Scorer):
                 total number of possible values for an attribute.
                 Defaults to True.
             collection_null_attributes
-                (dict[ AttributeName, StringAttributeValue ], optional):
+                (dict[ AttributeName, CollectionAttribute ], optional):
                 Optional memoization of collection.extract_null_attributes().
                 Defaults to None.
 

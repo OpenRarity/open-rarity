@@ -5,43 +5,43 @@ AttributeValue = str
 
 
 @dataclass
-class StringAttributeValue:
+class StringAttribute:
     """Class represents string token attribute name and value
 
     Attributes
     ----------
-    attribute_name : AttributeName
+    name : AttributeName
         name of an attribute
-    attribute_value : str
+    value : str
         value of a string attribute
     count : int
         total value of tokens in collection that have this attribute
     """
 
-    attribute_name: AttributeName  # duplicate name here for ease of reduce
-    attribute_value: str
+    name: AttributeName  # duplicate name here for ease of reduce
+    value: str
     # TODO [vicky]: I will pull this out in a follow-up PR. This is a calculated
     # number based on the attributes frequency of all tokens in a collection
     # and should only be userd in scorer.
-    count: int
+    # count: int
 
 
 @dataclass
-class NumericAttributeValue:
+class NumericAttribute:
     """Class represents numeric token attribute name and value
 
     Attributes
     ----------
-    attribute_name : AttributeName
+    name : AttributeName
         name of an attribute
-    attribute_value : float
+    value : float
         value of a string attribute
     count : int
         total value of tokens in collection that have this attribute
     """
 
-    attribute_name: AttributeName
-    attribute_value: float
+    name: AttributeName
+    value: float
 
 
 @dataclass
@@ -56,9 +56,9 @@ class TokenMetadata:
         mapping of atrribute name to list of numeric attribute values
     """
 
-    string_attributes: dict[AttributeName, StringAttributeValue] = field(
+    string_attributes: dict[AttributeName, StringAttribute] = field(
         default_factory=dict
     )
-    numeric_attributes: dict[AttributeName, NumericAttributeValue] = field(
+    numeric_attributes: dict[AttributeName, NumericAttribute] = field(
         default_factory=dict
     )

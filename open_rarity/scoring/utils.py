@@ -1,11 +1,8 @@
 import logging
 
-from open_rarity.models.collection import Collection
+from open_rarity.models.collection import Collection, CollectionAttribute
 from open_rarity.models.token import Token
-from open_rarity.models.token_metadata import (
-    AttributeName,
-    StringAttributeValue,
-)
+from open_rarity.models.token_metadata import AttributeName
 
 logger = logging.getLogger("open_rarity_logger")
 log_prefix = "\t >"
@@ -16,7 +13,7 @@ def get_token_attributes_scores_and_weights(
     token: Token,
     normalized: bool,
     collection_null_attributes: dict[
-        AttributeName, StringAttributeValue
+        AttributeName, CollectionAttribute
     ] = None,
 ) -> tuple[list[float], list[float]]:
     """Calculates the scores and normalization weights for a token
@@ -31,7 +28,7 @@ def get_token_attributes_scores_and_weights(
             total number of possible values for an attribute.
             Defaults to True.
         collection_null_attributes
-            (dict[AttributeName, StringAttributeValue], optional):
+            (dict[AttributeName, CollectionAttribute], optional):
                 Optional memoization of collection.extract_null_attributes().
                 Defaults to None.
 
@@ -50,8 +47,10 @@ def get_token_attributes_scores_and_weights(
     null_attributes = (
         collection_null_attributes or collection.extract_null_attributes()
     )
-    combined_attributes: dict[str, StringAttributeValue] = (
-        null_attributes | token.metadata.string_attributes
+    combined_attributes: dict[
+        str, CollectionAttribute
+    ] = null_attributes | _convert_to_collection_attributes_dict(
+        collection, token
     )
 
     sorted_attr_names = sorted(list(combined_attributes.keys()))
@@ -82,10 +81,7 @@ def get_token_attributes_scores_and_weights(
     #     total_supply / attr.count
     #     for attr in sorted_attrs
     # ]
-    scores = [
-        total_supply / collection.total_tokens_with_attribute(attr)
-        for attr in sorted_attrs
-    ]
+    scores = [total_supply / attr.total_tokens for attr in sorted_attrs]
 
     logger.debug(
         f"{log_prefix} Calculated for {collection=} {token=}: "
@@ -93,3 +89,14 @@ def get_token_attributes_scores_and_weights(
     )
 
     return (scores, attr_weights)
+
+
+def _convert_to_collection_attributes_dict(collection, token):
+    # NOTE: We currently only support string attributes
+    return {
+        attribute.name: CollectionAttribute(
+            attribute=attribute,
+            total_tokens=collection.total_tokens_with_attribute(attribute),
+        )
+        for attribute in token.metadata.string_attributes.values()
+    }
