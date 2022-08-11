@@ -20,11 +20,9 @@ We used following core technologies in OpenRarity:
 - Numpy ≥1.23.1
 - PyTest for unit tests
 
-OpenRarity consists of two core parts: **Runtime** and **Rarity Resolver**. The runtime part of the library can be integrated into any Python 3.10+ application to perform the scoring of any collection. The runtime doesn’t resolve collections metadata—it’s the responsibility of an application to provide correct metadata to perform collection scoring.
+OpenRarity consists of two core parts: **Runtime** and **Rarity Resolver**. The **Runtime** part of the library can be integrated into any Python 3.10+ application to perform the scoring of any collection. The runtime doesn’t resolve collections metadata—it’s the responsibility of an application to provide correct metadata to perform collection scoring.
 
-To debug any collections scoring we built the **Rarity Resolver** tool.
-
-Follow these steps to score the collection (by calling OpenSea API):
+To debug any collections scoring we built the **Rarity Resolver** tool. Follow these steps to score the collection with the tool (by calling OpenSea API):
 
 - Curate the collections list that you want to score <TODO add links to the file @Daniil Meshkov >.
 - Provide your OpenSea API Key <TODO @Daniil Meshkov >.
