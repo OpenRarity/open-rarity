@@ -11,7 +11,7 @@ We are releasing the OpenRarity library in a Beta preview to crowdsource feedbac
 
 See the full announcement in the blog post  <todo link to blogpost @amamujee>
 
-### Project Setup and Core technologies
+# Project Setup and Core technologies
 
 We used following core technologies in OpenRarity:
 
@@ -45,9 +45,8 @@ This diagram below provides an overview of OpenRarity Runtime library.
 - `pip install scipy`
 - `python -m pytest <test_name>`
 
----
 
-### Rarity Datasets
+# Rarity Datasets
 
 We are sharing collected rarity datasets along with the library code. These datasets are organized as a CSV file per collection. The schema of each CSV file provides ranks for three rarity providers collected via API (TraitsSniper, RaritySniper, RaritySniffer), OpenRarity methodologies and computed rank distance between OpenRarity and rarity providers ranks.
 
@@ -57,9 +56,8 @@ Use AWS CLI command to download rarity datasets locally:
 s3://jul27-openrarity/rarity-datasets . --recursive
 ```
 
----
 
-### Open source contributions guide and governance
+# Open source contributions guide and governance
 
 OpenRarity is a cross-company effort to improve rarity computation for NFTs (Non-Fungible Tokens). The core collaboration group consists of four primary contributors: Curio, Icy, OpenSea and Proof
 
@@ -71,9 +69,8 @@ OpenRarity is an open-source project and all contributions are welcome. Consider
 - To merge the change in the `main` branch you required to get at least 2 approvals from the project maintainer list
 - Always add a unit test with your changes
 
----
 
-### License
+# License
 
 Apache 2.0 , OpenSea, ICY, Curio, PROOF
 
