@@ -2,11 +2,32 @@ from tests.utils import (
     generate_uniform_rarity_collection,
     generate_onerare_rarity_collection,
     generate_collection_with_token_traits,
+    generate_mixed_collection,
+    get_mixed_trait_spread,
 )
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
+from random import sample
 
 
 class TestScoringUtils:
+    mixed_collection = generate_mixed_collection()
+
+    def test_get_token_attributes_scores_and_weights_timing(self):
+        import time
+        collection = self.mixed_collection
+        tokens_to_test = sample(collection.tokens, 20)
+        start_time = time.time()
+        for token in tokens_to_test:
+            scores, weights = get_token_attributes_scores_and_weights(
+                collection=collection,
+                token=token,
+                normalized=True,
+            )
+        end_time = time.time()
+        avg_time = ( end_time - start_time ) / 20
+        print(f"This is avg time in seconds: {avg_time}")
+        assert avg_time < .001
+
 
     def test_get_token_attributes_scores_and_weights_uniform(self):
         uniform_collection = generate_uniform_rarity_collection(
@@ -96,6 +117,28 @@ class TestScoringUtils:
             )
             assert scores == expected_scores[i]
             assert weights == [1, 0.5]
+
+    def test_get_token_attributes_scores_and_weights_score_mix(self):
+        mixed_collection = self.mixed_collection
+        tokens_to_test = sample(mixed_collection.tokens, 20)
+        trait_spread = get_mixed_trait_spread()
+        for token in tokens_to_test:
+            scores, weights = get_token_attributes_scores_and_weights(
+                collection=mixed_collection,
+                token=token,
+                normalized=True,
+            )
+            expected_scores = []
+            expected_weights = []
+            for attribute_name, str_attribute in sorted(
+                token.metadata.string_attributes.items()
+            ):
+                num_tokens_with_trait = trait_spread[attribute_name][str_attribute.value]
+                expected_scores.append(10000 / num_tokens_with_trait)
+                expected_weights.append(1 / len(trait_spread[attribute_name]))
+
+            assert scores == expected_scores
+            assert weights == expected_weights
 
     def test_get_token_attributes_scores_and_weights_null_attributes(self):
         collection_with_null = generate_collection_with_token_traits(

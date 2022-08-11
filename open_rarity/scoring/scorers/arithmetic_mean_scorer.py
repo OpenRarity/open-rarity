@@ -64,6 +64,11 @@ class ArithmeticMeanRarityScorer(Scorer):
         """
         logger.debug(f"Computing arithmetic mean for token {token}")
 
+        import time
+
+        tic = time.time()
+        print("[vicky]: About to get_token_attributes_scores_and_weights")
+
         attr_scores, attr_weights = get_token_attributes_scores_and_weights(
             collection=collection,
             token=token,
@@ -71,4 +76,11 @@ class ArithmeticMeanRarityScorer(Scorer):
             collection_null_attributes=collection_null_attributes,
         )
 
-        return float(np.average(attr_scores, weights=attr_weights))
+        toc = time.time()
+        print(f"[vicky]: get_token_attributes_scores_and_weights took: {toc - tic} seconds")
+
+        avg = float(np.average(attr_scores, weights=attr_weights))
+        toc2 = time.time()
+        print(f"[vicky]: avg took: {toc2 - toc} seconds")
+
+        return avg

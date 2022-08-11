@@ -7,6 +7,7 @@ from open_rarity.models.token_metadata import (
 )
 from open_rarity.models.collection import Collection
 from open_rarity.models.token_standard import TokenStandard
+from random import shuffle
 
 
 def create_evm_token(
@@ -239,4 +240,73 @@ def generate_collection_with_token_traits(
         name="My collection",
         tokens=tokens,
         attributes_frequency_counts=attributes_frequency_counts,
+    )
+
+
+def get_mixed_trait_spread(
+    max_total_supply: int = 10000,
+) -> dict[str, dict[str, float]]:
+    # dict[attribute name, dict[attribute value, % of max supply]]
+    return {
+        "hat": {
+            "cap": int(max_total_supply * 0.2),
+            "beanie": int(max_total_supply * 0.3),
+            "hood": int(max_total_supply * 0.45),
+            "visor": int(max_total_supply * 0.05),
+        },
+        "shirt": {
+            "white-t": int(max_total_supply * 0.8),
+            "vest": int(max_total_supply * 0.2),
+        },
+        "special": {
+            "true": int(max_total_supply * 0.1),
+            "null": int(max_total_supply * 0.9),
+        },
+    }
+
+
+def generate_mixed_collection(max_total_supply: int = 10000):
+    """Generates a collection such that the tokens have traits with
+    get_mixed_trait_spread() spread of trait occurrences:
+     "hat":
+       20% have "cap",
+       30% have "beanie",
+       45% have "hood",
+       5% have "visor"
+     "shirt":
+       80% have "white-t",
+       20% have "vest"
+     "special":
+       1% have "special"
+       others none
+    Note: The token ids are shuffled and it is random order in terms of
+    which trait/value combo they get.
+    """
+    if max_total_supply % 10 != 0 or max_total_supply < 100:
+        raise Exception("only multiples of 10 and greater than 100 please.")
+
+    token_ids = list(range(max_total_supply))
+    shuffle(token_ids)
+
+    def get_trait_value(trait_spread, idx):
+        trait_value_idx = 0
+        max_idx_for_trait_value = trait_spread[trait_value_idx][1]
+        while idx >= max_idx_for_trait_value:
+            trait_value_idx += 1
+            max_idx_for_trait_value += trait_spread[trait_value_idx][1]
+        return trait_spread[trait_value_idx][0]
+
+    token_ids_to_traits = {}
+    for idx, token_id in enumerate(token_ids):
+        traits = {
+            trait_name: get_trait_value(
+                list(trait_value_to_percent.items()), idx
+            )
+            for trait_name, trait_value_to_percent in get_mixed_trait_spread().items()
+        }
+
+        token_ids_to_traits[token_id] = traits
+
+    return generate_collection_with_token_traits(
+        [token_ids_to_traits[token_id] for token_id in range(max_total_supply)]
     )

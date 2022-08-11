@@ -82,7 +82,7 @@ class Collection:
             (e.g. # of assets where AttributeName=NULL)
         """
         result = {}
-
+        print("[vicky-debug]: Calculating extract_null_attributes")
         for (
             trait_name,
             trait_values,

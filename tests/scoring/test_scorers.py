@@ -13,57 +13,12 @@ from open_rarity.scoring.scorers.information_content_scorer import (
 from tests.utils import (
     generate_uniform_rarity_collection,
     generate_onerare_rarity_collection,
-    generate_collection_with_token_traits,
+    generate_mixed_collection,
+    get_mixed_trait_spread,
 )
+from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 import numpy as np
-from random import shuffle
-
-def generate_mixed_collection(max_total_supply: int = 10000):
-    if max_total_supply % 10 != 0 or max_total_supply < 100:
-        raise Exception("only multiples of 10 and greater than 100 please.")
-
-    # "hat": 20% have "cap", 30% have "beanie", 45% have "hood", 5% have "visor"
-    # "shirt": 80% have "white-t", 20% have "vest"
-    # "special": 1% have "special" others none
-    token_ids = list(range(max_total_supply))
-    shuffle(token_ids)
-    hat_spread = [
-        ["cap", int(max_total_supply * .2)],
-        ["beanie", int(max_total_supply * .3)],
-        ["hood", int(max_total_supply * .45)],
-        ["visor", int(max_total_supply * .5)]
-    ]
-    shirt_spread = [
-        ["white-t", int(max_total_supply * .8)],
-        ["vest", int(max_total_supply * .2)]
-    ]
-    special_spread = [
-        ["special", int(max_total_supply * .1)],
-        ["not_special", int(max_total_supply * .9)]
-    ]
-
-    def get_trait_value(trait_spread, idx):
-        trait_value_idx = 0
-        max_idx_for_trait_value = trait_spread[trait_value_idx][1]
-        while idx >= max_idx_for_trait_value:
-            trait_value_idx += 1
-            max_idx_for_trait_value += trait_spread[trait_value_idx][1]
-        return trait_spread[trait_value_idx][0]
-
-    token_ids_to_traits = {}
-    for idx, token_id in enumerate(token_ids):
-        traits = {
-            "hat": get_trait_value(hat_spread, idx),
-            "shirt": get_trait_value(shirt_spread, idx),
-            "special": get_trait_value(special_spread, idx),
-        }
-
-        token_ids_to_traits[token_id] = traits
-
-    return generate_collection_with_token_traits(
-        [token_ids_to_traits[token_id] for token_id in range(max_total_supply)]
-    )
-
+from random import sample
 
 
 class TestScoring:
@@ -82,8 +37,19 @@ class TestScoring:
         token_total_supply=10000,
     )
 
+    # Collection with following attribute distribution
+    # "hat":
+    #   20% have "cap",
+    #   30% have "beanie",
+    #   45% have "hood",
+    #   5% have "visor"
+    # "shirt":
+    #   80% have "white-t",
+    #   20% have "vest"
+    # "special":
+    #   1% have "special"
+    #   others none
     mixed_collection = generate_mixed_collection()
-
 
     def test_geometric_mean_scorer_uniform(self) -> None:
         """test the geometric mean implementation of score_token"""
@@ -111,7 +77,8 @@ class TestScoring:
         assert np.round(
             geometric_mean_rarity.score_token(
                 collection=self.onerare_collection, token=common_token
-            ), 8
+            ),
+            8,
         ) == np.round(expected_common_score, 8)
 
         rare_token = self.onerare_collection.tokens[-1]
@@ -121,39 +88,57 @@ class TestScoring:
         assert np.round(
             geometric_mean_rarity.score_token(
                 collection=self.onerare_collection, token=rare_token
-            ), 8
+            ),
+            8,
         ) == np.round(expected_rare_score, 8)
 
-    def test_arithmetic_mean(self) -> None:
+    def test_arithmetic_mean_uniform(self) -> None:
         """test the arithmetic mean implementation of score_token"""
 
         arithmetic_mean_rarity = ArithmeticMeanRarityScorer()
+        tokens_to_test = [
+            self.uniform_collection.tokens[0],
+            self.uniform_collection.tokens[1],
+            self.uniform_collection.tokens[4050],
+            self.uniform_collection.tokens[9998],
+        ]
+        expected_score = 10
 
-        uniform_token_to_test = self.uniform_collection.tokens[0]
-        uniform_arithmetic_mean = 10
+        for token in tokens_to_test:
+            assert np.round(
+                arithmetic_mean_rarity.score_token(
+                    collection=self.uniform_collection, token=token
+                ),
+                8,
+            ) == np.round(expected_score, 8)
 
-        assert np.round(
-            arithmetic_mean_rarity.score_token(
-                collection=self.uniform_collection, token=uniform_token_to_test
-            ),
-            8,
-        ) == np.round(uniform_arithmetic_mean, 8)
+    def test_arithmetic_mean_mixed(self) -> None:
+        arithmetic_scorer = ArithmeticMeanRarityScorer()
+        token_idxs_to_test = sample(
+            range(self.mixed_collection.token_total_supply), 20
+        )
+        import time
 
-        # onerare_token_to_test = self.onerare_collection.tokens[0]
-        # onerare_arithmetic_mean = 9.80018002
-        # assert np.round(
-        #     arithmetic_mean_rarity.score_token(
-        #       collection=self.onerare_collection, token=onerare_token_to_test
-        #       ), 8
-        # ) == np.round(onerare_arithmetic_mean, 8)
-
-        # onerare_token_to_test = self.onerare_collection.tokens[-1]
-        # onerare_arithmetic_mean = 2008.0
-        # assert np.round(
-        #     arithmetic_mean_rarity.score_token(
-        #           collection=self.onerare_collection, token=onerare_token_to_test
-        #       ), 8
-        # ) == np.round(onerare_arithmetic_mean, 8)
+        tic = time.perf_counter()
+        print("[vicky]: About to score")
+        scores = arithmetic_scorer.score_collection(
+            collection=self.mixed_collection
+        )
+        toc = time.perf_counter()
+        print(f"[vicky]: Scoring took: {toc - tic} seconds")
+        for token_idx in token_idxs_to_test:
+            token = self.mixed_collection.tokens[token_idx]
+            score = scores[token_idx]
+            assert score == arithmetic_scorer.score_token(
+                collection=self.mixed_collection,
+                token=token,
+            )
+            scores, weights = get_token_attributes_scores_and_weights(
+                collection=self.mixed_collection,
+                token=token,
+                normalized=True,
+            )
+            assert np.average(score, weights=weights) == score
 
     def test_harmonic_mean(self) -> None:
         """test the harmonic mean implementation of score_token"""
