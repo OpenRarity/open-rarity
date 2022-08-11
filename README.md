@@ -48,6 +48,12 @@ This diagram below provides an overview of OpenRarity Runtime library.
 
 ![OpenRarity UML diagram (1).jpg](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/23340c3c-6a7f-4e9d-8f3d-e7760aef109b/OpenRarity_UML_diagram_(1).jpg)
 
+### Running Tests
+
+- `pip install pytest`
+- `pip install scipy`
+- `python -m pytest <test_name>`
+
 ---
 
 ### Rarity Datasets
@@ -80,11 +86,3 @@ OpenRarity is an open-source project and all contributions are welcome. Consider
 
 Apache 2.0 , OpenSea, ICY, Curio, PROOF
 
-
-
-
-# Running Tests
-## Running Individual tests
-- `pip install pytest`
-- `pip install scipy`
-- `python -m pytest <test>`
