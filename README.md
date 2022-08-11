@@ -57,7 +57,7 @@ s3://jul27-openrarity/rarity-datasets . --recursive
 ```
 
 
-# Open source contributions guide and governance
+# Contributions guide and governance
 
 OpenRarity is a cross-company effort to improve rarity computation for NFTs (Non-Fungible Tokens). The core collaboration group consists of four primary contributors: Curio, Icy, OpenSea and Proof
 
