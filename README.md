@@ -40,7 +40,7 @@ To debug any collections scoring we built the **Rarity Resolver** tool. Follow t
     ```
 - Inspect scorring log file and csv files with ranking result
 
-### Running Tests
+## Running tests locally
 
 - `pip install pytest`
 - `pip install scipy`
@@ -56,7 +56,6 @@ Use AWS CLI command to download rarity datasets locally:
 ```python
 s3://jul27-openrarity/rarity-datasets . --recursive
 ```
-
 
 # Contributions guide and governance
 
