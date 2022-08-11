@@ -28,22 +28,19 @@ We used following core technologies in OpenRarity:
 
 OpenRarity consists of two core parts: **Runtime** and **Rarity Resolver**. The runtime part of the library can be integrated into any Python 3.10+ application to perform the scoring of any collection. The runtime doesn’t resolve collections metadata—it’s the responsibility of an application to provide correct metadata to perform collection scoring.
 
-To debug any collections scoring we built the **Rarity Resolver** tool**.**
+To debug any collections scoring we built the **Rarity Resolver** tool.
 
 Follow these steps to score the collection (by calling OpenSea API):
 
 - Curate the collections list that you want to score <TODO add links to the file @Daniil Meshkov >.
-- Provide your OpenSea API Key <TODO  @Daniil Meshkov >.
-- Run scoring for these collections with the command
+- Provide your OpenSea API Key <TODO @Daniil Meshkov >.
+- Run scoring for these collections with the following command:
     
     ```python
     python -m open_rarity.resolver.testset_resolver # without external rarity resolution
     python -m open_rarity.resolver.testset_resolver external # with external rarity resolution
     ```
     
-
-To integrate OpenRarity in your application , follow the setup instructions in the open-rarity template project <TODO @Daniil Meshkov >.
-
 This diagram below provides an overview of OpenRarity Runtime library.
 
 ![OpenRarity UML diagram (1).jpg](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/23340c3c-6a7f-4e9d-8f3d-e7760aef109b/OpenRarity_UML_diagram_(1).jpg)
