@@ -12,13 +12,27 @@ from random import sample
 class TestScoringUtils:
     mixed_collection = generate_mixed_collection()
 
-    def test_get_token_attributes_scores_and_weights_timing(self):
+    def test_get_token_attributes_scores_and_weights_timing_single(self):
+        import time
+        collection = self.mixed_collection
+        start_time = time.time()
+        get_token_attributes_scores_and_weights(
+            collection=collection,
+            token=collection.tokens[0],
+            normalized=True,
+        )
+        end_time = time.time()
+        time_taken = end_time - start_time
+        print(f"This is single time in seconds: {time_taken}")
+        assert time_taken < .001
+
+    def test_get_token_attributes_scores_and_weights_timing_avg(self):
         import time
         collection = self.mixed_collection
         tokens_to_test = sample(collection.tokens, 20)
         start_time = time.time()
         for token in tokens_to_test:
-            scores, weights = get_token_attributes_scores_and_weights(
+            get_token_attributes_scores_and_weights(
                 collection=collection,
                 token=token,
                 normalized=True,

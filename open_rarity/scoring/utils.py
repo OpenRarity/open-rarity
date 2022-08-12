@@ -4,10 +4,7 @@ from open_rarity.models.collection import Collection, CollectionAttribute
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import AttributeName
 
-logger = logging.getLogger("open_rarity_logger")
-log_prefix = "\t >"
 
-import time
 def get_token_attributes_scores_and_weights(
     collection: Collection,
     token: Token,
@@ -39,26 +36,19 @@ def get_token_attributes_scores_and_weights(
                 if normalization is to occur.
 
     """
-
-    tic = time.time()
-    print("[vicky]: About to (1) extract null attr")
     # Create a combined attributes dictionary such that if the token has the attribute,
     # it uses the value's probability, and if it doesn't have the attribute,
     # uses the probability of that attribute being null.
-    print(f"{collection_null_attributes=}")
     if collection_null_attributes is None:
         null_attributes = collection.extract_null_attributes()
     else:
         null_attributes = collection_null_attributes
-    tic2 = time.time()
-    print(f"[vicky]: Finished (1): {tic2 - tic}")
+
     combined_attributes: dict[
         str, CollectionAttribute
     ] = null_attributes | _convert_to_collection_attributes_dict(
         collection, token
     )
-    tic3 = time.time()
-    print(f"[vicky]: Finished (2) combined: {tic3 - tic2}")
 
     sorted_attr_names = sorted(list(combined_attributes.keys()))
     sorted_attrs = [
@@ -66,8 +56,6 @@ def get_token_attributes_scores_and_weights(
     ]
 
     total_supply = collection.token_total_supply
-    tic4 = time.time()
-    print(f"[vicky]: Finished (3) sorted: {tic4 - tic3}")
 
     # Normalize traits by dividing by the total number of possible values for
     # that trait. The normalization factor takes into account the cardinality
@@ -77,8 +65,6 @@ def get_token_attributes_scores_and_weights(
     # {"Red","Yellow","Green"} the normalization factor will be 1/3 or
     # 0.33. If a trait has 10,000 options, than the normalization factor is 1/10,000.
     if normalized:
-        logger.debug(f"{log_prefix} Normalizing attribute weights")
-
         attr_weights = [
             1 / collection.total_attribute_values(attr_name)
             for attr_name in sorted_attr_names
@@ -86,19 +72,7 @@ def get_token_attributes_scores_and_weights(
     else:
         attr_weights = [1.0] * len(sorted_attr_names)
 
-    tic5 = time.time()
-    print(f"[vicky]: Finished (4) weights: {tic5 - tic4}")
-
     scores = [total_supply / attr.total_tokens for attr in sorted_attrs]
-
-    tic6 = time.time()
-    print(f"[vicky]: Finished (5) scores: {tic6 - tic5}")
-
-    logger.debug(
-        f"{log_prefix} Calculated for {collection=} {token=}: "
-        f"{scores=} {attr_weights=}"
-    )
-    print(f"[vicky]: Finished ALL: {tic6 - tic}")
 
     return (scores, attr_weights)
 

@@ -14,14 +14,15 @@ from tests.utils import (
     generate_uniform_rarity_collection,
     generate_onerare_rarity_collection,
     generate_mixed_collection,
-    get_mixed_trait_spread,
 )
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 import numpy as np
 from random import sample
+import time
 
 
 class TestScoring:
+    max_scoring_time_for_10k_s = 2
 
     uniform_collection = generate_uniform_rarity_collection(
         attribute_count=5,
@@ -92,9 +93,18 @@ class TestScoring:
             8,
         ) == np.round(expected_rare_score, 8)
 
+    def test_arithmetic_mean_score_collection_timing(self) -> None:
+        arithmetic_scorer = ArithmeticMeanRarityScorer()
+        tic = time.time()
+        arithmetic_scorer.score_collection(
+            collection=self.mixed_collection
+        )
+        toc = time.time()
+        print(f"\n[vicky]: Scoring collection took: {toc - tic} seconds")
+        assert (toc - tic) < self.max_scoring_time_for_10k_s
+
     def test_arithmetic_mean_uniform(self) -> None:
         """test the arithmetic mean implementation of score_token"""
-
         arithmetic_mean_rarity = ArithmeticMeanRarityScorer()
         tokens_to_test = [
             self.uniform_collection.tokens[0],
@@ -117,15 +127,10 @@ class TestScoring:
         token_idxs_to_test = sample(
             range(self.mixed_collection.token_total_supply), 20
         )
-        import time
-
-        tic = time.perf_counter()
-        print("[vicky]: About to score")
         scores = arithmetic_scorer.score_collection(
             collection=self.mixed_collection
         )
-        toc = time.perf_counter()
-        print(f"[vicky]: Scoring took: {toc - tic} seconds")
+        assert len(scores) == 10000
         for token_idx in token_idxs_to_test:
             token = self.mixed_collection.tokens[token_idx]
             score = scores[token_idx]
@@ -133,16 +138,15 @@ class TestScoring:
                 collection=self.mixed_collection,
                 token=token,
             )
-            scores, weights = get_token_attributes_scores_and_weights(
+            trait_scores, weights = get_token_attributes_scores_and_weights(
                 collection=self.mixed_collection,
                 token=token,
                 normalized=True,
             )
-            assert np.average(score, weights=weights) == score
+            assert np.average(trait_scores, weights=weights) == score
 
-    def test_harmonic_mean(self) -> None:
+    def test_harmonic_mean_uniform(self) -> None:
         """test the harmonic mean implementation of score_token"""
-
         harmonic_mean_rarity = HarmonicMeanRarityScorer()
 
         uniform_token_to_test = self.uniform_collection.tokens[0]
@@ -154,24 +158,7 @@ class TestScoring:
             8,
         ) == np.round(uniform_harmonic_mean, 8)
 
-        # onerare_token_to_test = self.onerare_collection.tokens[0]
-        # onerare_harmonic_mean = 9.78282137
-        # assert np.round(
-        #     harmonic_mean_rarity.score_token(
-        #           collection=self.onerare_collection, token=onerare_token_to_test
-        #       ), 8
-        # ) == np.round(onerare_harmonic_mean, 8)
-
-        # onerare_token_to_test = self.onerare_collection.tokens[-1]
-        # onerare_harmonic_mean = 12.49687578
-
-        # assert np.round(
-        #     harmonic_mean_rarity.score_token(
-        #       collection=self.onerare_collection, token=onerare_token_to_test
-        #       ), 8
-        # ) == np.round(onerare_harmonic_mean, 8)
-
-    def test_information_content_rarity(self):
+    def test_information_content_rarity_uniform(self):
         information_content_rarity = InformationContentRarityScorer()
 
         uniform_token_to_test = self.uniform_collection.tokens[0]
@@ -182,6 +169,19 @@ class TestScoring:
             ),
             8,
         ) == np.round(uniform_ic_rarity, 8)
+
+    def test_information_content_rarity_mixed(self):
+        pass
+
+    def test_information_content_rarity_timing(self):
+        ic_scorer = InformationContentRarityScorer()
+        tic = time.time()
+        ic_scorer.score_collection(
+            collection=self.mixed_collection
+        )
+        toc = time.time()
+        print(f"\n[vicky]: IC Scoring collection took: {toc - tic} seconds")
+        assert (toc - tic) < self.max_scoring_time_for_10k_s
 
         # onerare_token_to_test = self.onerare_collection.tokens[0]
         # onerare_ic_mean = 0.99085719

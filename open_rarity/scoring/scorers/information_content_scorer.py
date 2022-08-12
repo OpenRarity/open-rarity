@@ -12,7 +12,6 @@ logger = logging.getLogger("open_rarity_logger")
 
 
 class InformationContentRarityScorer(Scorer):
-    log_prefix = "[InformationContent]"
     """Rarity describes the information-theoretic "rarity" of a Collection.
     The concept of "rarity" can be considered as a measure of "surprise" at the
     occurrence of a particular token's properties, within the context of the
@@ -106,7 +105,7 @@ class InformationContentRarityScorer(Scorer):
         Returns:
             float: The token score
         """
-        logger.debug(f"{self.log_prefix} Computing score for token {token}")
+        logger.debug("Computing score for token %s", token)
 
         # First calculate the individual attribute scores for all attributes
         # of the provided token. Scores are the inverted probabilities of the
@@ -121,9 +120,7 @@ class InformationContentRarityScorer(Scorer):
         # Get a single score (via information content) for the token by taking
         # the sum of the logarithms of the attributes' scores.
         ic_token_score = -np.sum(np.log2(np.reciprocal(attr_scores)))
-        logger.debug(
-            f"{self.log_prefix} Information content token score {ic_token_score}"
-        )
+        logger.debug("IC token score %s" , ic_token_score)
 
         # Now, calculate the collection entropy to use as a normalization for
         # the token score.
@@ -137,8 +134,9 @@ class InformationContentRarityScorer(Scorer):
         )
         normalized_token_score = ic_token_score / collection_entropy
         logger.debug(
-            f"{self.log_prefix} Finished scoring {collection=} {token=}: "
-            f"{collection_probs=} {collection_entropy=} {normalized_token_score=}"
+            "Finished scoring %s %s: "
+            "collection probs: %s entropy: %s token scores: %s",
+            collection, token, collection_probs, collection_entropy, normalized_token_score
         )
 
         return normalized_token_score

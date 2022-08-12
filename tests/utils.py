@@ -95,9 +95,7 @@ def generate_uniform_rarity_collection(
                     contract_address="0x0", token_id=token_id
                 ),
                 token_standard=TokenStandard.ERC721,
-                metadata=TokenMetadata(
-                    string_attributes=string_attribute_dict
-                ),
+                metadata=TokenMetadata(string_attributes=string_attribute_dict),
             )
         )
 
@@ -171,9 +169,7 @@ def generate_onerare_rarity_collection(
                     contract_address="0x0", token_id=token_id
                 ),
                 token_standard=TokenStandard.ERC721,
-                metadata=TokenMetadata(
-                    string_attributes=string_attribute_dict
-                ),
+                metadata=TokenMetadata(string_attributes=string_attribute_dict),
             )
         )
 

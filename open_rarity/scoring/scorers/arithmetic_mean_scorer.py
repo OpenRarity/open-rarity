@@ -9,6 +9,7 @@ from open_rarity.scoring.scorer import Scorer
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 
 logger = logging.getLogger("open_rarity_logger")
+print(f"vicky-debug: {logger.level=}")
 
 
 class ArithmeticMeanRarityScorer(Scorer):
@@ -62,12 +63,7 @@ class ArithmeticMeanRarityScorer(Scorer):
         Returns:
             float: The token score
         """
-        logger.debug(f"Computing arithmetic mean for token {token}")
-
-        import time
-
-        tic = time.time()
-        print("[vicky]: About to get_token_attributes_scores_and_weights")
+        logger.debug("Computing arithmetic mean for token %s", token)
 
         attr_scores, attr_weights = get_token_attributes_scores_and_weights(
             collection=collection,
@@ -76,11 +72,10 @@ class ArithmeticMeanRarityScorer(Scorer):
             collection_null_attributes=collection_null_attributes,
         )
 
-        toc = time.time()
-        print(f"[vicky]: get_token_attributes_scores_and_weights took: {toc - tic} seconds")
+        logger.debug(
+            "[amean] Calculated for %s %s:%s %s",
+            collection, token, attr_scores, attr_weights
+        )
 
         avg = float(np.average(attr_scores, weights=attr_weights))
-        toc2 = time.time()
-        print(f"[vicky]: avg took: {toc2 - toc} seconds")
-
         return avg
