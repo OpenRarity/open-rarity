@@ -14,6 +14,7 @@ class TestScoringUtils:
 
     def test_get_token_attributes_scores_and_weights_timing_single(self):
         import time
+
         collection = self.mixed_collection
         start_time = time.time()
         get_token_attributes_scores_and_weights(
@@ -24,10 +25,11 @@ class TestScoringUtils:
         end_time = time.time()
         time_taken = end_time - start_time
         print(f"This is single time in seconds: {time_taken}")
-        assert time_taken < .001
+        assert time_taken < 0.001
 
     def test_get_token_attributes_scores_and_weights_timing_avg(self):
         import time
+
         collection = self.mixed_collection
         tokens_to_test = sample(collection.tokens, 20)
         start_time = time.time()
@@ -38,10 +40,9 @@ class TestScoringUtils:
                 normalized=True,
             )
         end_time = time.time()
-        avg_time = ( end_time - start_time ) / 20
+        avg_time = (end_time - start_time) / 20
         print(f"This is avg time in seconds: {avg_time}")
-        assert avg_time < .001
-
+        assert avg_time < 0.001
 
     def test_get_token_attributes_scores_and_weights_uniform(self):
         uniform_collection = generate_uniform_rarity_collection(
@@ -147,7 +148,9 @@ class TestScoringUtils:
             for attribute_name, str_attribute in sorted(
                 token.metadata.string_attributes.items()
             ):
-                num_tokens_with_trait = trait_spread[attribute_name][str_attribute.value]
+                num_tokens_with_trait = trait_spread[attribute_name][
+                    str_attribute.value
+                ]
                 expected_scores.append(10000 / num_tokens_with_trait)
                 expected_weights.append(1 / len(trait_spread[attribute_name]))
 

@@ -120,7 +120,7 @@ class InformationContentRarityScorer(Scorer):
         # Get a single score (via information content) for the token by taking
         # the sum of the logarithms of the attributes' scores.
         ic_token_score = -np.sum(np.log2(np.reciprocal(attr_scores)))
-        logger.debug("IC token score %s" , ic_token_score)
+        logger.debug("IC token score %s", ic_token_score)
 
         # Now, calculate the collection entropy to use as a normalization for
         # the token score.
@@ -136,7 +136,11 @@ class InformationContentRarityScorer(Scorer):
         logger.debug(
             "Finished scoring %s %s: "
             "collection probs: %s entropy: %s token scores: %s",
-            collection, token, collection_probs, collection_entropy, normalized_token_score
+            collection,
+            token,
+            collection_probs,
+            collection_entropy,
+            normalized_token_score,
         )
 
         return normalized_token_score

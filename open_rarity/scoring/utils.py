@@ -9,7 +9,9 @@ def get_token_attributes_scores_and_weights(
     collection: Collection,
     token: Token,
     normalized: bool,
-    collection_null_attributes: dict[AttributeName, CollectionAttribute] = None,
+    collection_null_attributes: dict[
+        AttributeName, CollectionAttribute
+    ] = None,
 ) -> tuple[list[float], list[float]]:
     """Calculates the scores and normalization weights for a token
     based on its attributes. If the token does not have an attribute, the probability of

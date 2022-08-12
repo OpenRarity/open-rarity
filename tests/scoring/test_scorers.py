@@ -96,9 +96,7 @@ class TestScoring:
     def test_arithmetic_mean_score_collection_timing(self) -> None:
         arithmetic_scorer = ArithmeticMeanRarityScorer()
         tic = time.time()
-        arithmetic_scorer.score_collection(
-            collection=self.mixed_collection
-        )
+        arithmetic_scorer.score_collection(collection=self.mixed_collection)
         toc = time.time()
         print(f"\n[vicky]: Scoring collection took: {toc - tic} seconds")
         assert (toc - tic) < self.max_scoring_time_for_10k_s
@@ -176,9 +174,7 @@ class TestScoring:
     def test_information_content_rarity_timing(self):
         ic_scorer = InformationContentRarityScorer()
         tic = time.time()
-        ic_scorer.score_collection(
-            collection=self.mixed_collection
-        )
+        ic_scorer.score_collection(collection=self.mixed_collection)
         toc = time.time()
         print(f"\n[vicky]: IC Scoring collection took: {toc - tic} seconds")
         assert (toc - tic) < self.max_scoring_time_for_10k_s

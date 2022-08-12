@@ -74,7 +74,10 @@ class ArithmeticMeanRarityScorer(Scorer):
 
         logger.debug(
             "[amean] Calculated for %s %s:%s %s",
-            collection, token, attr_scores, attr_weights
+            collection,
+            token,
+            attr_scores,
+            attr_weights,
         )
 
         avg = float(np.average(attr_scores, weights=attr_weights))
