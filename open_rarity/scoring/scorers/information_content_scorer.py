@@ -55,16 +55,21 @@ class InformationContentRarityScorer(Scorer):
         normalized: bool = True,
     ) -> list[float]:
         """See Scorer interface."""
-        # Memoize for performance
+        # Precompute for performance
         collection_null_attributes = collection.extract_null_attributes()
         collection_attributes = collection.extract_collection_attributes()
+        collection_entropy = self._get_collection_entropy(
+            collection=collection,
+            collection_attributes=collection_attributes,
+            collection_null_attributes=collection_null_attributes,
+        )
         return [
             self._score_token(
-                collection,
-                t,
-                normalized,
-                collection_attributes,
-                collection_null_attributes,
+                collection=collection,
+                token=t,
+                normalized=normalized,
+                collection_null_attributes=collection_null_attributes,
+                collection_entropy_normalization=collection_entropy,
             )
             for t in tokens
         ]
@@ -75,12 +80,10 @@ class InformationContentRarityScorer(Scorer):
         collection: Collection,
         token: Token,
         normalized: bool = True,
-        collection_attributes: dict[
-            AttributeName, list[CollectionAttribute]
-        ] = None,
         collection_null_attributes: dict[
             AttributeName, CollectionAttribute
         ] = None,
+        collection_entropy_normalization: float = None,
     ) -> float:
         """Calculates the score of the token using information entropy with a
         collection entropy normalization factor.
@@ -93,13 +96,12 @@ class InformationContentRarityScorer(Scorer):
                 Set to true to enable individual trait normalizations base on
                 total number of possible values for an attribute name.
                 Defaults to True.
-            collection_attributes
-                (dict[ AttributeName, list[CollectionAttribute] ], optional):
-                Optional memoization of collection.extract_collection_attributes().
-                Defaults to None.
             collection_null_attributes
                 (dict[ AttributeName, CollectionAttribute ], optional):
                 Optional memoization of collection.extract_null_attributes().
+                Defaults to None.
+            collection_entropy_normalization (float, optional):
+                Optional memoization of the collection entropy normalization factor.
                 Defaults to None.
 
         Returns:
@@ -123,29 +125,27 @@ class InformationContentRarityScorer(Scorer):
         logger.debug("IC token score %s", ic_token_score)
 
         # Now, calculate the collection entropy to use as a normalization for
-        # the token score.
-        collection_probs = self._get_collection_probabilities(
-            collection=collection,
-            collection_attributes=collection_attributes,
-            collection_null_attributes=collection_null_attributes,
-        )
-        collection_entropy = -np.dot(
-            collection_probs, np.log2(collection_probs)
-        )
+        # the token score if its not provided
+        if collection_entropy_normalization is None:
+            collection_entropy = self._get_collection_entropy(
+                collection=collection,
+                collection_attributes=collection.extract_collection_attributes(),
+                collection_null_attributes=collection_null_attributes,
+            )
+        else:
+            collection_entropy = collection_entropy_normalization
         normalized_token_score = ic_token_score / collection_entropy
         logger.debug(
-            "Finished scoring %s %s: "
-            "collection probs: %s entropy: %s token scores: %s",
+            "Finished scoring %s %s: collection entropy: %s token scores: %s",
             collection,
             token,
-            collection_probs,
             collection_entropy,
             normalized_token_score,
         )
 
         return normalized_token_score
 
-    def _get_collection_probabilities(
+    def _get_collection_entropy(
         self,
         collection: Collection,
         collection_attributes: dict[
@@ -154,9 +154,10 @@ class InformationContentRarityScorer(Scorer):
         collection_null_attributes: dict[
             AttributeName, CollectionAttribute
         ] = None,
-    ) -> list[float]:
-        """Calculates the probability of every possible attribute name/value pair that
-        occurs in the collection.
+    ) -> float:
+        """Calculates the entropy of the collection, defined to be the
+        sum of the probability of every possible attribute name/value pair that
+        occurs in the collection times that square root of such probability.
 
         Args:
             collection (Collection): The collection to calculate probability on
@@ -170,8 +171,8 @@ class InformationContentRarityScorer(Scorer):
                 Defaults to None.
 
         Returns:
-            list[float]: List of all probabilities for every attribute name/value pair,
-            in the order of collection.attributes_frequency_counts.items()
+            the collection entropy
+
         """
         attributes: dict[str, list[CollectionAttribute]] = (
             collection_attributes or collection.extract_collection_attributes()
@@ -180,6 +181,8 @@ class InformationContentRarityScorer(Scorer):
             collection_null_attributes or collection.extract_null_attributes()
         )
 
+        # Create a list of all probabilities for every attribute name/value pair,
+        # in the order of collection.attributes_frequency_counts.items()
         collection_probabilities: list[float] = []
         for attr_name, attr_values in attributes.items():
             if attr_name in null_attributes:
@@ -195,4 +198,11 @@ class InformationContentRarityScorer(Scorer):
                 ]
             )
 
-        return collection_probabilities
+        logger.debug(
+            "Calculated collection probabilties: %s", collection_probabilities
+        )
+        collection_entropy = -np.dot(
+            collection_probabilities, np.log2(collection_probabilities)
+        )
+
+        return collection_entropy

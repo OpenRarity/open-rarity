@@ -14,6 +14,7 @@ from tests.utils import (
     generate_uniform_rarity_collection,
     generate_onerare_rarity_collection,
     generate_mixed_collection,
+    get_mixed_trait_spread,
 )
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 import numpy as np
@@ -169,7 +170,41 @@ class TestScoring:
         ) == np.round(uniform_ic_rarity, 8)
 
     def test_information_content_rarity_mixed(self):
-        pass
+        ic_scorer = InformationContentRarityScorer()
+
+        # First test collection entropy
+        collection_entropy = ic_scorer._get_collection_entropy(self.mixed_collection)
+        collection_probs = []
+        mixed_spread = get_mixed_trait_spread()
+        for trait_dict in mixed_spread.values():
+            for tokens_with_trait in trait_dict.values():
+                collection_probs.append(tokens_with_trait/10000)
+
+        assert collection_entropy == -np.dot(
+            collection_probs, np.log2(collection_probs)
+        )
+
+        # Test the actual scores
+        token_idxs_to_test = sample(
+            range(self.mixed_collection.token_total_supply), 20
+        )
+        scores = ic_scorer.score_collection(collection=self.mixed_collection)
+        assert len(scores) == 10000
+        for token_idx in token_idxs_to_test:
+            token = self.mixed_collection.tokens[token_idx]
+            score = scores[token_idx]
+            assert score == ic_scorer.score_token(
+                collection=self.mixed_collection,
+                token=token,
+            )
+            attr_scores, _ = get_token_attributes_scores_and_weights(
+                collection=self.mixed_collection,
+                token=token,
+                normalized=True,
+            )
+            ic_token_score = -np.sum(np.log2(np.reciprocal(attr_scores)))
+
+            assert score == ic_token_score/collection_entropy
 
     def test_information_content_rarity_timing(self):
         ic_scorer = InformationContentRarityScorer()
@@ -178,11 +213,3 @@ class TestScoring:
         toc = time.time()
         print(f"\n[vicky]: IC Scoring collection took: {toc - tic} seconds")
         assert (toc - tic) < self.max_scoring_time_for_10k_s
-
-        # onerare_token_to_test = self.onerare_collection.tokens[0]
-        # onerare_ic_mean = 0.99085719
-        # assert np.round(
-        #     information_content_rarity.score_token(
-        #       collection=self.onerare_collection, token=onerare_token_to_test),
-        #     8,
-        # ) == np.round(onerare_ic_mean, 8)
