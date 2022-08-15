@@ -58,7 +58,7 @@ def fetch_opensea_assets_data(slug: str, token_ids: list[int], limit=30):
     Returns:
         _type_: dictionary data response in "assets" field
     """
-    assert len(token_ids) < limit
+    assert len(token_ids) <= limit
     # Max 30 limit enforced on API
     assert limit <= 30
     querystring = {
@@ -146,7 +146,7 @@ def get_collection_with_metadata(
     collection_with_metadata = CollectionWithMetadata(
         collection=collection,
         contract_addresses=[contract["address"] for contract in contracts],
-        token_total_supply=stats["total_supply"],
+        token_total_supply=int(stats["total_supply"]),
         opensea_slug=opensea_collection_slug,
     )
 

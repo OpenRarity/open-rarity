@@ -54,6 +54,8 @@ ScoredTokens = dict[int, float]
 # Token ID -> Rank + Score
 RankedTokens = dict[int, RankScore]
 
+logger = logging.getLogger("open_rarity_logger")
+
 
 @dataclass
 class OpenRarityScores:
@@ -98,8 +100,8 @@ def get_tokens_with_rarity(
         batch_id: int, max_token_id: int = total_supply
     ) -> list[int]:
         token_id_start = initial_token_id + (batch_id * batch_size)
-        token_id_end = max(token_id_start + batch_size - 1, max_token_id)
-        return [token_id for token_id in range(token_id_start, token_id_end)]
+        token_id_end = int(min(token_id_start + batch_size - 1, max_token_id))
+        return [token_id for token_id in range(token_id_start, token_id_end + 1)]
 
     t1_start = process_time()
     for batch_id in range(num_batches):
@@ -114,9 +116,10 @@ def get_tokens_with_rarity(
             assets = fetch_opensea_assets_data(
                 slug=collection_with_metadata.opensea_slug, token_ids=token_ids
             )
-        except Exception:
-            print(
-                f"FAILED: get_assets: could not fetch opensea assets for {token_ids}"
+        except Exception as e:
+            logger.exception(
+                f"FAILED: get_assets: could not fetch opensea assets for {token_ids}: {e}",
+                exc_info=True
             )
             break
 
