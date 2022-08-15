@@ -44,6 +44,7 @@ class Collection:
         Example:
             {"hair": {"brown": 500, "blonde": 100}
             which means 500 tokens has hair=brown, 100 token has hair=blonde
+        All trait names and values should be lowercased.
     name: A reference string only used for debugger log lines
 
     """
@@ -51,6 +52,41 @@ class Collection:
     attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
     tokens: list[Token]
     name: str | None = ""
+
+    def __init__(
+        self,
+        attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]],
+        tokens: list[Token],
+        name: str | None = ""
+    ):
+        self.attributes_frequency_counts = self._normalize_attributes_frequency_counts(attributes_frequency_counts)
+        self.tokens = tokens
+        self.name = name
+
+    def _normalize_attributes_frequency_counts(
+        self,
+        attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
+    ) -> dict[AttributeName, dict[AttributeValue, int]]:
+        """We normalize all collection attributes by ensuring that upper/lower
+        casing doesn't produce different attributes (e.g. 'Hat' == 'hat').
+        If a collection has the following in their attributes frequency counts:
+            ('Hat', 'beanie') 5 tokens and
+            ('hat', 'beanie') 10 tokens
+        this would produce: ('hat', 'beanie') 15 tokens
+        """
+        normalized: dict[AttributeName, dict[AttributeValue, int]] = {}
+        for attr_name, attr_value_to_count in attributes_frequency_counts.items():
+            normalized_name = attr_name.lower()
+            if normalized_name not in normalized:
+                normalized[normalized_name] = {}
+            for attr_value, attr_count in attr_value_to_count.items():
+                normalized_value = attr_value.lower()
+                if normalized_value not in normalized[normalized_name]:
+                    normalized[normalized_name][normalized_value] = attr_count
+                else:
+                    normalized[normalized_name][normalized_value] += attr_count
+
+        return normalized
 
     @property
     def token_total_supply(self) -> int:
