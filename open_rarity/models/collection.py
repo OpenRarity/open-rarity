@@ -55,17 +55,25 @@ class Collection:
 
     def __init__(
         self,
-        attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]],
+        attributes_frequency_counts: dict[
+            AttributeName, dict[AttributeValue, int]
+        ],
         tokens: list[Token],
-        name: str | None = ""
+        name: str | None = "",
     ):
-        self.attributes_frequency_counts = self._normalize_attributes_frequency_counts(attributes_frequency_counts)
+        self.attributes_frequency_counts = (
+            self._normalize_attributes_frequency_counts(
+                attributes_frequency_counts
+            )
+        )
         self.tokens = tokens
         self.name = name
 
     def _normalize_attributes_frequency_counts(
         self,
-        attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
+        attributes_frequency_counts: dict[
+            AttributeName, dict[AttributeValue, int]
+        ],
     ) -> dict[AttributeName, dict[AttributeValue, int]]:
         """We normalize all collection attributes by ensuring that upper/lower
         casing doesn't produce different attributes (e.g. 'Hat' == 'hat').
@@ -75,7 +83,10 @@ class Collection:
         this would produce: ('hat', 'beanie') 15 tokens
         """
         normalized: dict[AttributeName, dict[AttributeValue, int]] = {}
-        for attr_name, attr_value_to_count in attributes_frequency_counts.items():
+        for (
+            attr_name,
+            attr_value_to_count,
+        ) in attributes_frequency_counts.items():
             normalized_name = attr_name.lower()
             if normalized_name not in normalized:
                 normalized[normalized_name] = {}
