@@ -91,13 +91,13 @@ def get_tokens_with_rarity(
     external_rarity_provider = ExternalRarityProvider()
     total_supply = collection_with_metadata.token_total_supply
     num_batches = math.ceil(total_supply / batch_size)
-    initial_token_id = 1
+    initial_token_id = 0
     tokens_with_rarity: list[TokenWithRarityData] = []
 
     # Returns a list of `batch_size` token IDs, such that no token ID
     # can exceed `max_token_id` (in which case len(return_value) < `batch_size`)
     def get_token_ids(
-        batch_id: int, max_token_id: int = total_supply
+        batch_id: int, max_token_id: int = total_supply - 1
     ) -> list[int]:
         token_id_start = initial_token_id + (batch_id * batch_size)
         token_id_end = int(min(token_id_start + batch_size - 1, max_token_id))
