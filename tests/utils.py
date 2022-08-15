@@ -113,9 +113,9 @@ def generate_onerare_attributes_count(
     values_per_attribute: int = 10,
     token_total_supply: int = 10000,
 ) -> dict[str, dict[str, int]]:
-    """Generate a Collection with every token except a single token has uniformly distributed
-    attributes. The single rare token will be the only token that exhibits a unique attribute name/value
-    combo for all attributes.
+    """Generate a Collection with every token except a single token has uniformly
+    distributed attributes. The single rare token will be the only token that
+    exhibits a unique attribute name/value combo for all attributes.
     """
 
     if (token_total_supply - 1) % (values_per_attribute - 1) > 0:

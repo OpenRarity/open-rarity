@@ -173,12 +173,14 @@ class TestScoring:
         ic_scorer = InformationContentRarityScorer()
 
         # First test collection entropy
-        collection_entropy = ic_scorer._get_collection_entropy(self.mixed_collection)
+        collection_entropy = ic_scorer._get_collection_entropy(
+            self.mixed_collection
+        )
         collection_probs = []
         mixed_spread = get_mixed_trait_spread()
         for trait_dict in mixed_spread.values():
             for tokens_with_trait in trait_dict.values():
-                collection_probs.append(tokens_with_trait/10000)
+                collection_probs.append(tokens_with_trait / 10000)
 
         assert collection_entropy == -np.dot(
             collection_probs, np.log2(collection_probs)
@@ -204,7 +206,7 @@ class TestScoring:
             )
             ic_token_score = -np.sum(np.log2(np.reciprocal(attr_scores)))
 
-            assert score == ic_token_score/collection_entropy
+            assert score == ic_token_score / collection_entropy
 
     def test_information_content_rarity_timing(self):
         ic_scorer = InformationContentRarityScorer()

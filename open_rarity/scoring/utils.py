@@ -1,5 +1,3 @@
-import logging
-
 from open_rarity.models.collection import Collection, CollectionAttribute
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import AttributeName
@@ -14,8 +12,8 @@ def get_token_attributes_scores_and_weights(
     ] = None,
 ) -> tuple[list[float], list[float]]:
     """Calculates the scores and normalization weights for a token
-    based on its attributes. If the token does not have an attribute, the probability of
-    the attribute being null is used instead.
+    based on its attributes. If the token does not have an attribute, the probability
+    of the attribute being null is used instead.
 
     Args:
         collection (Collection): The collection to calculate probability on

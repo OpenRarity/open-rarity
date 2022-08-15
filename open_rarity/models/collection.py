@@ -11,7 +11,7 @@ from open_rarity.models.token_metadata import (
 
 @dataclass
 class CollectionAttribute:
-    """Class represents an attribute that is exhibited in at least one token in a Collection.
+    """Class represents an attribute thatat least one token in a Collection has.
     E.g. "hat" = "cap" would be one atttribute, and "hat" = "beanie" would be another
     unique attribute, even though they may belong to the same attribute type (id=name).
 
