@@ -64,7 +64,10 @@ class TestCollection:
             [{}, {}],
         ]
 
-        for input_attributes, expected_attributes in input_attributes_to_expected_output:
+        for (
+            input_attributes,
+            expected_attributes,
+        ) in input_attributes_to_expected_output:
             c = Collection(
                 name="random",
                 tokens=[],

@@ -124,7 +124,8 @@ def get_tokens_with_rarity(
             )
         except Exception as e:
             logger.exception(
-                f"FAILED: get_assets: could not fetch opensea assets for {token_ids}: {e}",
+                f"FAILED: get_assets: could not fetch opensea assets for "
+                f"{token_ids}: {e}",
                 exc_info=True,
             )
             break
@@ -192,8 +193,8 @@ def resolve_collection_data(
         resolve_remote_rarity (bool): _description_
         package_path (str, optional): _description_. Defaults to "open_rarity.data".
         filename (str, optional): _description_. Defaults to "test_collections.json".
-        max_tokens_to_calculate (int, optional): If specified only gets ranking data of first
-        `max_tokens`. Defaults to None.
+        max_tokens_to_calculate (int, optional): If specified only gets ranking
+            data of first `max_tokens`. Defaults to None.
     """
 
     golden_collections = pkgutil.get_data(package_path, filename)
