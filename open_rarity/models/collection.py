@@ -18,13 +18,13 @@ class CollectionAttribute:
 
     Attributes
      ----------
-    attribute : StringAttribute | NumericAttribute
+    attribute : StringAttribute
         the unique attribute pair
     total_tokens : int
         total number of tokens in the collection that have this attribute
     """
 
-    attribute: StringAttribute | NumericAttribute
+    attribute: StringAttribute
     total_tokens: int
 
 
