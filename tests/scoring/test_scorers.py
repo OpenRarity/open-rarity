@@ -187,9 +187,9 @@ class TestScoring:
             for tokens_with_trait in trait_dict.values():
                 collection_probs.append(tokens_with_trait / 10000)
 
-        assert collection_entropy == -np.dot(
+        assert np.round(collection_entropy, 10) == np.round(-np.dot(
             collection_probs, np.log2(collection_probs)
-        )
+        ), 10)
 
         # Test the actual scores
         token_idxs_to_test = sample(
