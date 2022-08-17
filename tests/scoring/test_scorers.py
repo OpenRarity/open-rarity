@@ -7,8 +7,12 @@ import pytest
 from open_rarity.scoring.scorers.arithmetic_mean_scorer import (
     ArithmeticMeanRarityScorer,
 )
-from open_rarity.scoring.scorers.geometric_mean_scorer import GeometricMeanRarityScorer
-from open_rarity.scoring.scorers.harmonic_mean_scorer import HarmonicMeanRarityScorer
+from open_rarity.scoring.scorers.geometric_mean_scorer import (
+    GeometricMeanRarityScorer,
+)
+from open_rarity.scoring.scorers.harmonic_mean_scorer import (
+    HarmonicMeanRarityScorer,
+)
 from open_rarity.scoring.scorers.information_content_scorer import (
     InformationContentRarityScorer,
 )
@@ -93,7 +97,9 @@ class TestScoring:
             8,
         ) == np.round(expected_rare_score, 8)
 
-    @pytest.mark.skip(reason="Not including performance testing as required testing")
+    @pytest.mark.skip(
+        reason="Not including performance testing as required testing"
+    )
     def test_arithmetic_mean_score_collection_timing(self) -> None:
         arithmetic_scorer = ArithmeticMeanRarityScorer()
         tic = time.time()
@@ -207,7 +213,9 @@ class TestScoring:
 
             assert score == ic_token_score / collection_entropy
 
-    @pytest.mark.skip(reason="Not including performance testing as required testing")
+    @pytest.mark.skip(
+        reason="Not including performance testing as required testing"
+    )
     def test_information_content_rarity_timing(self):
         ic_scorer = InformationContentRarityScorer()
         tic = time.time()
