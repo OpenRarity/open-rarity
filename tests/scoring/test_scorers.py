@@ -18,6 +18,7 @@ from open_rarity.scoring.scorers.information_content_scorer import (
 )
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 from tests.helpers import (
+    generate_collection_with_token_traits,
     generate_mixed_collection,
     generate_onerare_rarity_collection,
     generate_uniform_rarity_collection,
@@ -212,6 +213,36 @@ class TestScoring:
             ic_token_score = -np.sum(np.log2(np.reciprocal(attr_scores)))
 
             assert score == ic_token_score / collection_entropy
+
+    def test_information_content_null_attribute(self):
+        collection_with_null = generate_collection_with_token_traits(
+            [
+                {"bottom": "1", "hat": "1", "special": "true"},
+                {"bottom": "1", "hat": "1"},
+                {"bottom": "2", "hat": "2"},
+                {"bottom": "2", "hat": "2"},
+                {"bottom": "3", "hat": "2"},
+            ]
+        )
+
+        collection_without_null = generate_collection_with_token_traits(
+            [
+                {"bottom": "1", "hat": "1", "special": "true"},
+                {"bottom": "1", "hat": "1", "special": "false"},
+                {"bottom": "2", "hat": "2", "special": "false"},
+                {"bottom": "2", "hat": "2", "special": "false"},
+                {"bottom": "3", "hat": "2", "special": "false"},
+            ]
+        )
+
+        ic_scorer = InformationContentRarityScorer()
+
+        scores_with_null = ic_scorer.score_collection(collection_with_null)
+        scores_without_null = ic_scorer.score_collection(
+            collection_without_null
+        )
+
+        assert scores_with_null == scores_without_null
 
     @pytest.mark.skip(
         reason="Not including performance testing as required testing"
