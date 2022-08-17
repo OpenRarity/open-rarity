@@ -5,7 +5,6 @@ from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import (
     AttributeName,
     AttributeValue,
-    NumericAttribute,
     StringAttribute,
 )
 
