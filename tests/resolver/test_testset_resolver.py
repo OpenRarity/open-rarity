@@ -28,10 +28,3 @@ class TestTestsetResolver:
             RankProvider.OR_INFORMATION_CONTENT: 5,  # todo
         },
     }
-
-    def test_resolve_collection_data(self):
-        # Have the resolver pull in BAYC rarity rankings from various sources
-        # Just do a check to ensure the ranks from different providers are
-        # as expected
-        pass
-        # Read the file and verify columns values are as expected for the given tokens

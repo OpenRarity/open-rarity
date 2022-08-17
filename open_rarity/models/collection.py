@@ -5,14 +5,15 @@ from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import (
     AttributeName,
     AttributeValue,
+    NumericAttribute,
     StringAttribute,
 )
 
 
 @dataclass
 class CollectionAttribute:
-    """Class represents an attribute thatat least one token in a Collection has.
-    E.g. "hat" = "cap" would be one atttribute, and "hat" = "beanie" would be another
+    """Class represents an attribute that at least one token in a Collection has.
+    E.g. "hat" = "cap" would be one attribute, and "hat" = "beanie" would be another
     unique attribute, even though they may belong to the same attribute type (id=name).
 
     Attributes
@@ -23,7 +24,7 @@ class CollectionAttribute:
         total number of tokens in the collection that have this attribute
     """
 
-    attribute: StringAttribute
+    attribute: StringAttribute | NumericAttribute
     total_tokens: int
 
 

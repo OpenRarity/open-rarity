@@ -99,7 +99,6 @@ class TestScoring:
         tic = time.time()
         arithmetic_scorer.score_collection(collection=self.mixed_collection)
         toc = time.time()
-        print(f"\n[vicky]: Scoring collection took: {toc - tic} seconds")
         assert (toc - tic) < self.max_scoring_time_for_10k_s
 
     def test_arithmetic_mean_uniform(self) -> None:
@@ -213,5 +212,4 @@ class TestScoring:
         tic = time.time()
         ic_scorer.score_collection(collection=self.mixed_collection)
         toc = time.time()
-        print(f"\n[vicky]: IC Scoring collection took: {toc - tic} seconds")
         assert (toc - tic) < self.max_scoring_time_for_10k_s

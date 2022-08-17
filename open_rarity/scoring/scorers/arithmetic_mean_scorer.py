@@ -9,7 +9,6 @@ from open_rarity.scoring.scorer import Scorer
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 
 logger = logging.getLogger("open_rarity_logger")
-print(f"vicky-debug: {logger.level=}")
 
 
 class ArithmeticMeanRarityScorer(Scorer):
