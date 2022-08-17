@@ -1,27 +1,10 @@
-from open_rarity.models.collection import Collection
+from open_rarity.models.collection import Collection, CollectionAttribute
 from open_rarity.models.token import Token
-from open_rarity.models.token_standard import TokenStandard
-from open_rarity.models.token_identifier import EVMContractTokenIdentifier
 from open_rarity.models.token_metadata import (
-    TokenMetadata,
-    StringAttributeValue,
+    StringAttribute,
 )
 
-
-def create_evm_token(
-    token_id: int,
-    contract_address: str = "0xaaa",
-    token_standard: TokenStandard = TokenStandard.ERC721,
-    metadata: TokenMetadata | None = None,
-) -> Token:
-    metadata = metadata or TokenMetadata()
-    return Token(
-        token_identifier=EVMContractTokenIdentifier(
-            contract_address=contract_address, token_id=token_id
-        ),
-        token_standard=token_standard,
-        metadata=metadata,
-    )
+from tests.helpers import create_evm_token
 
 
 class TestCollection:
@@ -71,8 +54,12 @@ class TestCollection:
 
     def test_extract_null_attributes(self):
         assert self.test_collection.extract_null_attributes() == {
-            "attribute1": StringAttributeValue("attribute1", "Null", 50),
-            "attribute2": StringAttributeValue("attribute2", "Null", 40),
+            "attribute1": CollectionAttribute(
+                StringAttribute("attribute1", "Null"), 50
+            ),
+            "attribute2": CollectionAttribute(
+                StringAttribute("attribute2", "Null"), 40
+            ),
         }
 
     def test_extract_null_attributes_empty(self):
@@ -83,12 +70,20 @@ class TestCollection:
     def test_extract_collection_attributes(self):
         assert self.test_collection.extract_collection_attributes() == {
             "attribute1": [
-                StringAttributeValue("attribute1", "value1", 20),
-                StringAttributeValue("attribute1", "value2", 30),
+                CollectionAttribute(
+                    StringAttribute("attribute1", "value1"), 20
+                ),
+                CollectionAttribute(
+                    StringAttribute("attribute1", "value2"), 30
+                ),
             ],
             "attribute2": [
-                StringAttributeValue("attribute2", "value1", 10),
-                StringAttributeValue("attribute2", "value2", 50),
+                CollectionAttribute(
+                    StringAttribute("attribute2", "value1"), 10
+                ),
+                CollectionAttribute(
+                    StringAttribute("attribute2", "value2"), 50
+                ),
             ],
         }
 

@@ -1,6 +1,6 @@
 import requests
 from open_rarity.models.token_metadata import (
-    StringAttributeValue,
+    StringAttribute,
     TokenMetadata,
 )
 from open_rarity.models.collection import Collection
@@ -98,10 +98,9 @@ def opensea_traits_to_token_metadata(asset_traits: dict) -> TokenMetadata:
     # TODO[impreso] filter out numeric traits
     return TokenMetadata(
         string_attributes={
-            trait["trait_type"]: StringAttributeValue(
-                attribute_name=trait["trait_type"],
-                attribute_value=trait["value"],
-                count=trait["trait_count"],
+            trait["trait_type"]: StringAttribute(
+                name=trait["trait_type"],
+                value=trait["value"],
             )
             for trait in asset_traits
         }
