@@ -83,6 +83,8 @@ def get_tokens_with_rarity(
     resolve_remote_rarity : bool
         True if we need to resolve rarity ranks from
         external providers , False if not
+    max_tokens_to_calculate (int, optional): If specified only gets ranking
+        data of first `max_tokens`. Defaults to None.
 
     Returns
     -------
@@ -195,6 +197,8 @@ def resolve_collection_data(
         filename (str, optional): _description_. Defaults to "test_collections.json".
         max_tokens_to_calculate (int, optional): If specified only gets ranking
             data of first `max_tokens`. Defaults to None.
+            Note: If this is provided, we cannot calculate OpenRarity ranks since
+            it must be calculated after calculating scoring for entire collection.
     """
 
     golden_collections = pkgutil.get_data(package_path, filename)
@@ -223,13 +227,14 @@ def resolve_collection_data(
                 assert max_tokens_to_calculate == len(tokens_with_rarity)
 
             # Calculate and append open rarity scores
-            open_rarity_scores = resolve_open_rarity_score(
-                collection, collection.tokens, normalized=True
-            )
-            augment_with_open_rarity_scores(
-                tokens_with_rarity=tokens_with_rarity,
-                scores=open_rarity_scores,
-            )
+            if max_tokens_to_calculate is None:
+                open_rarity_scores = resolve_open_rarity_score(
+                    collection, collection.tokens, normalized=True
+                )
+                augment_with_open_rarity_scores(
+                    tokens_with_rarity=tokens_with_rarity,
+                    scores=open_rarity_scores,
+                )
 
             serialize_to_csv(
                 collection_with_metadata=collection_with_metadata,
