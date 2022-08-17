@@ -65,14 +65,6 @@ def fetch_trait_sniper_rank_for_evm_token(
         return None
 
 
-def get_trait_sniper_slug(opensea_slug: str):
-    # Trait Sniper's slug is slightly different than opensea's slug.
-    # For many cases, ew can simply get rid of the "-nft" from the slug to transform
-    # to one that is accepted by TraitSniper, and it's relatively accurate.
-    # TODO [dan]: to change this
-    return opensea_slug.replace("-nft", "")
-
-
 def fetch_rarity_sniffer_rank_for_collection(
     contract_address: str,
 ) -> dict[int, RarityData]:
@@ -189,8 +181,7 @@ class ExternalRarityProvider:
         logger.debug("Resolving trait sniper rarity")
 
         # We're currently using opensea slug to calculate trait sniper slug
-        opensea_slug = collection_with_metadata.opensea_slug
-        slug = get_trait_sniper_slug(opensea_slug=opensea_slug)
+        slug = collection_with_metadata.opensea_slug
 
         for token_with_rarity in tokens_with_rarity:
             token = token_with_rarity.token

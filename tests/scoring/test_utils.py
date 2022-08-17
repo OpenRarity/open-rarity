@@ -1,4 +1,4 @@
-from tests.utils import (
+from tests.helpers import (
     generate_uniform_rarity_collection,
     generate_onerare_rarity_collection,
     generate_collection_with_token_traits,
@@ -169,9 +169,6 @@ class TestScoringUtils:
         )
         expected_weights_with_null = [1 / 3, 1 / 2, 1]
 
-        # TODO [vicky]: This is currently an open thread to be discussed
-        # We may change it such that both of these collections have the
-        # same weighting.
         collection_without_null = generate_collection_with_token_traits(
             [
                 {"bottom": "1", "hat": "1", "special": "true"},

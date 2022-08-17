@@ -187,7 +187,7 @@ class InformationContentRarityScorer(Scorer):
         for attr_name, attr_values in attributes.items():
             if attr_name in null_attributes:
                 null_attr = null_attributes[attr_name]
-                attributes[attr_name].append(null_attr)
+                attr_values.append(null_attr)
 
             # Create an array of the probability of all possible attr_name/value combos
             # existing in the collection

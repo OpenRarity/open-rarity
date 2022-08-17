@@ -1,8 +1,14 @@
-from open_rarity.scoring.scorers.geometric_mean_scorer import (
-    GeometricMeanRarityScorer,
-)
+import time
+from random import sample
+
+import numpy as np
+import pytest
+
 from open_rarity.scoring.scorers.arithmetic_mean_scorer import (
     ArithmeticMeanRarityScorer,
+)
+from open_rarity.scoring.scorers.geometric_mean_scorer import (
+    GeometricMeanRarityScorer,
 )
 from open_rarity.scoring.scorers.harmonic_mean_scorer import (
     HarmonicMeanRarityScorer,
@@ -10,16 +16,14 @@ from open_rarity.scoring.scorers.harmonic_mean_scorer import (
 from open_rarity.scoring.scorers.information_content_scorer import (
     InformationContentRarityScorer,
 )
-from tests.utils import (
-    generate_uniform_rarity_collection,
-    generate_onerare_rarity_collection,
+from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
+from tests.helpers import (
+    generate_collection_with_token_traits,
     generate_mixed_collection,
+    generate_onerare_rarity_collection,
+    generate_uniform_rarity_collection,
     get_mixed_trait_spread,
 )
-from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
-import numpy as np
-from random import sample
-import time
 
 
 class TestScoring:
@@ -94,12 +98,14 @@ class TestScoring:
             8,
         ) == np.round(expected_rare_score, 8)
 
+    @pytest.mark.skip(
+        reason="Not including performance testing as required testing"
+    )
     def test_arithmetic_mean_score_collection_timing(self) -> None:
         arithmetic_scorer = ArithmeticMeanRarityScorer()
         tic = time.time()
         arithmetic_scorer.score_collection(collection=self.mixed_collection)
         toc = time.time()
-        print(f"\n[vicky]: Scoring collection took: {toc - tic} seconds")
         assert (toc - tic) < self.max_scoring_time_for_10k_s
 
     def test_arithmetic_mean_uniform(self) -> None:
@@ -182,8 +188,8 @@ class TestScoring:
             for tokens_with_trait in trait_dict.values():
                 collection_probs.append(tokens_with_trait / 10000)
 
-        assert collection_entropy == -np.dot(
-            collection_probs, np.log2(collection_probs)
+        assert np.round(collection_entropy, 10) == np.round(
+            -np.dot(collection_probs, np.log2(collection_probs)), 10
         )
 
         # Test the actual scores
@@ -208,10 +214,42 @@ class TestScoring:
 
             assert score == ic_token_score / collection_entropy
 
+    def test_information_content_null_attribute(self):
+        collection_with_null = generate_collection_with_token_traits(
+            [
+                {"bottom": "1", "hat": "1", "special": "true"},
+                {"bottom": "1", "hat": "1"},
+                {"bottom": "2", "hat": "2"},
+                {"bottom": "2", "hat": "2"},
+                {"bottom": "3", "hat": "2"},
+            ]
+        )
+
+        collection_without_null = generate_collection_with_token_traits(
+            [
+                {"bottom": "1", "hat": "1", "special": "true"},
+                {"bottom": "1", "hat": "1", "special": "false"},
+                {"bottom": "2", "hat": "2", "special": "false"},
+                {"bottom": "2", "hat": "2", "special": "false"},
+                {"bottom": "3", "hat": "2", "special": "false"},
+            ]
+        )
+
+        ic_scorer = InformationContentRarityScorer()
+
+        scores_with_null = ic_scorer.score_collection(collection_with_null)
+        scores_without_null = ic_scorer.score_collection(
+            collection_without_null
+        )
+
+        assert scores_with_null == scores_without_null
+
+    @pytest.mark.skip(
+        reason="Not including performance testing as required testing"
+    )
     def test_information_content_rarity_timing(self):
         ic_scorer = InformationContentRarityScorer()
         tic = time.time()
         ic_scorer.score_collection(collection=self.mixed_collection)
         toc = time.time()
-        print(f"\n[vicky]: IC Scoring collection took: {toc - tic} seconds")
         assert (toc - tic) < self.max_scoring_time_for_10k_s
