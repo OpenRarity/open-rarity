@@ -17,7 +17,7 @@ from open_rarity.scoring.scorers.information_content_scorer import (
     InformationContentRarityScorer,
 )
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
-from tests.utils import (
+from tests.helpers import (
     generate_mixed_collection,
     generate_onerare_rarity_collection,
     generate_uniform_rarity_collection,

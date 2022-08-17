@@ -1,4 +1,4 @@
-from tests.utils import (
+from tests.helpers import (
     generate_uniform_rarity_collection,
     generate_onerare_rarity_collection,
     generate_collection_with_token_traits,

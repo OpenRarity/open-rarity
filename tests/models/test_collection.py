@@ -4,7 +4,7 @@ from open_rarity.models.token_metadata import (
     StringAttribute,
 )
 
-from tests.utils import create_evm_token
+from tests.helpers import create_evm_token
 
 
 class TestCollection:
