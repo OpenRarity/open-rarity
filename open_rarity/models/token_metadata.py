@@ -19,7 +19,12 @@ class StringAttribute:
     """
 
     name: AttributeName  # duplicate name here for ease of reduce
-    value: str
+    value: AttributeValue
+
+    def __init__(self, name: AttributeName, value: AttributeValue):
+        # We treat string attributes name and value the same regardless of casing.
+        self.name = name.lower()
+        self.value = value.lower()
 
 
 @dataclass

@@ -26,6 +26,55 @@ class TestCollection:
         attributes_frequency_counts={},
     )
 
+    def test_attribute_frequency_counts_initialization(self):
+        all_lower_case_attributes = {
+            "hat": {"beanie": 40, "cap": 60},
+            "bottom": {"special": 1},
+        }
+        input_attributes_to_expected_output = [
+            [all_lower_case_attributes, all_lower_case_attributes],
+            # Name and one value has first letter uppercase
+            [
+                {"Hat": {"beanie": 40, "Cap": 60}, "bottom": {"special": 1}},
+                all_lower_case_attributes,
+            ],
+            # All caps
+            [
+                {"HAT": {"beanie": 40, "CAP": 60}, "Bottom": {"SPECIAL": 1}},
+                all_lower_case_attributes,
+            ],
+            # Duplicate traits
+            [
+                {
+                    "hat": {"beanie": 40, "cap": 29, "Cap": 31},
+                    "bottom": {"special": 1},
+                },
+                all_lower_case_attributes,
+            ],
+            # Duplicate trait names
+            [
+                {
+                    "hat": {"beanie": 40, "cap": 25},
+                    "Hat": {"Cap": 35},
+                    "bottom": {"special": 1},
+                },
+                all_lower_case_attributes,
+            ],
+            # Empty
+            [{}, {}],
+        ]
+
+        for (
+            input_attributes,
+            expected_attributes,
+        ) in input_attributes_to_expected_output:
+            c = Collection(
+                name="random",
+                tokens=[],
+                attributes_frequency_counts=input_attributes,
+            )
+            assert c.attributes_frequency_counts == expected_attributes
+
     def test_tokens(self):
         collection_1 = Collection(
             name="test",

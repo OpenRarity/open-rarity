@@ -54,6 +54,8 @@ ScoredTokens = dict[int, float]
 # Token ID -> Rank + Score
 RankedTokens = dict[int, RankScore]
 
+logger = logging.getLogger("open_rarity_logger")
+
 
 @dataclass
 class OpenRarityScores:
@@ -68,6 +70,7 @@ def get_tokens_with_rarity(
     collection_with_metadata: CollectionWithMetadata,
     resolve_remote_rarity: bool = True,
     batch_size: int = 30,
+    max_tokens_to_calculate: int = None,
 ) -> list[TokenWithRarityData]:
     """Resolves assets through OpenSea API asset endpoint and turns them
     into token with rarity data, augmented with rankings from Gem, RaritySniper
@@ -80,6 +83,8 @@ def get_tokens_with_rarity(
     resolve_remote_rarity : bool
         True if we need to resolve rarity ranks from
         external providers , False if not
+    max_tokens_to_calculate (int, optional): If specified only gets ranking
+        data of first `max_tokens`. Defaults to None.
 
     Returns
     -------
@@ -87,19 +92,24 @@ def get_tokens_with_rarity(
         provide list of tokens augmented with assets metadata and ranking provider
     """
     external_rarity_provider = ExternalRarityProvider()
-    total_supply = collection_with_metadata.token_total_supply
+    total_supply = min(
+        max_tokens_to_calculate or collection_with_metadata.token_total_supply,
+        collection_with_metadata.token_total_supply,
+    )
     num_batches = math.ceil(total_supply / batch_size)
-    initial_token_id = 1
+    initial_token_id = 0
     tokens_with_rarity: list[TokenWithRarityData] = []
 
     # Returns a list of `batch_size` token IDs, such that no token ID
     # can exceed `max_token_id` (in which case len(return_value) < `batch_size`)
     def get_token_ids(
-        batch_id: int, max_token_id: int = total_supply
+        batch_id: int, max_token_id: int = total_supply - 1
     ) -> list[int]:
         token_id_start = initial_token_id + (batch_id * batch_size)
-        token_id_end = max(token_id_start + batch_size - 1, max_token_id)
-        return [token_id for token_id in range(token_id_start, token_id_end)]
+        token_id_end = int(min(token_id_start + batch_size - 1, max_token_id))
+        return [
+            token_id for token_id in range(token_id_start, token_id_end + 1)
+        ]
 
     t1_start = process_time()
     for batch_id in range(num_batches):
@@ -114,9 +124,12 @@ def get_tokens_with_rarity(
             assets = fetch_opensea_assets_data(
                 slug=collection_with_metadata.opensea_slug, token_ids=token_ids
             )
-        except Exception:
-            print(
-                f"FAILED: get_assets: could not fetch opensea assets for {token_ids}"
+        except Exception as e:
+            logger.exception(
+                "FAILED: get_assets: could not fetch opensea assets for %s: %s",
+                token_ids,
+                e,
+                exc_info=True,
             )
             break
 
@@ -171,12 +184,25 @@ def get_tokens_with_rarity(
     return tokens_with_rarity
 
 
-def resolve_collection_data(resolve_remote_rarity: bool):
-    """Resolves collection information through OpenSea API"""
+def resolve_collection_data(
+    resolve_remote_rarity: bool,
+    package_path: str = "open_rarity.data",
+    filename: str = "test_collections.json",
+    max_tokens_to_calculate: int = None,
+):
+    """Resolves collection information through OpenSea API
 
-    golden_collections = pkgutil.get_data(
-        "openrarity.data", "test_collections.json"
-    )
+    Args:
+        resolve_remote_rarity (bool): _description_
+        package_path (str, optional): _description_. Defaults to "open_rarity.data".
+        filename (str, optional): _description_. Defaults to "test_collections.json".
+        max_tokens_to_calculate (int, optional): If specified only gets ranking
+            data of first `max_tokens`. Defaults to None.
+            Note: If this is provided, we cannot calculate OpenRarity ranks since
+            it must be calculated after calculating scoring for entire collection.
+    """
+
+    golden_collections = pkgutil.get_data(package_path, filename)
 
     if golden_collections:
         data = json.load(io.BytesIO(golden_collections))
@@ -192,19 +218,24 @@ def resolve_collection_data(resolve_remote_rarity: bool):
             ] = get_tokens_with_rarity(
                 collection_with_metadata=collection_with_metadata,
                 resolve_remote_rarity=resolve_remote_rarity,
+                max_tokens_to_calculate=max_tokens_to_calculate,
             )
             collection = collection_with_metadata.collection
             collection.tokens = [tr.token for tr in tokens_with_rarity]
-            assert collection.token_total_supply == len(tokens_with_rarity)
+            if max_tokens_to_calculate is None:
+                assert collection.token_total_supply == len(tokens_with_rarity)
+            else:
+                assert max_tokens_to_calculate == len(tokens_with_rarity)
 
             # Calculate and append open rarity scores
-            open_rarity_scores = resolve_open_rarity_score(
-                collection, collection.tokens, normalized=True
-            )
-            augment_with_open_rarity_scores(
-                tokens_with_rarity=tokens_with_rarity,
-                scores=open_rarity_scores,
-            )
+            if max_tokens_to_calculate is None:
+                open_rarity_scores = resolve_open_rarity_score(
+                    collection, collection.tokens, normalized=True
+                )
+                augment_with_open_rarity_scores(
+                    tokens_with_rarity=tokens_with_rarity,
+                    scores=open_rarity_scores,
+                )
 
             serialize_to_csv(
                 collection_with_metadata=collection_with_metadata,
