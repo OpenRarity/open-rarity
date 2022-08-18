@@ -79,7 +79,7 @@ Apache 2.0 , OpenSea, ICY, Curio, PROOF
 
 [license-badge]: https://img.shields.io/github/license/ProjectOpenSea/open-rarity
 [license-link]: https://github.com/ProjectOpenSea/open-rarity/blob/main/LICENSE
-[ci-badge]: https://github.com/ProjectOpenSea/open-rarity/actions/workflows/tests.yml/badge.svg
-[ci-link]: https://github.com/ProjectOpenSea/open-rarity/actions/workflows/tests.yml
+[ci-badge]: https://github.com/ProjectOpenSea/open-rarity/actions/workflows/tests.yaml/badge.svg
+[ci-link]: https://github.com/ProjectOpenSea/open-rarity/actions/workflows/tests.yaml
 
 
