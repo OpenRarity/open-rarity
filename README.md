@@ -1,5 +1,8 @@
 ![OpenRarity](img/OR_Github_banner.jpg)
 
+[![Test CI][ci-badge]][ci-link]
+[![License][license-badge]][license-link]
+
 
 # OpenRarity 
 
@@ -70,4 +73,13 @@ OpenRarity is an open-source project and all contributions are welcome. Consider
 # License
 
 Apache 2.0 , OpenSea, ICY, Curio, PROOF
+
+
+
+
+[license-badge]: https://img.shields.io/github/license/ProjectOpenSea/open-rarity
+[license-link]: https://github.com/ProjectOpenSea/open-rarity/blob/main/LICENSE
+[ci-badge]: https://github.com/ProjectOpenSea/open-rarity/actions/workflows/test.yml/badge.svg
+[ci-link]: https://github.com/ProjectOpenSea/open-rarity/actions/workflows/test.yml
+
 
