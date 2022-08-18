@@ -126,8 +126,9 @@ def get_tokens_with_rarity(
             )
         except Exception as e:
             logger.exception(
-                f"FAILED: get_assets: could not fetch opensea assets for "
-                f"{token_ids}: {e}",
+                "FAILED: get_assets: could not fetch opensea assets for %s: %s",
+                token_ids,
+                e,
                 exc_info=True,
             )
             break
