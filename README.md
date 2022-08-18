@@ -1,5 +1,6 @@
 ![OpenRarity](img/OR_Github_banner.jpg)
 
+[![Version][version-badge]][version-link]
 [![Test CI][ci-badge]][ci-link]
 [![License][license-badge]][license-link]
 
@@ -81,5 +82,6 @@ Apache 2.0 , OpenSea, ICY, Curio, PROOF
 [license-link]: https://github.com/ProjectOpenSea/open-rarity/blob/main/LICENSE
 [ci-badge]: https://github.com/ProjectOpenSea/open-rarity/actions/workflows/tests.yaml/badge.svg
 [ci-link]: https://github.com/ProjectOpenSea/open-rarity/actions/workflows/tests.yaml
-
+[version-badge]: https://img.shields.io/github/package-json/v/ProjectOpenSea/open-rarity
+[version-link]: https://github.com/ProjectOpenSea/open-rarity/releases
 
