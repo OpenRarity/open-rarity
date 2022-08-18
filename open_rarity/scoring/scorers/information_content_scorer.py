@@ -197,9 +197,9 @@ class InformationContentRarityScorer(Scorer):
                     for attr_value in attr_values
                 ]
             )
-        
+
         # no comment
-        
+
         logger.debug(
             "Calculated collection probabilties: %s", collection_probabilities
         )
