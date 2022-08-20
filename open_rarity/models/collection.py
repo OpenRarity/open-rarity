@@ -1,6 +1,5 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from xmlrpc.client import Boolean
 
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import (
@@ -70,9 +69,19 @@ class Collection:
         )
         self.tokens = tokens
         self.name = name
-        self.has_numeric_attribute = len(list(filter(lambda token: len(token.metadata.numeric_attributes) > 0 
-                                or len(token.metadata.date_attributes) > 0 , self.tokens)))
-       
+        self.has_numeric_attribute = (
+            len(
+                list(
+                    filter(
+                        lambda token: len(token.metadata.numeric_attributes)
+                        > 0
+                        or len(token.metadata.date_attributes) > 0,
+                        self.tokens,
+                    )
+                )
+            )
+            > 0
+        )
 
     def _normalize_attributes_frequency_counts(
         self,

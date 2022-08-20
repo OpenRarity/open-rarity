@@ -27,6 +27,22 @@ def create_evm_token(
     )
 
 
+def create_numeric_evm_token(
+    token_id: int,
+    contract_address: str = "0xaaa",
+    token_standard: TokenStandard = TokenStandard.ERC721,
+) -> Token:
+    numeric_metadata = TokenMetadata(
+        numeric_attributes=[NumericAttribute("test", 1)]
+    )
+    return create_evm_token(
+        token_id=token_id,
+        contract_address=contract_address,
+        token_standard=token_standard,
+        metadata=numeric_metadata,
+    )
+
+
 def generate_uniform_attributes_count(
     attribute_count: int = 5,
     values_per_attribute: int = 10,

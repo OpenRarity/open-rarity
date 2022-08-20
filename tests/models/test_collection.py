@@ -4,7 +4,7 @@ from open_rarity.models.token_metadata import (
     StringAttribute,
 )
 
-from tests.helpers import create_evm_token
+from tests.helpers import create_evm_token, create_numeric_evm_token
 
 
 class TestCollection:
@@ -14,6 +14,11 @@ class TestCollection:
         "attribute2": {"value1": 10, "value2": 50},
     }
     tokens: list[Token] = [create_evm_token(token_id=i) for i in range(100)]
+
+    string_numeric_tokens: list[Token] = [
+        create_evm_token(token_id=i) for i in range(50)
+    ] + [create_numeric_evm_token(token_id=i) for i in range(50, 100)]
+
     test_collection: Collection = Collection(
         name="test",
         tokens=tokens,
@@ -24,6 +29,12 @@ class TestCollection:
         name="test2",
         tokens=tokens,
         attributes_frequency_counts={},
+    )
+
+    test_numeric_attributes_collection: Collection = Collection(
+        name="test3",
+        tokens=string_numeric_tokens,
+        attributes_frequency_counts=attributes,
     )
 
     def test_attribute_frequency_counts_initialization(self):
@@ -141,3 +152,10 @@ class TestCollection:
             self.test_no_attributes_collection.extract_collection_attributes()
             == {}
         )
+
+    def test_has_numeric_attributes(self):
+        assert (
+            self.test_numeric_attributes_collection.has_numeric_attribute
+            is True
+        )
+        assert self.test_collection.has_numeric_attribute is False
