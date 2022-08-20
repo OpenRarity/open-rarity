@@ -46,6 +46,7 @@ class InformationContentRarityScorer(Scorer):
         self, collection: Collection, token: Token, normalized: bool = True
     ) -> float:
         """See Scorer interface."""
+        super().score_token(collection, token, normalized)
         return self._score_token(collection, token, normalized)
 
     def score_tokens(
@@ -55,6 +56,8 @@ class InformationContentRarityScorer(Scorer):
         normalized: bool = True,
     ) -> list[float]:
         """See Scorer interface."""
+        super().score_tokens(collection, tokens, normalized)
+
         # Precompute for performance
         collection_null_attributes = collection.extract_null_attributes()
         collection_attributes = collection.extract_collection_attributes()

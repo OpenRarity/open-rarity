@@ -1,5 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass
+from xmlrpc.client import Boolean
 
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import (
@@ -52,6 +53,7 @@ class Collection:
     attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
     tokens: list[Token]
     name: str | None = ""
+    has_numeric_attr: bool | None = None
 
     def __init__(
         self,
@@ -68,6 +70,9 @@ class Collection:
         )
         self.tokens = tokens
         self.name = name
+        self.has_numeric_attribute = len(list(filter(lambda token: len(token.metadata.numeric_attributes) > 0 
+                                or len(token.metadata.date_attributes) > 0 , self.tokens)))
+       
 
     def _normalize_attributes_frequency_counts(
         self,
@@ -91,7 +96,9 @@ class Collection:
             if normalized_name not in normalized:
                 normalized[normalized_name] = {}
             for attr_value, attr_count in attr_value_to_count.items():
-                normalized_value = attr_value.lower()
+                normalized_value = attr_value
+                if isinstance(attr_value, str):
+                    normalized_value = attr_value.lower()
                 if normalized_value not in normalized[normalized_name]:
                     normalized[normalized_name][normalized_value] = attr_count
                 else:

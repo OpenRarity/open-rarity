@@ -1,5 +1,7 @@
 import requests
 from open_rarity.models.token_metadata import (
+    DateAttribute,
+    NumericAttribute,
     StringAttribute,
     TokenMetadata,
 )
@@ -19,6 +21,8 @@ HEADERS = {
     "Accept": "application/json",
     "X-API-KEY": "",
 }
+
+DISPLAY_NAME ="display_name"
 
 
 def fetch_opensea_collection_data(slug: str):
@@ -86,7 +90,7 @@ def fetch_opensea_assets_data(slug: str, token_ids: list[int], limit=30):
     return response.json()["assets"]
 
 
-def opensea_traits_to_token_metadata(asset_traits: dict) -> TokenMetadata:
+def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
     """
     Converts asset traits dictionary returned by opensea assets API and converts
     it into a TokenMetadata.
@@ -95,15 +99,34 @@ def opensea_traits_to_token_metadata(asset_traits: dict) -> TokenMetadata:
         asset_traits (dict): the "traits" field for an asset in the return value
         of Opensea's asset(s) endpoint
     """
-    # TODO[impreso] filter out numeric traits
+    
+    filtered_string_attrs = list(filter(lambda trait: DISPLAY_NAME not in trait or trait[DISPLAY_NAME] , asset_traits))
+    filtered_numeric_attrs = list(filter(lambda trait: DISPLAY_NAME in trait and trait[DISPLAY_NAME] in ["number","boost_percentage","boost_number"], asset_traits))
+    filtered_date_attrs = list(filter(lambda trait: DISPLAY_NAME in trait and trait[DISPLAY_NAME] == "date",asset_traits))
+
     return TokenMetadata(
-        string_attributes={
+        string_attributes= {
             trait["trait_type"]: StringAttribute(
                 name=trait["trait_type"],
                 value=trait["value"],
             )
-            for trait in asset_traits
+            for trait in filtered_string_attrs
+        },
+        numeric_attributes={
+            trait["trait_type"]: NumericAttribute(
+                name=trait["trait_type"],
+                value=trait["value"],
+            )
+            for trait in filtered_numeric_attrs
+        },
+        date_attributes={
+            trait["trait_type"]: DateAttribute(
+                name=trait["trait_type"],
+                value=trait["value"],
+            )
+            for trait in filtered_date_attrs
         }
+
     )
 
 

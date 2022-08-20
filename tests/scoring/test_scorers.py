@@ -244,6 +244,27 @@ class TestScoring:
 
         assert scores_with_null == scores_without_null
 
+    def test_score_collection_exception_with_numeric_attribute(self):
+        with pytest.raises(Exception):
+            collection = generate_collection_with_token_numeric_traits(
+                [
+                    {"bottom": "1", "hat": "1", "special": "true"},
+                    {"bottom": "1", "hat": "1", "special": "false"},
+                    {"bottom": "2", "hat": "2", "special": "false"},
+                    {"bottom": "2", "hat": "2", "special": "false"},
+                    {"bottom": 3, "hat": 2, "special": "false"},
+                ]
+            )
+
+            ic_scorer = InformationContentRarityScorer()
+
+            ic_scorer.score_collection(collection)
+
+            assert (
+                "OpenRarity don't support collections with numeric or date traits"
+                in str(excinfo.value)
+            )
+
     @pytest.mark.skip(
         reason="Not including performance testing as required testing"
     )
