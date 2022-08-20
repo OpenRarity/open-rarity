@@ -43,10 +43,10 @@ To debug any collections scoring we built the **Rarity Resolver** tool. Follow t
 
 ## Running tests locally
 
-- `pip install pytest`
-- `pip install scipy`
-- `python -m pytest <test_name>`
-
+```
+poetry install # install dependencies locally
+poetry run pytest # run tests
+```
 
 # Rarity Datasets
 
@@ -74,7 +74,6 @@ OpenRarity is an open-source project and all contributions are welcome. Consider
 # License
 
 Apache 2.0 , OpenSea, ICY, Curio, PROOF
-
 
 
 
