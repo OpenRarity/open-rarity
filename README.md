@@ -70,6 +70,10 @@ OpenRarity is an open-source project and all contributions are welcome. Consider
 - To merge the change in the `main` branch you required to get at least 2 approvals from the project maintainer list
 - Always add a unit test with your changes
 
+We use git-precommit hooks in OpenRarity repo. Install it with the following command
+```
+poetry run pre-commit install
+```
 
 # License
 
