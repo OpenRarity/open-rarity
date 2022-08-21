@@ -57,7 +57,6 @@ class DateAttribute:
     value: int
 
 
-
 @dataclass
 class TokenMetadata:
     """Class represents EIP-721 or EIP-1115 compatible metadata structure

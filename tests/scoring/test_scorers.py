@@ -1,3 +1,4 @@
+from sys import exc_info
 import time
 from random import sample
 
@@ -246,7 +247,7 @@ class TestScoring:
 
     def test_score_collection_exception_with_numeric_attribute(self):
         with pytest.raises(Exception):
-            collection = generate_collection_with_token_numeric_traits(
+            collection = generate_collection_with_token_traits(
                 [
                     {"bottom": "1", "hat": "1", "special": "true"},
                     {"bottom": "1", "hat": "1", "special": "false"},
@@ -262,7 +263,7 @@ class TestScoring:
 
             assert (
                 "OpenRarity don't support collections with numeric or date traits"
-                in str(excinfo.value)
+                in str(exc_info.value)
             )
 
     @pytest.mark.skip(

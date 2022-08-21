@@ -22,7 +22,7 @@ HEADERS = {
     "X-API-KEY": "",
 }
 
-DISPLAY_NAME ="display_name"
+DISPLAY_NAME = "display_name"
 
 
 def fetch_opensea_collection_data(slug: str):
@@ -99,13 +99,31 @@ def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
         asset_traits (dict): the "traits" field for an asset in the return value
         of Opensea's asset(s) endpoint
     """
-    
-    filtered_string_attrs = list(filter(lambda trait: DISPLAY_NAME not in trait or trait[DISPLAY_NAME] , asset_traits))
-    filtered_numeric_attrs = list(filter(lambda trait: DISPLAY_NAME in trait and trait[DISPLAY_NAME] in ["number","boost_percentage","boost_number"], asset_traits))
-    filtered_date_attrs = list(filter(lambda trait: DISPLAY_NAME in trait and trait[DISPLAY_NAME] == "date",asset_traits))
+
+    filtered_string_attrs = list(
+        filter(
+            lambda trait: DISPLAY_NAME not in trait or trait[DISPLAY_NAME],
+            asset_traits,
+        )
+    )
+    filtered_numeric_attrs = list(
+        filter(
+            lambda trait: DISPLAY_NAME in trait
+            and trait[DISPLAY_NAME]
+            in ["number", "boost_percentage", "boost_number"],
+            asset_traits,
+        )
+    )
+    filtered_date_attrs = list(
+        filter(
+            lambda trait: DISPLAY_NAME in trait
+            and trait[DISPLAY_NAME] == "date",
+            asset_traits,
+        )
+    )
 
     return TokenMetadata(
-        string_attributes= {
+        string_attributes={
             trait["trait_type"]: StringAttribute(
                 name=trait["trait_type"],
                 value=trait["value"],
@@ -125,8 +143,7 @@ def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
                 value=trait["value"],
             )
             for trait in filtered_date_attrs
-        }
-
+        },
     )
 
 
