@@ -102,7 +102,7 @@ def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
 
     filtered_string_attrs = list(
         filter(
-            lambda trait: DISPLAY_NAME not in trait or trait[DISPLAY_NAME],
+            lambda trait: DISPLAY_NAME not in trait or not trait[DISPLAY_NAME],
             asset_traits,
         )
     )

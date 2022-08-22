@@ -52,7 +52,7 @@ class Collection:
     attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
     tokens: list[Token]
     name: str | None = ""
-    has_numeric_attr: bool | None = None
+    has_numeric_attribute: bool | None = None
 
     def __init__(
         self,

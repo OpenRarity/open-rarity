@@ -33,7 +33,7 @@ class NumericAttribute:
     ----------
     name : AttributeName
         name of an attribute
-    value : float
+    value : float | int
         value of a numeric attribute
     """
 
