@@ -95,8 +95,7 @@ token = Token() # Your token details filled in
 token_score = scorer.score_token(collection=collection, token=token, normalized=True)
 ```
 
-In order to generate the Token and Collection, you will need to properly set the attributes distribution ont he collection and the token's attributes. You may either have these details on hand or
-fetch them through an API. Example of how we do it in order to compare rarity scores across providers live in testset_resolver.py, which leverages the data returned by the opensea API (see opensea_api_helpers.py) to construct the Token and Collection object.
+In order to generate the Token and Collection, you will need to properly set the attributes distribution on the collection and the individual attributes belonging to each token. You may either have these details on hand or fetch them through an API. Example of how we do it in order to compare rarity scores across providers live in testset_resolver.py, which leverages the data returned by the opensea API (see opensea_api_helpers.py) to construct the Token and Collection object.
 
 # License
 
