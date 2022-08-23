@@ -5,7 +5,7 @@
 [![License][license-badge]][license-link]
 
 
-# OpenRarity 
+# OpenRarity
 
 We’re excited to announce OpenRarity(Beta), a new rarity protocol we’re building for the NFT community. Our objective is to provide a transparent rarity calculation that is entirely open-source, objective, and reproducible.
 
@@ -34,7 +34,7 @@ To debug any collections scoring we built the **Rarity Resolver** tool. Follow t
 - Curate the <a href="https://github.com/ProjectOpenSea/open-rarity/blob/main/open_rarity/data/test_collections.json" title=“Collections>collections list </a> you want to score with OpenRarity
 - Provide your <a href="https://github.com/ProjectOpenSea/open-rarity/blob/main/open_rarity/resolver/opensea_api_helpers.py#L20"> OpenSea API Key </a>
 - Run scoring for these collections with the following command:
-    
+
     ```python
     python -m open_rarity.resolver.testset_resolver # without external rarity resolution
     python -m open_rarity.resolver.testset_resolver external # with external rarity resolution
@@ -87,4 +87,3 @@ Apache 2.0 , OpenSea, ICY, Curio, PROOF
 [ci-link]: https://github.com/ProjectOpenSea/open-rarity/actions/workflows/tests.yaml
 [version-badge]: https://img.shields.io/github/package-json/v/ProjectOpenSea/open-rarity
 [version-link]: https://github.com/ProjectOpenSea/open-rarity/releases?display_name=tag
-
