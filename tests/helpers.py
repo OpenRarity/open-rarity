@@ -240,7 +240,7 @@ def generate_collection_with_token_traits(
             attributes_frequency_counts[attribute_name][attribute_value] += 1
 
             # Create the string attributes for token
-            if not isinstance(attribute_value, int):
+            if isinstance(attribute_value, str):
                 token_string_attributes[attribute_name] = StringAttribute(
                     name=attribute_name, value=attribute_value
                 )
