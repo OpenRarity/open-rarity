@@ -14,7 +14,7 @@ class Scorer:
         """Validate collection eligibility for OpenRarity scoring"""
         if collection.has_numeric_attribute:
             raise Exception(
-                "OpenRarity don't support collections with numeric or date traits"
+                "OpenRarity doesn't support collections with numeric or date traits"
             )
 
     def score_token(

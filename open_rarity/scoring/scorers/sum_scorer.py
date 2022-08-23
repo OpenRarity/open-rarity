@@ -18,7 +18,7 @@ class SumRarityScorer(Scorer):
     def score_token(
         self, collection: Collection, token: Token, normalized: bool = True
     ) -> float:
-        super().score_token()
+        super().score_token(collection, token)
         return self._score_token(collection, token, normalized)
 
     def score_tokens(
@@ -27,7 +27,7 @@ class SumRarityScorer(Scorer):
         tokens: list[Token],
         normalized: bool = True,
     ) -> list[float]:
-        super().score_tokens()
+        super().score_tokens(collection, tokens, normalized)
         # Memoize for performance
         collection_null_attributes = collection.extract_null_attributes()
         return [

@@ -21,8 +21,8 @@ class StringAttribute:
 
     def __init__(self, name: AttributeName, value: AttributeValue):
         # We treat string attributes name and value the same regardless of casing.
-        self.name = name.lower()
-        self.value = value.lower()
+        self.name = str(name).lower()
+        self.value = str(value).lower()
 
 
 @dataclass

@@ -1,5 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass
+import logging
 
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import (
@@ -70,17 +71,15 @@ class Collection:
         self.tokens = tokens
         self.name = name
         self.has_numeric_attribute = (
-            len(
-                list(
-                    filter(
-                        lambda token: len(token.metadata.numeric_attributes)
-                        > 0
-                        or len(token.metadata.date_attributes) > 0,
-                        self.tokens,
-                    )
-                )
+            next(
+                filter(
+                    lambda t: len(t.metadata.numeric_attributes)
+                    or len(t.metadata.date_attributes),
+                    self.tokens,
+                ),
+                None,
             )
-            > 0
+            is not None
         )
 
     def _normalize_attributes_frequency_counts(
@@ -180,6 +179,8 @@ class Collection:
         dict[str, CollectionAttribute]
             dict of attribute name to count of assets missing the attribute
         """
+        logger = logging.getLogger("open_rarity_logger")
+        logger.debug(self.attributes_frequency_counts)
 
         collection_traits: dict[str, list[CollectionAttribute]] = defaultdict(
             list

@@ -11,7 +11,7 @@ from open_rarity.resolver.models.collection_with_metadata import (
 )
 import logging
 
-logger = logging.getLogger("opensea_api_helpers")
+logger = logging.getLogger("open_rarity_logger")
 
 # https://docs.opensea.io/reference/retrieving-a-single-collection
 OS_COLLECTION_URL = "https://api.opensea.io/api/v1/collection/{slug}"
@@ -22,7 +22,8 @@ HEADERS = {
     "X-API-KEY": "",
 }
 
-DISPLAY_NAME = "display_name"
+# https://docs.opensea.io/docs/metadata-standards
+OS_METADATA_TRAIT_TYPE = "display_type"
 
 
 def fetch_opensea_collection_data(slug: str):
@@ -92,7 +93,7 @@ def fetch_opensea_assets_data(slug: str, token_ids: list[int], limit=30):
 
 def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
     """
-    Converts asset traits dictionary returned by opensea assets API and converts
+    Converts asset traits list returned by opensea assets API and converts
     it into a TokenMetadata.
 
     Args:
@@ -100,27 +101,19 @@ def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
         of Opensea's asset(s) endpoint
     """
 
-    filtered_string_attrs = list(
-        filter(
-            lambda trait: DISPLAY_NAME not in trait or not trait[DISPLAY_NAME],
-            asset_traits,
-        )
-    )
-    filtered_numeric_attrs = list(
-        filter(
-            lambda trait: DISPLAY_NAME in trait
-            and trait[DISPLAY_NAME]
-            in ["number", "boost_percentage", "boost_number"],
-            asset_traits,
-        )
-    )
-    filtered_date_attrs = list(
-        filter(
-            lambda trait: DISPLAY_NAME in trait
-            and trait[DISPLAY_NAME] == "date",
-            asset_traits,
-        )
-    )
+    string_attr = []
+    numeric_attr = []
+    date_attr = []
+
+    for trait in asset_traits:
+        if is_string_trait(trait):
+            string_attr.append(trait)
+        elif is_numeric_trait(trait):
+            numeric_attr.append(trait)
+        elif is_date_trait(trait):
+            date_attr.append(trait)
+        else:
+            logger.debug(f"Unknown trait type {trait}")
 
     return TokenMetadata(
         string_attributes={
@@ -128,21 +121,21 @@ def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
                 name=trait["trait_type"],
                 value=trait["value"],
             )
-            for trait in filtered_string_attrs
+            for trait in string_attr
         },
         numeric_attributes={
             trait["trait_type"]: NumericAttribute(
                 name=trait["trait_type"],
                 value=trait["value"],
             )
-            for trait in filtered_numeric_attrs
+            for trait in numeric_attr
         },
         date_attributes={
             trait["trait_type"]: DateAttribute(
                 name=trait["trait_type"],
                 value=trait["value"],
             )
-            for trait in filtered_date_attrs
+            for trait in date_attr
         },
     )
 
@@ -191,3 +184,24 @@ def get_collection_with_metadata(
     )
 
     return collection_with_metadata
+
+
+# NFT metadata standard type definitions described here:
+# https://docs.opensea.io/docs/metadata-standards
+def is_string_trait(trait: dict) -> bool:
+    """Helper method to verify string trait"""
+    return trait[OS_METADATA_TRAIT_TYPE] is None
+
+
+def is_numeric_trait(trait: dict) -> bool:
+    """Helper method to verify numeric trait"""
+    return trait[OS_METADATA_TRAIT_TYPE] in [
+        "number",
+        "boost_percentage",
+        "boost_number",
+    ]
+
+
+def is_date_trait(trait: dict) -> bool:
+    """Helper method to verify date trait"""
+    return trait[OS_METADATA_TRAIT_TYPE] in ["date"]

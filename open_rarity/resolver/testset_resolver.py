@@ -136,7 +136,9 @@ def get_tokens_with_rarity(
         # We will store all rarities calculated across providers in this list
         tokens_rarity_batch: list[TokenWithRarityData] = []
         for asset in assets:
-            token_metadata = opensea_traits_to_token_metadata(asset["traits"])
+            token_metadata = opensea_traits_to_token_metadata(
+                asset_traits=asset["traits"]
+            )
             asset_contract_address = asset["asset_contract"]["address"]
             asset_contract_type = asset["asset_contract"][
                 "asset_contract_type"

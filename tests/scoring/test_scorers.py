@@ -262,7 +262,7 @@ class TestScoring:
             ic_scorer.score_collection(collection)
 
             assert (
-                "OpenRarity don't support collections with numeric or date traits"
+                "OpenRarity doesn't support collections with numeric or date traits"
                 in str(exc_info.value)
             )
 
