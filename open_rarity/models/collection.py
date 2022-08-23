@@ -1,6 +1,5 @@
 from collections import defaultdict
 from dataclasses import dataclass
-import logging
 
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import (
@@ -179,8 +178,6 @@ class Collection:
         dict[str, CollectionAttribute]
             dict of attribute name to count of assets missing the attribute
         """
-        logger = logging.getLogger("open_rarity_logger")
-        logger.debug(self.attributes_frequency_counts)
 
         collection_traits: dict[str, list[CollectionAttribute]] = defaultdict(
             list
