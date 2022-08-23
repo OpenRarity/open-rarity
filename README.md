@@ -5,7 +5,7 @@
 [![License][license-badge]][license-link]
 
 
-# OpenRarity 
+# OpenRarity
 
 We’re excited to announce OpenRarity(Beta), a new rarity protocol we’re building for the NFT community. Our objective is to provide a transparent rarity calculation that is entirely open-source, objective, and reproducible.
 
@@ -34,7 +34,7 @@ To debug any collections scoring we built the **Rarity Resolver** tool. Follow t
 - Curate the <a href="https://github.com/ProjectOpenSea/open-rarity/blob/main/open_rarity/data/test_collections.json" title=“Collections>collections list </a> you want to score with OpenRarity
 - Provide your <a href="https://github.com/ProjectOpenSea/open-rarity/blob/main/open_rarity/resolver/opensea_api_helpers.py#L20"> OpenSea API Key </a>
 - Run scoring for these collections with the following command:
-    
+
     ```python
     python -m open_rarity.resolver.testset_resolver # without external rarity resolution
     python -m open_rarity.resolver.testset_resolver external # with external rarity resolution
@@ -74,6 +74,29 @@ We use git-precommit hooks in OpenRarity repo. Install it with the following com
 ```
 poetry run pre-commit install
 ```
+
+# Using the library
+Here is a generic way of using the OpenRarity scoring interface:
+```
+from open_rarity.scoring.scorers.information_content_scorer import (
+    InformationContentRarityScorer
+)
+from open_rarity.models.collection import Collection
+from open_rarity.models.token import Token
+
+scorer = InformationContentRarityScorer()
+collection = Collection() # Your collection here with details filled in
+
+# Generate scores for a collection
+token_scores = scorer.score_collection(collection=collection)
+
+# Generate score for a single token in a collection
+token = Token() # Your token details filled in
+token_score = scorer.score_token(collection=collection, token=token, normalized=True)
+```
+
+In order to generate the Token and Collection, you will need to properly set the attributes distribution ont he collection and the token's attributes. You may either have these details on hand or
+fetch them through an API. Example of how we do it in order to compare rarity scores across providers live in testset_resolver.py, which leverages the data returned by the opensea API (see opensea_api_helpers.py) to construct the Token and Collection object.
 
 # License
 
