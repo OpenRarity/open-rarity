@@ -54,8 +54,8 @@ We are sharing collected rarity datasets along with the library code. These data
 
 Use AWS CLI command to download rarity datasets locally:
 
-```python
-s3://jul27-openrarity/rarity-datasets . --recursive
+```
+aws s3 cp s3://jul27-openrarity/rarity-datasets . --recursive
 ```
 
 # Contributions guide and governance
