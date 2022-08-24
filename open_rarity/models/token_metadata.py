@@ -50,7 +50,7 @@ class DateAttribute:
     name : AttributeName
         name of an attribute
     value : int
-        value of a date attribute
+        value of a date attribute in UNIX timestamp format
     """
 
     name: AttributeName

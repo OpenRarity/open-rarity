@@ -57,7 +57,6 @@ class Scorer:
         Returns:
             list[Score]: list of scores in order of `collection.tokens`
         """
-        self.validate_collection(collection=collection)
         return self.score_tokens(collection, collection.tokens, normalized)
 
     def score_collections(
