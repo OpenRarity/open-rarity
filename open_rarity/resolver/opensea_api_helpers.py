@@ -101,42 +101,33 @@ def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
         of Opensea's asset(s) endpoint
     """
 
-    string_attr = []
-    numeric_attr = []
-    date_attr = []
+    string_attr = {}
+    numeric_attr = {}
+    date_attr = {}
 
     for trait in asset_traits:
         if is_string_trait(trait):
-            string_attr.append(trait)
+            string_attr[trait["trait_type"]] = StringAttribute(
+                name=trait["trait_type"],
+                value=trait["value"],
+            )
         elif is_numeric_trait(trait):
-            numeric_attr.append(trait)
+            numeric_attr[trait["trait_type"]] = NumericAttribute(
+                name=trait["trait_type"],
+                value=trait["value"],
+            )
         elif is_date_trait(trait):
-            date_attr.append(trait)
+            date_attr[trait["trait_type"]] = DateAttribute(
+                name=trait["trait_type"],
+                value=trait["value"],
+            )
         else:
             logger.debug(f"Unknown trait type {trait}")
 
     return TokenMetadata(
-        string_attributes={
-            trait["trait_type"]: StringAttribute(
-                name=trait["trait_type"],
-                value=trait["value"],
-            )
-            for trait in string_attr
-        },
-        numeric_attributes={
-            trait["trait_type"]: NumericAttribute(
-                name=trait["trait_type"],
-                value=trait["value"],
-            )
-            for trait in numeric_attr
-        },
-        date_attributes={
-            trait["trait_type"]: DateAttribute(
-                name=trait["trait_type"],
-                value=trait["value"],
-            )
-            for trait in date_attr
-        },
+        string_attributes=string_attr,
+        numeric_attributes=numeric_attr,
+        date_attributes=date_attr,
     )
 
 
