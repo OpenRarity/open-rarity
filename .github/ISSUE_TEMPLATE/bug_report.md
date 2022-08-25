@@ -13,7 +13,7 @@ A clear and concise description of what the bug is.
 **Information**
 
 * Collection link/name
-* Contract standard 
+* Contract standard
 * Chain
 
 **To Reproduce**

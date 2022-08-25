@@ -52,6 +52,7 @@ class Collection:
     attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
     tokens: list[Token]
     name: str | None = ""
+    has_numeric_attribute: bool | None = None
 
     def __init__(
         self,
@@ -68,6 +69,17 @@ class Collection:
         )
         self.tokens = tokens
         self.name = name
+        self.has_numeric_attribute = (
+            next(
+                filter(
+                    lambda t: len(t.metadata.numeric_attributes)
+                    or len(t.metadata.date_attributes),
+                    self.tokens,
+                ),
+                None,
+            )
+            is not None
+        )
 
     def _normalize_attributes_frequency_counts(
         self,
@@ -91,7 +103,11 @@ class Collection:
             if normalized_name not in normalized:
                 normalized[normalized_name] = {}
             for attr_value, attr_count in attr_value_to_count.items():
-                normalized_value = attr_value.lower()
+                normalized_value = (
+                    attr_value.lower()
+                    if isinstance(attr_value, str)
+                    else attr_value
+                )
                 if normalized_value not in normalized[normalized_name]:
                     normalized[normalized_name][normalized_value] = attr_count
                 else:

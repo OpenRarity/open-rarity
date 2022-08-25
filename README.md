@@ -54,8 +54,8 @@ We are sharing collected rarity datasets along with the library code. These data
 
 Use AWS CLI command to download rarity datasets locally:
 
-```python
-s3://jul27-openrarity/rarity-datasets . --recursive
+```
+aws s3 cp s3://jul27-openrarity/rarity-datasets . --recursive
 ```
 
 # Contributions guide and governance
@@ -109,4 +109,3 @@ Apache 2.0 , OpenSea, ICY, Curio, PROOF
 [ci-link]: https://github.com/ProjectOpenSea/open-rarity/actions/workflows/tests.yaml
 [version-badge]: https://img.shields.io/github/package-json/v/ProjectOpenSea/open-rarity
 [version-link]: https://github.com/ProjectOpenSea/open-rarity/releases?display_name=tag
-
