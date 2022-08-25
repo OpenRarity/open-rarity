@@ -10,6 +10,13 @@ class Scorer:
     heir particular algorithm.
     """
 
+    def validate_collection(self, collection: Collection):
+        """Validate collection eligibility for OpenRarity scoring"""
+        if collection.has_numeric_attribute:
+            raise Exception(
+                "OpenRarity doesn't support collections with numeric or date traits"
+            )
+
     def score_token(
         self, collection: Collection, token: Token, normalized: bool = True
     ) -> Score:
@@ -19,7 +26,7 @@ class Scorer:
         Returns:
             float: The score of the token
         """
-        raise NotImplementedError
+        self.validate_collection(collection=collection)
 
     def score_tokens(
         self,
@@ -40,7 +47,7 @@ class Scorer:
         Returns:
             list[Score]: list of scores in order of `tokens`
         """
-        raise NotImplementedError
+        self.validate_collection(collection=collection)
 
     def score_collection(
         self, collection: Collection, normalized: bool = True

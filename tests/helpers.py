@@ -1,6 +1,7 @@
 from open_rarity.models.token import Token
 from open_rarity.models.token_identifier import EVMContractTokenIdentifier
 from open_rarity.models.token_metadata import (
+    NumericAttribute,
     TokenMetadata,
     StringAttribute,
     AttributeName,
@@ -23,6 +24,22 @@ def create_evm_token(
         ),
         token_standard=token_standard,
         metadata=metadata,
+    )
+
+
+def create_numeric_evm_token(
+    token_id: int,
+    contract_address: str = "0xaaa",
+    token_standard: TokenStandard = TokenStandard.ERC721,
+) -> Token:
+    numeric_metadata = TokenMetadata(
+        numeric_attributes=[NumericAttribute("test", 1)]
+    )
+    return create_evm_token(
+        token_id=token_id,
+        contract_address=contract_address,
+        token_standard=token_standard,
+        metadata=numeric_metadata,
     )
 
 
@@ -207,12 +224,14 @@ def generate_onerare_rarity_collection(
 
 
 def generate_collection_with_token_traits(
-    tokens_traits: list[dict[str, str]]
+    tokens_traits: list[dict[str, str | int]]
 ) -> Collection:
     tokens = []
     attributes_frequency_counts = {}
     for idx, token_traits in enumerate(tokens_traits):
-        token_attributes: dict[str, StringAttribute] = {}
+        token_string_attributes: dict[str, StringAttribute] = {}
+        token_number_attributes: dict[str, NumericAttribute] = {}
+
         for attribute_name, attribute_value in token_traits.items():
             # Update collection attributes frequency based on tokens' traits
             attributes_frequency_counts.setdefault(
@@ -221,9 +240,14 @@ def generate_collection_with_token_traits(
             attributes_frequency_counts[attribute_name][attribute_value] += 1
 
             # Create the string attributes for token
-            token_attributes[attribute_name] = StringAttribute(
-                name=attribute_name, value=attribute_value
-            )
+            if isinstance(attribute_value, str):
+                token_string_attributes[attribute_name] = StringAttribute(
+                    name=attribute_name, value=attribute_value
+                )
+            else:
+                token_number_attributes[attribute_name] = NumericAttribute(
+                    name=attribute_name, value=attribute_value
+                )
 
         # Add the tokens
         tokens.append(
@@ -232,7 +256,10 @@ def generate_collection_with_token_traits(
                     contract_address="0x0", token_id=idx
                 ),
                 token_standard=TokenStandard.ERC721,
-                metadata=TokenMetadata(string_attributes=token_attributes),
+                metadata=TokenMetadata(
+                    string_attributes=token_string_attributes,
+                    numeric_attributes=token_number_attributes,
+                ),
             )
         )
 
