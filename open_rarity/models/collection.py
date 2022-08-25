@@ -52,6 +52,7 @@ class Collection:
     attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
     tokens: list[Token]
     name: str | None = ""
+    # This does not need to be passed in but will be set upon init
     has_numeric_attribute: bool | None = None
 
     def __init__(
