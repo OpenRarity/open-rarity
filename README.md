@@ -15,6 +15,30 @@ We are releasing the OpenRarity library in a Beta preview to crowdsource feedbac
 
 See the full announcement in the blog post  <todo link to blogpost @amamujee>
 
+# Surprisal Ranking Algorithm
+
+[Information content](https://en.wikipedia.org/wiki/Information_content) is an alternative way of expressing probabilities that is more well suited for assessing rarity. Think of it as a measure of how surprised someone would be upon discovering something.
+
+1. Probabilities of 1 (i.e. every single token has the Trait) convey no rarity and add zero information to the score.
+2. As the probability approaches zero (i.e. the Trait becomes rarer), the information content continues to rise with no bound. See equation below for explanation.
+3. It is valid to perform linear operations (e.g. addition or arithmetic mean) on information, but not on raw probabilities.
+
+Information content is used to solve lots of problems that involve something being unlikely (i.e. rare or scarce). [This video shows how it was used to solve Wordle](https://www.youtube.com/watch?v=v68zYyaEmEA) and also has an explanation of the equations, along with graphics to make it easier to understand. You can [skip straight to the part on information theory](https://youtu.be/v68zYyaEmEA?t=485) if you’d like.
+
+The score is defined as:
+
+$$
+\frac{I(x)}{\mathbb{E}[I(x)]}  for  I(x) = \sum_{i=1}^n-\log_2(P(trait_i))
+$$
+
+This I(x) can look daunting, so let’s break it down:
+
+- $P(trait)$ simply means the probability of an NFT having a specific trait within the entire collection. When calculating this value for NFTs without any value for a trait, we use an implicit “null” trait as if the creator had originally marked them as “missing”.
+- $-log_2P(trait)$ is the mathematical way to calculate how many times you’d have to split the collection in half before you reach a trait that’s just as rare. Traits that occur in half of the NFTs get 1 point, those that occur in a quarter of the NFTs get 2 points, and so on. Using the $-log_2$ is just a way to account for the spaces in between whole-number points, like assigning 1.58 points to traits that occur in every third NFT. Each of these points is actually called a “bit” of information.
+The important thing is that even if there was a one-off grail in an impossibly large NFT collection, we could keep assigning points! Likewise, if a trait exists on every NFT, ie: $P(trait_i)=1$ then $-log_2(1) = 0$ or perfectly unsurprising, unlike with probabilities, it’s valid to add together bits of information.
+- $\Sigma$ is the Greek letter sigma (like an English S), which means “sum of”. Mathematicians like to be rigorous so the $i$ and the $n$ tell us exactly what to sum up, but really just means “all of the traits in the collection”!
+- $\mathbb{E}[I(x)]$ is the “expected value”, which is a weighted average of the information of all the NFTs in the collection, the weighting done by probability. Because this a collection-wide value, it doesn’t change the ranking nor the relative rarity scores. We include it because it normalizes the scores for collections that have lots and lots of traits—these will have a higher $I(x)$ rarity score for each NFT, but will also have a higher $\mathbb{E}$ across the collection so they cancel each other out and make it fairer to compare between collections.
+
 # Library Design
 OpenRarity consists of two core parts: **Runtime** and **Rarity Resolver**.
 
