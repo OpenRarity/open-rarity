@@ -22,7 +22,7 @@ The **Runtime** part of the library can be integrated into any Python 3.10+ appl
 
 The **Rarity Resolver** is a tool to compare rarity ranks across various providers,
 including various OpenRarity algorithms. We currently only support fetching ranking for
-TraitsSniper, RaritySniffer and RaritySniper.
+TraitSniper, RaritySniffer and RaritySniper.
 
 ## Runtime - Using the library
 Here is a generic way of using the OpenRarity scoring interface:
@@ -80,7 +80,7 @@ aws s3 cp s3://jul27-openrarity/rarity-datasets . --recursive
 
 # Contributions guide and governance
 
-OpenRarity is a cross-company effort to improve rarity computation for NFTs (Non-Fungible Tokens). The core collaboration group consists of four primary contributors: Curio, Icy, OpenSea and Proof
+OpenRarity is a cross-company effort to improve rarity computation for NFTs (Non-Fungible Tokens). The core collaboration group consists of four primary contributors: Curio, icy.tools, OpenSea and Proof
 
 OpenRarity is an open-source project and all contributions are welcome. Consider following steps when you request/propose contribution:
 
