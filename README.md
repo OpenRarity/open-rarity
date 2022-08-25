@@ -31,35 +31,7 @@ from open_rarity import Collection, Token, RarityScorer
 
 scorer = RarityScorer()
 # A collection of 2 tokens
-collection = Collection(
-    name="My Collection Name"
-    attributes_frequency_counts={
-        "hat": {"cap": 1, "visor": 1},
-        "shirt": {"blue": 1, "green": 1},
-    },
-    tokens=[
-        Token(
-            token_identifier=EVMContractTokenIdentifier(contract_address="0xa3049...", token_id=1),
-            token_standard=TokenStandard.ERC721,
-            metadata=TokenMetadata(
-                string_attributes={
-                    "hat": StringAttribute(name="hat", value="cap"),
-                    "shirt": StringAttribute(name="shirt", value="blue")
-                }
-            ),
-        ),
-        Token(
-            token_identifier=EVMContractTokenIdentifier(contract_address="0xa3049...", token_id=2),
-            token_standard=TokenStandard.ERC721,
-            metadata=TokenMetadata(
-                string_attributes={
-                    "hat": StringAttribute(name="hat", value="visor"),
-                    "shirt": StringAttribute(name="shirt", value="green")
-                }
-            ),
-        ),
-    ]
-) # Replace inputs with your collection-specific details here
+collection = Collection() # Replace inputs with your collection-specific details here
 
 # Generate scores for a collection
 token_scores = scorer.score_collection(collection=collection)
@@ -70,6 +42,10 @@ token_score = scorer.score_token(collection=collection, token=token, normalized=
 ```
 
 In order to generate the Token and Collection, you will need to properly set the attributes distribution on the collection and the individual attributes belonging to each token. You may either have these details on hand or fetch them through an API. Example of how we do it in order to compare rarity scores across providers live in testset_resolver.py, which leverages the data returned by the opensea API (see opensea_api_helpers.py) to construct the Token and Collection object.
+
+For an actual runnable script that does this, checkout scripts/scoring_example_1.py.
+
+You can run it by running `python -m scripts.scoring_example_1` in terminal.
 
 
 ## Rarity Resolver
