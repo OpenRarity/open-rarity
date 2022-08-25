@@ -28,10 +28,10 @@ Information content is used to solve lots of problems that involve something bei
 The score is defined as:
 
 $$
-\frac{I(x)}{\mathbb{E}[I(x)]} for I(x) = \sum_{i=1}^n-\log_2(P(trait_i))
+\frac{I(x)}{\mathbb{E}[I(x)]}  for  I(x) = \sum_{i=1}^n-\log_2(P(trait_i))
 $$
 
-This $I(x)$ can look daunting, so let’s break it down:
+This I(x) can look daunting, so let’s break it down:
 
 - $P(trait)$ simply means the probability of an NFT having a specific trait within the entire collection. When calculating this value for NFTs without any value for a trait, we use an implicit “null” trait as if the creator had originally marked them as “missing”.
 - $-log_2P(trait)$ is the mathematical way to calculate how many times you’d have to split the collection in half before you reach a trait that’s just as rare. Traits that occur in half of the NFTs get 1 point, those that occur in a quarter of the NFTs get 2 points, and so on. Using the $-log_2$ is just a way to account for the spaces in between whole-number points, like assigning 1.58 points to traits that occur in every third NFT. Each of these points is actually called a “bit” of information.
