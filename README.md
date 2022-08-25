@@ -30,7 +30,7 @@ Here is a generic way of using the OpenRarity scoring interface:
 from open_rarity import Collection, Token, RarityScorer
 
 scorer = RarityScorer()
-<!-- A collection of 2 tokens -->
+# A collection of 2 tokens
 collection = Collection(
     name="My Collection Name"
     attributes_frequency_counts={
@@ -119,7 +119,7 @@ We use git-precommit hooks in OpenRarity repo. Install it with the following com
 poetry run pre-commit install
 ```
 
-## Project Setup and Core technologies
+# Project Setup and Core technologies
 
 We used the following core technologies in OpenRarity:
 
