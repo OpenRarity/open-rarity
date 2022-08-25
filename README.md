@@ -15,21 +15,41 @@ We are releasing the OpenRarity library in a Beta preview to crowdsource feedbac
 
 See the full announcement in the blog post  <todo link to blogpost @amamujee>
 
-# Project Setup and Core technologies
+# Library Design
+OpenRarity consists of two core parts: **Runtime** and **Rarity Resolver**.
 
-We used following core technologies in OpenRarity:
+The **Runtime** part of the library can be integrated into any Python 3.10+ application to perform the scoring of any collection. The runtime doesn’t resolve collections metadata—it’s the responsibility of an application to provide correct metadata to perform collection scoring.
 
-- Python ≥ 3.10.x
-- Poetry for dependency management
-- Numpy ≥1.23.1
-- PyTest for unit tests
+The **Rarity Resolver** is a tool to compare rarity ranks across various providers,
+including various OpenRarity algorithms. We currently only support fetching ranking for
+TraitsSniper, RaritySniffer and RaritySniper.
 
-## Library Design
-OpenRarity consists of two core parts: **Runtime** and **Rarity Resolver**. The **Runtime** part of the library can be integrated into any Python 3.10+ application to perform the scoring of any collection. The runtime doesn’t resolve collections metadata—it’s the responsibility of an application to provide correct metadata to perform collection scoring.
+## Runtime - Using the library
+Here is a generic way of using the OpenRarity scoring interface:
+```
+from open_rarity import Collection, Token, RarityScorer
+
+scorer = RarityScorer()
+# A collection of 2 tokens
+collection = Collection() # Replace inputs with your collection-specific details here
+
+# Generate scores for a collection
+token_scores = scorer.score_collection(collection=collection)
+
+# Generate score for a single token in a collection
+token = collection.tokens[0] # Your token details filled in
+token_score = scorer.score_token(collection=collection, token=token, normalized=True)
+```
+
+In order to generate the Token and Collection, you will need to properly set the attributes distribution on the collection and the individual attributes belonging to each token. You may either have these details on hand or fetch them through an API. Example of how we do it in order to compare rarity scores across providers live in testset_resolver.py, which leverages the data returned by the opensea API (see opensea_api_helpers.py) to construct the Token and Collection object.
+
+For an actual runnable script that does this, checkout scripts/scoring_example_1.py.
+
+You can run it by running `python -m scripts.scoring_example_1` in terminal.
 
 
-## How to debug collections with OpenSea API data
-To debug any collections scoring we built the **Rarity Resolver** tool. Follow these steps to score the collection with the tool (by calling OpenSea API):
+## Rarity Resolver
+You may use the rarity resolver tool to either view ranking scores across providers, or to debug any collections scoring. Follow these steps to score the collection with the tool (by calling OpenSea API):
 
 - Curate the <a href="https://github.com/ProjectOpenSea/open-rarity/blob/main/open_rarity/data/test_collections.json" title=“Collections>collections list </a> you want to score with OpenRarity
 - Provide your <a href="https://github.com/ProjectOpenSea/open-rarity/blob/main/open_rarity/resolver/opensea_api_helpers.py#L20"> OpenSea API Key </a>
@@ -74,6 +94,15 @@ We use git-precommit hooks in OpenRarity repo. Install it with the following com
 ```
 poetry run pre-commit install
 ```
+
+# Project Setup and Core technologies
+
+We used the following core technologies in OpenRarity:
+
+- Python ≥ 3.10.x
+- Poetry for dependency management
+- Numpy ≥1.23.1
+- PyTest for unit tests
 
 # License
 
