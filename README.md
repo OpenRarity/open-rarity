@@ -15,7 +15,7 @@ We are releasing the OpenRarity library in a Beta preview to crowdsource feedbac
 
 See the full announcement in the blog post  <todo link to blogpost @amamujee>
 
-## Library Design
+# Library Design
 OpenRarity consists of two core parts: **Runtime** and **Rarity Resolver**.
 
 The **Runtime** part of the library can be integrated into any Python 3.10+ application to perform the scoring of any collection. The runtime doesn’t resolve collections metadata—it’s the responsibility of an application to provide correct metadata to perform collection scoring.
@@ -24,7 +24,7 @@ The **Rarity Resolver** is a tool to compare rarity ranks across various provide
 including various OpenRarity algorithms. We currently only support fetching ranking for
 TraitsSniper, RaritySniffer and RaritySniper.
 
-# Runtime - Using the library
+## Runtime - Using the library
 Here is a generic way of using the OpenRarity scoring interface:
 ```
 from open_rarity import Collection, Token, RarityScorer
