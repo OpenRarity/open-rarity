@@ -33,6 +33,10 @@ HEADERS = {
 OS_METADATA_TRAIT_TYPE = "display_type"
 
 
+class ERCStandardError(ValueError):
+    pass
+
+
 def fetch_opensea_collection_data(slug: str) -> dict:
     """Fetches collection data from Opensea's GET collection endpoint for
     the given slug.
@@ -68,7 +72,7 @@ def fetch_opensea_assets_data(
         Exception: If api request fails
 
     Returns:
-        _type_: dictionary data response in "assets" field
+        _type_: dictionary data response in "assets" field, sorted by token_id asc
     """
     assert len(token_ids) <= limit
     # Max 30 limit enforced on API
@@ -94,9 +98,10 @@ def fetch_opensea_assets_data(
         )
         response.raise_for_status()
 
-    assets = response.json()["assets"]
-    assets.sort(key=(lambda a: int(a["token_id"])))
-    return assets
+    # The API does not sort return value assets by token ID, so sort then return
+    return sorted(
+        response.json()["assets"], key=(lambda a: int(a["token_id"]))
+    )
 
 
 def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
@@ -221,7 +226,7 @@ def get_collection_with_metadata_from_opensea(
     interfaces = set([contract["schema_name"] for contract in contracts])
     stats = collection_obj["stats"]
     if not interfaces.issubset(set(["ERC721", "ERC1155"])):
-        raise ValueError(
+        raise ERCStandardError(
             "We currently do not support non EVM standards at the moment"
         )
 
@@ -266,7 +271,7 @@ def get_collection_from_opensea(
     interfaces = set([contract["schema_name"] for contract in contracts])
     stats = collection_obj["stats"]
     if not interfaces.issubset(set(["ERC721", "ERC1155"])):
-        raise ValueError(
+        raise ERCStandardError(
             "We currently do not support non EVM standards at the moment"
         )
 
@@ -285,9 +290,7 @@ def get_collection_from_opensea(
     ) -> list[int]:
         token_id_start = initial_token_id + (batch_id * batch_size)
         token_id_end = int(min(token_id_start + batch_size - 1, max_token_id))
-        return [
-            token_id for token_id in range(token_id_start, token_id_end + 1)
-        ]
+        return list(range(token_id_start, token_id_end + 1))
 
     for batch_id in range(num_batches):
         token_ids = get_token_ids(batch_id)

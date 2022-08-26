@@ -30,14 +30,14 @@ Here is a generic way of using the OpenRarity scoring interface:
 from open_rarity import Collection, Token, RarityScorer
 
 scorer = RarityScorer()
-# A collection of 2 tokens
-collection = Collection() # Replace inputs with your collection-specific details here
+# Your collection details below
+collection = Collection()
 
 # Generate scores for a collection
 token_scores = scorer.score_collection(collection=collection)
 
 # Generate score for a single token in a collection
-token = collection.tokens[0] # Your token details filled in
+token = collection.tokens[0]
 token_score = scorer.score_token(collection=collection, token=token, normalized=True)
 ```
 

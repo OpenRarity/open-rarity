@@ -124,9 +124,9 @@ def get_tokens_with_rarity(
         )
 
         # We will store all rarities calculated across providers in this list
-        tokens_rarity_batch = list(
-            map(lambda t: TokenWithRarityData(token=t, rarities=[]), tokens)
-        )
+        tokens_rarity_batch = [
+            TokenWithRarityData(token=t, rarities=[]) for t in tokens
+        ]
 
         if resolve_remote_rarity:
             external_rarity_provider.fetch_and_update_ranks(
