@@ -45,12 +45,16 @@ In order to generate the Token and Collection, you will need to properly set the
 
 For an actual runnable script that does this, checkout scripts/score_generated_collection.py.
 In shell run:
-```python -m scripts.score_generated_collection```
+```
+python -m scripts.score_generated_collection
+```
 
 For a sample of how to use the existing Opensea API to fetch the collection and token
 metadata and to funnel that into the scoring library, checkout scripts/score_real_collection.
 In shell run:
-```python -m scripts.score_real_collection```
+```
+python -m scripts.score_real_collection
+```
 
 
 ## Rarity Resolver
