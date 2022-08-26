@@ -1,15 +1,21 @@
+import logging
+import math
+
 import requests
+
+from open_rarity.models.collection import Collection
+from open_rarity.models.token import Token
+from open_rarity.models.token_identifier import EVMContractTokenIdentifier
 from open_rarity.models.token_metadata import (
     DateAttribute,
     NumericAttribute,
     StringAttribute,
     TokenMetadata,
 )
-from open_rarity.models.collection import Collection
+from open_rarity.models.token_standard import TokenStandard
 from open_rarity.resolver.models.collection_with_metadata import (
     CollectionWithMetadata,
 )
-import logging
 
 logger = logging.getLogger("open_rarity_logger")
 
@@ -26,7 +32,7 @@ HEADERS = {
 OS_METADATA_TRAIT_TYPE = "display_type"
 
 
-def fetch_opensea_collection_data(slug: str):
+def fetch_opensea_collection_data(slug: str) -> dict:
     """Fetches collection data from Opensea's GET collection endpoint for
     the given slug.
 
@@ -48,7 +54,9 @@ def fetch_opensea_collection_data(slug: str):
     return response.json()["collection"]
 
 
-def fetch_opensea_assets_data(slug: str, token_ids: list[int], limit=30):
+def fetch_opensea_assets_data(
+    slug: str, token_ids: list[int], limit=30
+) -> list[dict]:
     """Fetches asset data from Opensea's GET assets endpoint for the given token ids
 
     Args:
@@ -69,7 +77,6 @@ def fetch_opensea_assets_data(slug: str, token_ids: list[int], limit=30):
     querystring = {
         "token_ids": token_ids,
         "collection_slug": slug,
-        "order_direction": "desc",
         "offset": "0",
         "limit": limit,
     }
@@ -88,7 +95,9 @@ def fetch_opensea_assets_data(slug: str, token_ids: list[int], limit=30):
         )
         raise Exception(f"[Opensea] Failed to resolve assets with slug {slug}")
 
-    return response.json()["assets"]
+    assets = response.json()["assets"]
+    assets.sort(key=(lambda a: int(a["token_id"])))
+    return assets
 
 
 def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
@@ -131,23 +140,80 @@ def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
     )
 
 
-def get_collection_with_metadata(
+def get_tokens_from_opensea(
+    opensea_slug: str, token_ids: list[int]
+) -> list[Token] | None:
+    """Fetches eth nft data from opensea API and stores them into Token objects
+
+    Args:
+        opensea_slug (str): Opensea collection slug
+        token_ids (list[int]): List of token ids to fetch for
+
+    Returns:
+        list[Token] | None: Returns list of tokens if request is successful,
+        otherwise None.
+    """
+    try:
+        assets = fetch_opensea_assets_data(
+            slug=opensea_slug, token_ids=token_ids
+        )
+    except Exception as e:
+        logger.exception(
+            "FAILED: get_assets: could not fetch opensea assets for %s: %s",
+            token_ids,
+            e,
+            exc_info=True,
+        )
+        return None
+    tokens = []
+    token_ids_from_os = list(map(lambda a: int(a["token_id"]), assets))
+    if token_ids_from_os != sorted(token_ids_from_os):
+        raise Exception("not sorted")
+
+    for asset in assets:
+        token_metadata = opensea_traits_to_token_metadata(
+            asset_traits=asset["traits"]
+        )
+        asset_contract_address = asset["asset_contract"]["address"]
+        asset_contract_type = asset["asset_contract"]["asset_contract_type"]
+        if asset_contract_type == "non-fungible":
+            token_standard = TokenStandard.ERC721
+        elif asset_contract_type == "semi-fungible":
+            token_standard = TokenStandard.ERC1155
+        else:
+            raise Exception(
+                f"Unexpected asset contrat type: {asset_contract_type}"
+            )
+        tokens.append(
+            Token(
+                token_identifier=EVMContractTokenIdentifier(
+                    identifier_type="evm_contract",
+                    contract_address=asset_contract_address,
+                    token_id=asset["token_id"],
+                ),
+                token_standard=token_standard,
+                metadata=token_metadata,
+            )
+        )
+
+    return tokens
+
+
+def get_collection_with_metadata_from_opensea(
     opensea_collection_slug: str,
 ) -> CollectionWithMetadata:
     """Fetches collection metadata with OpenSea endpoint and API key
-    and stores it in the Collection object
+    and stores it in the Collection object with 0 tokens.
 
     Parameters
     ----------
     opensea_collection_slug : str
         collection slug on opensea's system
-    tokens : list[Token]
-        list of tokens to resolve metadata for
 
     Returns
     -------
-    Collection
-        collection abstraction
+    CollectionWithMetadata
+        collection with metadata, but with no tokens
 
     """
     collection_obj = fetch_opensea_collection_data(
@@ -175,6 +241,75 @@ def get_collection_with_metadata(
     )
 
     return collection_with_metadata
+
+
+def get_collection_from_opensea(
+    opensea_collection_slug: str,
+) -> Collection:
+    """Fetches collection and token data with OpenSea endpoint and API key
+    and stores it in the Collection object
+
+    Parameters
+    ----------
+    opensea_collection_slug : str
+        collection slug on opensea's system
+
+    Returns
+    -------
+    Collection
+        collection abstraction
+
+    """
+    # Fetch collection metadata
+    collection_obj = fetch_opensea_collection_data(
+        slug=opensea_collection_slug
+    )
+    contracts = collection_obj["primary_asset_contracts"]
+    interfaces = set([contract["schema_name"] for contract in contracts])
+    stats = collection_obj["stats"]
+    if not interfaces.issubset(set(["ERC721", "ERC1155"])):
+        raise Exception(
+            "We currently do not support non EVM standards at the moment"
+        )
+
+    total_supply = int(stats["total_supply"])
+
+    # Fetch token metadata
+    tokens: list[Token] = []
+    batch_size = 30
+    num_batches = math.ceil(total_supply / batch_size)
+    initial_token_id = 0
+
+    # Returns a list of `batch_size` token IDs, such that no token ID
+    # can exceed `max_token_id` (in which case len(return_value) < `batch_size`)
+    def get_token_ids(
+        batch_id: int, max_token_id: int = total_supply - 1
+    ) -> list[int]:
+        token_id_start = initial_token_id + (batch_id * batch_size)
+        token_id_end = int(min(token_id_start + batch_size - 1, max_token_id))
+        return [
+            token_id for token_id in range(token_id_start, token_id_end + 1)
+        ]
+
+    for batch_id in range(num_batches):
+        token_ids = get_token_ids(batch_id)
+        tokens_batch = get_tokens_from_opensea(
+            opensea_slug=opensea_collection_slug, token_ids=token_ids
+        )
+        if tokens_batch is None:
+            raise Exception(
+                f"Could not fetch all nft data from Opensea: {token_ids}"
+            )
+
+        tokens.extend(tokens_batch)
+
+    collection = Collection(
+        name=collection_obj["name"],
+        attributes_frequency_counts=collection_obj["traits"],
+        tokens=tokens,
+    )
+
+    return collection
 
 
 # NFT metadata standard type definitions described here:

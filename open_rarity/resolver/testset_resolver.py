@@ -11,7 +11,6 @@ from time import process_time, strftime
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
 from open_rarity.models.token_identifier import EVMContractTokenIdentifier
-from open_rarity.models.token_standard import TokenStandard
 from open_rarity.resolver.models.collection_with_metadata import (
     CollectionWithMetadata,
 )
@@ -21,32 +20,31 @@ from open_rarity.resolver.models.token_with_rarity_data import (
     TokenWithRarityData,
 )
 from open_rarity.resolver.opensea_api_helpers import (
-    fetch_opensea_assets_data,
-    get_collection_with_metadata,
-    opensea_traits_to_token_metadata,
+    get_collection_with_metadata_from_opensea,
+    get_tokens_from_opensea,
 )
 from open_rarity.resolver.rarity_providers.external_rarity_provider import (
     ExternalRarityProvider,
 )
-from open_rarity.scoring.scorers.arithmetic_mean_scorer import (
-    ArithmeticMeanRarityScorer,
+from open_rarity.scoring.handlers.arithmetic_mean_scoring_handler import (
+    ArithmeticMeanScoringHandler,
 )
-from open_rarity.scoring.scorers.geometric_mean_scorer import (
-    GeometricMeanRarityScorer,
+from open_rarity.scoring.handlers.geometric_mean_scoring_handler import (
+    GeometricMeanScoringHandler,
 )
-from open_rarity.scoring.scorers.harmonic_mean_scorer import (
-    HarmonicMeanRarityScorer,
+from open_rarity.scoring.handlers.harmonic_mean_scoring_handler import (
+    HarmonicMeanScoringHandler,
 )
-from open_rarity.scoring.scorers.information_content_scorer import (
-    InformationContentRarityScorer,
+from open_rarity.scoring.handlers.information_content_scoring_handler import (
+    InformationContentScoringHandler,
 )
-from open_rarity.scoring.scorers.sum_scorer import SumRarityScorer
+from open_rarity.scoring.handlers.sum_scoring_handler import SumScoringHandler
 
-harmonic_scorer = HarmonicMeanRarityScorer()
-arithmetic_scorer = ArithmeticMeanRarityScorer()
-geometric_scorer = GeometricMeanRarityScorer()
-sum_scorer = SumRarityScorer()
-ic_scorer = InformationContentRarityScorer()
+harmonic_handler = HarmonicMeanScoringHandler()
+arithmetic_handler = ArithmeticMeanScoringHandler()
+geometric_handler = GeometricMeanScoringHandler()
+sum_handler = SumScoringHandler()
+ic_handler = InformationContentScoringHandler()
 
 RankScore = tuple[int, float]
 # Token ID -> Score
@@ -91,6 +89,7 @@ def get_tokens_with_rarity(
     list[TokenWithRarityData]
         provide list of tokens augmented with assets metadata and ranking provider
     """
+    slug = collection_with_metadata.opensea_slug
     external_rarity_provider = ExternalRarityProvider()
     total_supply = min(
         max_tokens_to_calculate or collection_with_metadata.token_total_supply,
@@ -116,63 +115,28 @@ def get_tokens_with_rarity(
         token_ids = get_token_ids(batch_id)
         logger.debug(
             f"Starting batch {batch_id} for collection "
-            f"{collection_with_metadata.opensea_slug}: "
-            f"Processing {len(token_ids)} tokens"
+            f"{slug}: Processing {len(token_ids)} tokens"
         )
 
-        try:
-            assets = fetch_opensea_assets_data(
-                slug=collection_with_metadata.opensea_slug, token_ids=token_ids
+        tokens = get_tokens_from_opensea(
+            opensea_slug=collection_with_metadata.opensea_slug,
+            token_ids=token_ids,
+        )
+        if tokens is None:
+            raise Exception(
+                f"Could not fetch opensea tokens {slug}: {token_ids}"
             )
-        except Exception as e:
-            logger.exception(
-                "FAILED: get_assets: could not fetch opensea assets for %s: %s",
-                token_ids,
-                e,
-                exc_info=True,
-            )
-            break
 
         # We will store all rarities calculated across providers in this list
-        tokens_rarity_batch: list[TokenWithRarityData] = []
-        for asset in assets:
-            token_metadata = opensea_traits_to_token_metadata(
-                asset_traits=asset["traits"]
-            )
-            asset_contract_address = asset["asset_contract"]["address"]
-            asset_contract_type = asset["asset_contract"][
-                "asset_contract_type"
-            ]
-            if asset_contract_type == "non-fungible":
-                token_standard = TokenStandard.ERC721
-            elif asset_contract_type == "semi-fungible":
-                token_standard = TokenStandard.ERC1155
-            else:
-                raise Exception(
-                    f"Unexpected asset contrat type: {asset_contract_type}"
-                )
-
-            token_with_rarity = TokenWithRarityData(
-                token=Token(
-                    token_identifier=EVMContractTokenIdentifier(
-                        identifier_type="evm_contract",
-                        contract_address=asset_contract_address,
-                        token_id=asset["token_id"],
-                    ),
-                    token_standard=token_standard,
-                    metadata=token_metadata,
-                ),
-                rarities=[],
-            )
-
-            tokens_rarity_batch.append(token_with_rarity)
+        tokens_rarity_batch = list(
+            map(lambda t: TokenWithRarityData(token=t, rarities=[]), tokens)
+        )
 
         if resolve_remote_rarity:
             external_rarity_provider.fetch_and_update_ranks(
                 collection_with_metadata=collection_with_metadata,
                 tokens_with_rarity=tokens_rarity_batch,
             )
-
         # Add the batch of augmented tokens with rarity into return value
         tokens_with_rarity.extend(tokens_rarity_batch)
 
@@ -191,7 +155,7 @@ def resolve_collection_data(
     package_path: str = "open_rarity.data",
     filename: str = "test_collections.json",
     max_tokens_to_calculate: int = None,
-):
+) -> None:
     """Resolves collection information through OpenSea API
 
     Args:
@@ -212,8 +176,10 @@ def resolve_collection_data(
             opensea_slug = collection_def["collection_slug"]
             # Fetch collection metadata and tokens that belong to this collection
             # from opensea and other external api's.
-            collection_with_metadata = get_collection_with_metadata(
-                opensea_collection_slug=opensea_slug
+            collection_with_metadata = (
+                get_collection_with_metadata_from_opensea(
+                    opensea_collection_slug=opensea_slug
+                )
             )
             tokens_with_rarity: list[
                 TokenWithRarityData
@@ -250,7 +216,7 @@ def resolve_collection_data(
 
 def augment_with_open_rarity_scores(
     tokens_with_rarity: list[TokenWithRarityData], scores: OpenRarityScores
-):
+) -> None:
     """Augments tokens_with_rarity with ranks and scores computed by
     OpenRarity scorers'"""
     for token_with_rarity in tokens_with_rarity:
@@ -346,19 +312,19 @@ def resolve_open_rarity_score(
         token_id = token_identifier.token_id
 
         try:
-            harmonic_dict[token_id] = harmonic_scorer.score_token(
+            harmonic_dict[token_id] = harmonic_handler.score_token(
                 collection=collection, token=token, normalized=normalized
             )
-            arthimetic_dict[token_id] = arithmetic_scorer.score_token(
+            arthimetic_dict[token_id] = arithmetic_handler.score_token(
                 collection=collection, token=token, normalized=normalized
             )
-            geometric_dict[token_id] = geometric_scorer.score_token(
+            geometric_dict[token_id] = geometric_handler.score_token(
                 collection=collection, token=token, normalized=normalized
             )
-            sum_dict[token_id] = sum_scorer.score_token(
+            sum_dict[token_id] = sum_handler.score_token(
                 collection=collection, token=token, normalized=normalized
             )
-            ic_dict[token_id] = ic_scorer.score_token(
+            ic_dict[token_id] = ic_handler.score_token(
                 collection=collection, token=token, normalized=normalized
             )
 
@@ -431,7 +397,7 @@ def _rank_diff(rank1: int | None, rank2: int | None) -> int | None:
 def serialize_to_csv(
     collection_with_metadata: CollectionWithMetadata,
     tokens_with_rarity: list[TokenWithRarityData],
-):
+) -> None:
     """Serialize collection and ranking data to CSV
 
     Parameters

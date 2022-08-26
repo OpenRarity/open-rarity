@@ -5,20 +5,18 @@ import numpy as np
 from open_rarity.models.collection import Collection, CollectionAttribute
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import AttributeName
-from open_rarity.scoring.scorer import Scorer
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 
 
 logger = logging.getLogger("open_rarity_logger")
 
 
-class SumRarityScorer(Scorer):
+class SumScoringHandler:
     """sum of n trait probabilities"""
 
     def score_token(
         self, collection: Collection, token: Token, normalized: bool = True
     ) -> float:
-        super().score_token(collection, token)
         return self._score_token(collection, token, normalized)
 
     def score_tokens(
@@ -27,7 +25,6 @@ class SumRarityScorer(Scorer):
         tokens: list[Token],
         normalized: bool = True,
     ) -> list[float]:
-        super().score_tokens(collection, tokens, normalized)
         # Memoize for performance
         collection_null_attributes = collection.extract_null_attributes()
         return [

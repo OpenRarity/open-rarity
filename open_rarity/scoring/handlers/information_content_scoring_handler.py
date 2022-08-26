@@ -5,13 +5,12 @@ import numpy as np
 from open_rarity.models.collection import Collection, CollectionAttribute
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import AttributeName
-from open_rarity.scoring.scorer import Scorer
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 
 logger = logging.getLogger("open_rarity_logger")
 
 
-class InformationContentRarityScorer(Scorer):
+class InformationContentScoringHandler:
     """Rarity describes the information-theoretic "rarity" of a Collection.
     The concept of "rarity" can be considered as a measure of "surprise" at the
     occurrence of a particular token's properties, within the context of the
@@ -46,7 +45,6 @@ class InformationContentRarityScorer(Scorer):
         self, collection: Collection, token: Token, normalized: bool = True
     ) -> float:
         """See Scorer interface."""
-        super().score_token(collection, token, normalized)
         return self._score_token(collection, token, normalized)
 
     def score_tokens(
@@ -56,8 +54,6 @@ class InformationContentRarityScorer(Scorer):
         normalized: bool = True,
     ) -> list[float]:
         """See Scorer interface."""
-        super().score_tokens(collection, tokens, normalized)
-
         # Precompute for performance
         collection_null_attributes = collection.extract_null_attributes()
         collection_attributes = collection.extract_collection_attributes()
@@ -96,7 +92,7 @@ class InformationContentRarityScorer(Scorer):
                 counts to base the token trait probabilities on.
             token (Token): The token to score
             normalized (bool, optional):
-                Set to true to enable individual trait normalizations base on
+                Set to true to enable individual trait normalizations based on
                 total number of possible values for an attribute name.
                 Defaults to True.
             collection_null_attributes
