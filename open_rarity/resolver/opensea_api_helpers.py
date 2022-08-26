@@ -2,6 +2,7 @@ import logging
 import math
 
 import requests
+from requests.models import HTTPError
 
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
@@ -47,9 +48,7 @@ def fetch_opensea_collection_data(slug: str) -> dict:
             f"Received {response.status_code}: {response.reason}. {response.json()}"
         )
 
-        raise Exception(
-            f"[Opensea] Failed to resolve collection with slug {slug}"
-        )
+        response.raise_for_status()
 
     return response.json()["collection"]
 
@@ -93,7 +92,7 @@ def fetch_opensea_assets_data(
             f"[Opensea] Failed to resolve assets for {slug}."
             f"Received {response.status_code}: {response.reason}. {response.json()}"
         )
-        raise Exception(f"[Opensea] Failed to resolve assets with slug {slug}")
+        response.raise_for_status()
 
     assets = response.json()["assets"]
     assets.sort(key=(lambda a: int(a["token_id"])))
@@ -142,7 +141,7 @@ def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
 
 def get_tokens_from_opensea(
     opensea_slug: str, token_ids: list[int]
-) -> list[Token] | None:
+) -> list[Token]:
     """Fetches eth nft data from opensea API and stores them into Token objects
 
     Args:
@@ -150,26 +149,25 @@ def get_tokens_from_opensea(
         token_ids (list[int]): List of token ids to fetch for
 
     Returns:
-        list[Token] | None: Returns list of tokens if request is successful,
-        otherwise None.
+        list[Token]: Returns list of tokens if request is successful.
+
+    Raises:
+        HTTPError is request fails
     """
     try:
         assets = fetch_opensea_assets_data(
             slug=opensea_slug, token_ids=token_ids
         )
-    except Exception as e:
+    except HTTPError as e:
         logger.exception(
             "FAILED: get_assets: could not fetch opensea assets for %s: %s",
             token_ids,
             e,
             exc_info=True,
         )
-        return None
-    tokens = []
-    token_ids_from_os = list(map(lambda a: int(a["token_id"]), assets))
-    if token_ids_from_os != sorted(token_ids_from_os):
-        raise Exception("not sorted")
+        raise
 
+    tokens = []
     for asset in assets:
         token_metadata = opensea_traits_to_token_metadata(
             asset_traits=asset["traits"]
@@ -181,7 +179,7 @@ def get_tokens_from_opensea(
         elif asset_contract_type == "semi-fungible":
             token_standard = TokenStandard.ERC1155
         else:
-            raise Exception(
+            raise ValueError(
                 f"Unexpected asset contrat type: {asset_contract_type}"
             )
         tokens.append(
@@ -223,7 +221,7 @@ def get_collection_with_metadata_from_opensea(
     interfaces = set([contract["schema_name"] for contract in contracts])
     stats = collection_obj["stats"]
     if not interfaces.issubset(set(["ERC721", "ERC1155"])):
-        raise Exception(
+        raise ValueError(
             "We currently do not support non EVM standards at the moment"
         )
 
@@ -268,7 +266,7 @@ def get_collection_from_opensea(
     interfaces = set([contract["schema_name"] for contract in contracts])
     stats = collection_obj["stats"]
     if not interfaces.issubset(set(["ERC721", "ERC1155"])):
-        raise Exception(
+        raise ValueError(
             "We currently do not support non EVM standards at the moment"
         )
 
@@ -296,10 +294,6 @@ def get_collection_from_opensea(
         tokens_batch = get_tokens_from_opensea(
             opensea_slug=opensea_collection_slug, token_ids=token_ids
         )
-        if tokens_batch is None:
-            raise Exception(
-                f"Could not fetch all nft data from Opensea: {token_ids}"
-            )
 
         tokens.extend(tokens_batch)
 

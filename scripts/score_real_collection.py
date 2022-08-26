@@ -2,6 +2,7 @@ from open_rarity import OpenRarityScorer
 from open_rarity.resolver.opensea_api_helpers import (
     get_collection_from_opensea,
 )
+from open_rarity.resolver.testset_resolver import extract_rank
 
 if __name__ == "__main__":
     """This script fetches bored ape yacht club collection and token metadata
@@ -25,10 +26,15 @@ if __name__ == "__main__":
     for i, token_score in enumerate(token_scores):
         print(f"\tToken {collection.tokens[i]} has score: {token_score}")
 
-    # Generate score for a single token in a collection
-    token = collection.tokens[0]
-    token_score = scorer.score_token(
-        collection=collection, token=token, normalized=True
+    # Convert scores to rank
+    token_id_to_rank_score = extract_rank(
+        token_id_to_scores={
+            token_id: score for token_id, score in enumerate(token_scores)
+        }
     )
 
-    print(f"Token {token} has score: {token_score}")
+    # Print out ranks and scores
+    for token_id, rank_score in token_id_to_rank_score.items():
+        print(
+            f"\tToken {token_id} has rank {rank_score[0]} score: {rank_score[1]}"
+        )

@@ -21,7 +21,7 @@ class Scorer:
     def validate_collection(self, collection: Collection) -> None:
         """Validate collection eligibility for OpenRarity scoring"""
         if collection.has_numeric_attribute:
-            raise Exception(
+            raise ValueError(
                 "OpenRarity currently does not support collections with "
                 "numeric or date traits"
             )

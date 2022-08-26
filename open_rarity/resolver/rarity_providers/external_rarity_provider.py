@@ -48,7 +48,7 @@ def fetch_trait_sniper_rank_for_evm_token(
     if not collection_slug:
         msg = f"Failed to fetch traitsniper rank as slug is invalid. {collection_slug=}"
         logger.exception(msg)
-        raise Exception(msg)
+        raise ValueError(msg)
 
     url = TRAIT_SNIPER_URL.format(slug=collection_slug)
     response = requests.request(
@@ -109,7 +109,7 @@ def fetch_rarity_sniffer_rank_for_collection(
             f"{contract_address}. Received: {response.status_code}: "
             f"{response.reason} {response.json()}"
         )
-        raise Exception("RaritySniffer fetching failed for {contract_address}")
+        response.raise_for_status()
 
     tokens_to_rarity_data: dict[int, RarityData] = {
         int(nft["id"]): RarityData(
@@ -238,7 +238,7 @@ class ExternalRarityProvider:
         logger.debug("Resolving rarity sniffer")
         contract_addresses = collection_with_metadata.contract_addresses
         if len(contract_addresses) != 1:
-            raise Exception(
+            raise ValueError(
                 "We cannot calculate rarity sniffer score for collections "
                 f"that do not map to a single contract address: {contract_addresses=}"
             )

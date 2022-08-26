@@ -44,7 +44,12 @@ class InformationContentScoringHandler:
     def score_token(
         self, collection: Collection, token: Token, normalized: bool = True
     ) -> float:
-        """See Scorer interface."""
+        """See ScoringHandler interface.
+
+        Limitations:
+            Does not take into account non-String attributes during scoring.
+
+        """
         return self._score_token(collection, token, normalized)
 
     def score_tokens(
@@ -53,7 +58,12 @@ class InformationContentScoringHandler:
         tokens: list[Token],
         normalized: bool = True,
     ) -> list[float]:
-        """See Scorer interface."""
+        """See ScoringHandler interface.
+
+        Limitations:
+            Does not take into account non-String attributes during scoring.
+
+        """
         # Precompute for performance
         collection_null_attributes = collection.extract_null_attributes()
         collection_attributes = collection.extract_collection_attributes()
@@ -105,6 +115,9 @@ class InformationContentScoringHandler:
 
         Returns:
             float: The token score
+
+        Limitations:
+            Does not take into account non-String attributes during scoring.
         """
         logger.debug("Computing score for token %s", token)
 
@@ -171,6 +184,9 @@ class InformationContentScoringHandler:
 
         Returns:
             the collection entropy
+
+        Limitations:
+            Does not take into account non-String attributes during scoring.
 
         """
         attributes: dict[str, list[CollectionAttribute]] = (
