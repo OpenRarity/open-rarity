@@ -29,13 +29,23 @@ def fetch_trait_sniper_rank_for_evm_token(
     """Sends a GET request to Trait Sniper API to fetch ranking
     data for a given EVM token. Trait Sniper uses opensea slug as a param.
 
-    Args:
-        collection_slug (str): collection slug of collection you're attempting to fetch
-            This must be the slug on trait sniper's slug system.
-        token_id (int): the token number
+    Parameters
+    ----------
+    collection_slug : str
+        collection slug of collection you're attempting to fetch. This must be
+        the slug on trait sniper's slug system.
+    token_id : int
+        the token number.
 
-    Returns:
+    Returns
+    -------
+    int | None
         Rarity rank for given token ID if request was successful, otherwise None.
+
+    Raises
+    ------
+    ValueError
+        If slug is invalid.
     """
     # TODO [vicky]: In future, we can add retry mechanisms if needed
 

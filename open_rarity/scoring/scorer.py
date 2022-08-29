@@ -19,7 +19,13 @@ class Scorer:
         self.handler = InformationContentScoringHandler()
 
     def validate_collection(self, collection: Collection) -> None:
-        """Validate collection eligibility for OpenRarity scoring"""
+        """Validate collection eligibility for OpenRarity scoring
+
+        Parameters
+        ----------
+        collection: Collection)
+            The collection to validate
+        """
         if collection.has_numeric_attribute:
             raise ValueError(
                 "OpenRarity currently does not support collections with "
@@ -32,16 +38,21 @@ class Scorer:
         """Scores an individual token based on the traits distribution across
         the whole collection.
 
-        Args:
-            collection (Collection): The collection to score from
-            token (Token): a single Token to score
-            normalized (bool, optional):
-                Set to true to enable individual trait normalizations based on
-                total number of possible values for an attribute name.
-                Defaults to True.
+        Parameters
+        ----------
+        collection : Collection
+            The collection to score from
+        token : Token
+            a single Token to score
+        normalized : bool, optional
+            Set to true to enable individual trait normalizations based on
+            total number of possible values for an attribute name.
+            Defaults to True.
 
-        Returns:
-            float: The score of the token
+        Returns
+        -------
+        float
+            The score of the token
         """
         self.validate_collection(collection=collection)
         return self.handler.score_token(
@@ -58,17 +69,21 @@ class Scorer:
         This will typically be more efficient than calling score_token for each
         token in `tokens`.
 
-        Args:
-            collection (Collection): The collection to score from
-            tokens (list[Token]): a batch of tokens belonging to collection
-                to be scored
-            normalized (bool, optional):
-                Set to true to enable individual trait normalizations based on
-                total number of possible values for an attribute name.
-                Defaults to True.
+        Parameters
+        ----------
+        collection : Collection
+            The collection to score from
+        tokens : list[Token]
+            a batch of tokens belonging to collection to be scored
+        normalized : bool, optional
+            Set to true to enable individual trait normalizations based on
+            total number of possible values for an attribute name.
+            Defaults to True.
 
-        Returns:
-            list[Score]: list of scores in order of `tokens`
+        Returns
+        -------
+        list[float]
+            list of scores in order of `tokens`
         """
         self.validate_collection(collection=collection)
         return self.handler.score_tokens(
@@ -80,16 +95,19 @@ class Scorer:
     ) -> list[float]:
         """Scores all tokens on collection.tokens
 
-        Args:
-            collection (Collection): The collection to score all tokens from
-            normalized (bool, optional):
-                Set to true to enable individual trait normalizations based on
-                total number of possible values for an attribute name.
-                Defaults to True.
+        Parameters
+        ----------
+        collection : Collection
+            The collection to score all tokens from
+        normalized : bool, optional
+            Set to true to enable individual trait normalizations based on
+            total number of possible values for an attribute name.
+            Defaults to True.
 
-
-        Returns:
-            list[Score]: list of scores in order of `collection.tokens`
+        Returns
+        -------
+        list[float]
+            list of scores in order of `collection.tokens`
         """
         self.validate_collection(collection=collection)
         return self.handler.score_tokens(
@@ -103,15 +121,19 @@ class Scorer:
     ) -> list[list[float]]:
         """Scores all tokens in every collection provided.
 
-        Args:
-            collections (list[Collection]): The collections to score
-            normalized (bool, optional):
-                Set to true to enable individual trait normalizations based on
-                total number of possible values for an attribute name.
-                Defaults to True.
+        Parameters
+        ----------
+        collections: list[Collection])
+            The collections to score
+        normalized: bool, optional
+            Set to true to enable individual trait normalizations based on
+            total number of possible values for an attribute name.
+            Defaults to True.
 
-        Returns:
-            list[list[float]]: A list of scores for all tokens in each given Collection,
+        Returns
+        -------
+        list[list[float]]
+            A list of scores for all tokens in each given Collection,
             ordered by the collection's `tokens` field.
         """
         for collection in collections:

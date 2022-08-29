@@ -46,7 +46,8 @@ class InformationContentScoringHandler:
     ) -> float:
         """See ScoringHandler interface.
 
-        Limitations:
+        Limitations
+        -----------
             Does not take into account non-String attributes during scoring.
 
         """
@@ -60,7 +61,8 @@ class InformationContentScoringHandler:
     ) -> list[float]:
         """See ScoringHandler interface.
 
-        Limitations:
+        Limitations
+        -----------
             Does not take into account non-String attributes during scoring.
 
         """
@@ -97,27 +99,27 @@ class InformationContentScoringHandler:
         """Calculates the score of the token using information entropy with a
         collection entropy normalization factor.
 
-        Args:
-            collection (Collection): The collection with the attributes frequency
-                counts to base the token trait probabilities on.
-            token (Token): The token to score
-            normalized (bool, optional):
-                Set to true to enable individual trait normalizations based on
-                total number of possible values for an attribute name.
-                Defaults to True.
-            collection_null_attributes
-                (dict[ AttributeName, CollectionAttribute ], optional):
-                Optional memoization of collection.extract_null_attributes().
-                Defaults to None.
-            collection_entropy_normalization (float, optional):
-                Optional memoization of the collection entropy normalization factor.
-                Defaults to None.
+        Parameters
+        ----------
+        collection : Collection
+            The collection with the attributes frequency counts to base the
+            token trait probabilities on to calculate score.
+        token : Token
+            The token to score
+        normalized : bool, optional
+            Set to true to enable individual trait normalizations based on
+            total number of possible values for an attribute name, by default True.
+        collection_null_attributes : dict[AttributeName, CollectionAttribute], optional
+            Optional memoization of collection.extract_null_attributes(),
+            by default None.
+        collection_entropy_normalization : float, optional
+            Optional memoization of the collection entropy normalization factor,
+            by default None.
 
-        Returns:
-            float: The token score
-
-        Limitations:
-            Does not take into account non-String attributes during scoring.
+        Returns
+        -------
+        float
+            The token score
         """
         logger.debug("Computing score for token %s", token)
 
@@ -171,23 +173,25 @@ class InformationContentScoringHandler:
         sum of the probability of every possible attribute name/value pair that
         occurs in the collection times that square root of such probability.
 
-        Args:
-            collection (Collection): The collection to calculate probability on
-            collection_attributes
-                (dict[ AttributeName, list[CollectionAttribute] ], optional):
-                Optional memoization of collection.extract_collection_attributes().
-                Defaults to None.
-            collection_null_attributes
-                (dict[ AttributeName, CollectionAttribute ], optional):
-                Optional memoization of collection.extract_null_attributes().
-                Defaults to None.
+        Parameters
+        ----------
+        collection : Collection
+            The collection to calculate probability on
+        collection_attributes : dict[AttributeName, list[CollectionAttribute]], optional
+            Optional memoization of collection.extract_collection_attributes(),
+            by default None.
+        collection_null_attributes : dict[AttributeName, CollectionAttribute], optional
+            Optional memoization of collection.extract_null_attributes(),
+            by default None.
 
-        Returns:
+        Returns
+        -------
+        float
             the collection entropy
 
-        Limitations:
+        Limitations
+        -----------
             Does not take into account non-String attributes during scoring.
-
         """
         attributes: dict[str, list[CollectionAttribute]] = (
             collection_attributes or collection.extract_collection_attributes()

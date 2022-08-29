@@ -65,17 +65,26 @@ def fetch_opensea_assets_data(
 ) -> list[dict]:
     """Fetches asset data from Opensea's GET assets endpoint for the given token ids
 
-    Args:
-        slug (str): Opensea collection slug
-        token_ids (list[int]): the token id
-        limit (int, optional): How many to fetch at once. Defaults to 30, with a
-            max of 30.
+    Parameters
+    ----------
+    slug: str
+        Opensea collection slug
+    token_ids: list[int]
+        the token id
+    limit: int, optional
+        How many to fetch at once. Defaults to 30, with a max of 30, by default 30.
 
-    Raises:
+    Returns
+    -------
+    list[dict]
+        list of asset data dictionaries, e.g. the response in "assets" field,
+        sorted by token_id asc
+
+    Raises
+    ------
         Exception: If api request fails
 
-    Returns:
-        _type_: dictionary data response in "assets" field, sorted by token_id asc
+
     """
     assert len(token_ids) <= limit
     # Max 30 limit enforced on API
@@ -108,13 +117,20 @@ def fetch_opensea_assets_data(
 
 
 def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
-    """
-    Converts asset traits list returned by opensea assets API and converts
+    """Converts asset traits list returned by opensea assets API and converts
     it into a TokenMetadata.
 
-    Args:
-        asset_traits (dict): the "traits" field for an asset in the return value
-        of Opensea's asset(s) endpoint
+    Parameters
+    ----------
+    asset_traits : list
+        the "traits" field for an asset in the return value of Opensea's asset(s)
+        endpoint.
+
+    Returns
+    -------
+    TokenMetadata
+        A TokenMetadata instance to hold the token metadata extracted from the
+        input data.
     """
 
     string_attr = {}
@@ -152,15 +168,24 @@ def get_tokens_from_opensea(
 ) -> list[Token]:
     """Fetches eth nft data from opensea API and stores them into Token objects
 
-    Args:
-        opensea_slug (str): Opensea collection slug
-        token_ids (list[int]): List of token ids to fetch for
+    Parameters
+    ----------
+    opensea_slug : str
+        Opensea collection slug
+    token_ids : list[int]
+        List of token ids to fetch for
 
-    Returns:
-        list[Token]: Returns list of tokens if request is successful.
+    Returns
+    -------
+    list[Token]
+        Returns list of tokens if request is successful.
 
-    Raises:
-        HTTPError is request fails
+    Raises
+    ------
+    ValueError
+        if request is made to a non ERC721 or ERC1155 collection
+    HTTPError
+        if request to opensea fails
     """
     try:
         assets = fetch_opensea_assets_data(

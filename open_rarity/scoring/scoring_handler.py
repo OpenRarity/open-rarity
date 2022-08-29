@@ -18,8 +18,21 @@ class ScoringHandler(Protocol):
         """Scores an individual token based on the traits distribution across
         the whole collection.
 
-        Returns:
-            float: The score of the token
+        Parameters
+        ----------
+        collection : Collection
+            The collection with the attributes frequency counts to base the
+            token trait probabilities on to calculate score.
+        token : Token
+            The token to score
+        normalized : bool, optional
+            Set to true to enable individual trait normalizations based on
+            total number of possible values for an attribute name, by default True.
+
+        Returns
+        -------
+        float
+            The token score
         """
         raise NotImplementedError
 
@@ -34,13 +47,20 @@ class ScoringHandler(Protocol):
         This will typically be more efficient than calling score_token for each
         token in `tokens`.
 
-        Args:
-            collection (Collection): The collection to score from
-            tokens (list[Token]): a batch of tokens belonging to collection
-                to be scored
-            normalized (bool, optional): _description_. Defaults to True.
+        Parameters
+        ----------
+        collection : Collection
+            The collection to score from
+        tokens : list[Token]
+            a batch of tokens belonging to collection to be scored
+        normalized : bool, optional
+            Set to true to enable individual trait normalizations based on
+            total number of possible values for an attribute name.
+            Defaults to True.
 
-        Returns:
-            list[Score]: list of scores in order of `tokens`
+        Returns
+        -------
+        list[float]
+            list of scores in order of `tokens`
         """
         raise NotImplementedError

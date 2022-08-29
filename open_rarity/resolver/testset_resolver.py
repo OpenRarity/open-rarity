@@ -154,16 +154,26 @@ def resolve_collection_data(
 ) -> None:
     """Resolves collection information through OpenSea API
 
-    Args:
-        resolve_remote_rarity (bool): _description_
-        package_path (str, optional): _description_. Defaults to "open_rarity.data".
-        filename (str, optional): _description_. Defaults to "test_collections.json".
-        max_tokens_to_calculate (int, optional): If specified only gets ranking
-            data of first `max_tokens`. Defaults to None.
-            Note: If this is provided, we cannot calculate OpenRarity ranks since
-            it must be calculated after calculating scoring for entire collection.
-    """
+    Parameters
+    ----------
+    resolve_remote_rarity : bool
+        Set to true to resolve external rarity ranks for rank comparisons
+    package_path : str, optional
+        The package path for where the collection data to resolve collection data lives,
+        by default "open_rarity.data"
+    filename : str, optional
+        The filename of the file holding the collection slugs to resolve,
+        by default "test_collections.json"
+    max_tokens_to_calculate : int, optional
+        If specified only gets ranking data of first `max_tokens`, by default None.
+        Note: If this is provided, we cannot calculate OpenRarity ranks since
+        it must be calculated after calculating scoring for entire collection.
 
+    Raises
+    ------
+    ValueError
+        If the file containing collection slugs to resolve does not exist.
+    """
     golden_collections = pkgutil.get_data(package_path, filename)
     if not golden_collections:
         raise ValueError("Can't resolve golden collections data file.")

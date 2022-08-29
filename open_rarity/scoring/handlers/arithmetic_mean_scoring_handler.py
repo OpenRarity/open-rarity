@@ -45,21 +45,24 @@ class ArithmeticMeanScoringHandler:
         """Calculates the score of the token by taking the arithmetic mean of
         the attribute scores with weights.
 
-        Args:
-            collection (Collection): The collection with the attributes frequency
-                counts to base the token trait probabilities on.
-            token (Token): The token to score
-            normalized (bool, optional):
-                Set to true to enable individual trait normalizations based on
-                total number of possible values for an attribute.
-                Defaults to True.
-            collection_null_attributes
-                (dict[ AttributeName, CollectionAttribute ], optional):
-                Optional memoization of collection.extract_null_attributes().
-                Defaults to None.
+        Parameters
+        ----------
+        collection : Collection
+            The collection with the attributes frequency counts to base the token
+            trait probabilities on.
+        token : Token
+            The token to score.
+        normalized : bool, optional
+            Set to true to enable individual trait normalizations based on total
+            number of possible values for an attribute, by default True.
+        collection_null_attributes : dict[AttributeName, CollectionAttribute], optional
+            Optional memoization of collection.extract_null_attributes(), by
+            default None
 
-        Returns:
-            float: The token score
+        Returns
+        -------
+        float
+            The token score
         """
         logger.debug("Computing arithmetic mean for token %s", token)
 
