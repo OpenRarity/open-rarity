@@ -5,20 +5,18 @@ import numpy as np
 from open_rarity.models.collection import Collection, CollectionAttribute
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import AttributeName
-from open_rarity.scoring.scorer import Scorer
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 
 
 logger = logging.getLogger("open_rarity_logger")
 
 
-class SumRarityScorer(Scorer):
+class SumScoringHandler:
     """sum of n trait probabilities"""
 
     def score_token(
         self, collection: Collection, token: Token, normalized: bool = True
     ) -> float:
-        super().score_token(collection, token)
         return self._score_token(collection, token, normalized)
 
     def score_tokens(
@@ -27,7 +25,6 @@ class SumRarityScorer(Scorer):
         tokens: list[Token],
         normalized: bool = True,
     ) -> list[float]:
-        super().score_tokens(collection, tokens, normalized)
         # Memoize for performance
         collection_null_attributes = collection.extract_null_attributes()
         return [
@@ -50,21 +47,24 @@ class SumRarityScorer(Scorer):
         """Calculates the score of the token by taking the sum of the attribute
         scores with weights.
 
-        Args:
-            collection (Collection): The collection with the attributes frequency counts
-                to base the token trait probabilities on.
-            token (Token): The token to score
-            normalized (bool, optional):
-                Set to true to enable individual trait normalizations based on
-                total number of possible values for an attribute.
-                Defaults to True.
-            collection_null_attributes
-                (dict[ AttributeName, CollectionAttribute ], optional):
-                Optional memoization of collection.extract_null_attributes().
-                Defaults to None.
+        Parameters
+        ----------
+        collection : Collection
+            The collection with the attributes frequency counts to base the
+            token trait probabilities on to calculate score.
+        token : Token
+            The token to score
+        normalized : bool, optional
+            Set to true to enable individual trait normalizations based on
+            total number of possible values for an attribute name, by default True.
+        collection_null_attributes : dict[AttributeName, CollectionAttribute], optional
+            Optional memoization of collection.extract_null_attributes(),
+            by default None.
 
-        Returns:
-            float: The token score
+        Returns
+        -------
+        float
+            The token score
         """
         logger.debug(f"Computing sum score for token {token}")
 

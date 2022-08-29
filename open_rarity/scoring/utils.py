@@ -15,26 +15,27 @@ def get_token_attributes_scores_and_weights(
     based on its attributes. If the token does not have an attribute, the probability
     of the attribute being null is used instead.
 
-    Args:
-        collection (Collection): The collection to calculate probability on
-        token (Token): The token to score
-        normalized (bool):
-            Set to true to enable individual trait normalizations based on
-            total number of possible values for an attribute.
-            Defaults to True.
-        collection_null_attributes
-            (dict[AttributeName, CollectionAttribute], optional):
-                Optional memoization of collection.extract_null_attributes().
-                Defaults to None.
+    Parameters
+    ----------
+    collection : Collection
+        The collection to calculate probability on.
+    token : Token
+        The token to score.
+    normalized : bool
+        Set to true to enable individual trait normalizations based on total
+        number of possible values for an attribute, by default True.
+    collection_null_attributes : dict[ AttributeName, CollectionAttribute ], optional
+        Optional memoization of collection.extract_null_attributes(), by default None.
 
-    Returns:
-        tuple[list[float], list[float]]: attribute scores, attribute weights
-            attribute scores: scores for an attribute is defined to be the inverse of
-                the probability of that attribute existing across the collection. e.g.
-                (total token supply / total tokens with that attribute name and value)
-            attribute weights: The weights for each score that should be applied
-                if normalization is to occur.
-
+    Returns
+    -------
+    tuple[list[float], list[float]]
+        A tuple of attribute scores and attribute weights.
+        attribute scores: scores for an attribute is defined to be the inverse of
+            the probability of that attribute existing across the collection. e.g.
+            (total token supply / total tokens with that attribute name and value)
+        attribute weights: The weights for each score that should be applied
+            if normalization is to occur.
     """
     # Create a combined attributes dictionary such that if the token has the attribute,
     # it uses the value's probability, and if it doesn't have the attribute,

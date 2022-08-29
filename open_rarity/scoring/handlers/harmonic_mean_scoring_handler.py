@@ -1,26 +1,21 @@
 import logging
 
-import scipy.stats
+import numpy as np
 
 from open_rarity.models.collection import Collection, CollectionAttribute
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import AttributeName
-from open_rarity.scoring.scorer import Scorer
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 
 logger = logging.getLogger("open_rarity_logger")
 
 
-class GeometricMeanRarityScorer(Scorer):
-    """geometric mean of a token's n trait probabilities
-    - equivalent to the nth root of the product of the trait probabilities
-    - equivalent to the nth power of "statistical rarity"
-    """
+class HarmonicMeanScoringHandler:
+    """harmonic mean of a token's n trait probabilities"""
 
     def score_token(
         self, collection: Collection, token: Token, normalized: bool = True
     ) -> float:
-        super().score_token(collection, token, normalized)
         return self._score_token(collection, token, normalized)
 
     def score_tokens(
@@ -29,7 +24,7 @@ class GeometricMeanRarityScorer(Scorer):
         tokens: list[Token],
         normalized: bool = True,
     ) -> list[float]:
-        super().score_tokens(collection, tokens, normalized)
+        # Memoize for performance
         collection_null_attributes = collection.extract_null_attributes()
         return [
             self._score_token(
@@ -48,28 +43,29 @@ class GeometricMeanRarityScorer(Scorer):
             AttributeName, CollectionAttribute
         ] = None,
     ) -> float:
-        """Calculates the score of the token by taking the geometric mean of the
+        """Calculates the score of the token by taking the harmonic mean of the
         attribute scores with weights.
 
-        Args:
-            collection (Collection): The collection with the attributes frequency
-                counts to base the token trait probabilities on.
-            token (Token): The token to score
-            normalized (bool, optional):
-                Set to true to enable individual trait normalizations based on
-                total number of possible values for an attribute.
-                Defaults to True.
-            collection_null_attributes
-                (dict[ AttributeName, CollectionAttribute ], optional):
-                Optional memoization of collection.extract_null_attributes().
-                Defaults to None.
+        Parameters
+        ----------
+        collection : Collection
+            The collection with the attributes frequency counts to base the
+            token trait probabilities on to calculate score.
+        token : Token
+            The token to score
+        normalized : bool, optional
+            Set to true to enable individual trait normalizations based on
+            total number of possible values for an attribute name, by default True.
+        collection_null_attributes : dict[AttributeName, CollectionAttribute], optional
+            Optional memoization of collection.extract_null_attributes(),
+            by default None.
 
-        Returns:
-            float: The token score
+        Returns
+        -------
+        float
+            The token score
         """
-        logger.debug(
-            f"Computing geometric mean for {collection} token {token}"
-        )
+        logger.debug(f"Computing Harmonic mean for token {token}")
 
         attr_scores, attr_weights = get_token_attributes_scores_and_weights(
             collection=collection,
@@ -78,4 +74,6 @@ class GeometricMeanRarityScorer(Scorer):
             collection_null_attributes=collection_null_attributes,
         )
 
-        return scipy.stats.mstats.gmean(attr_scores, weights=attr_weights)
+        return float(
+            np.average(np.reciprocal(attr_scores), weights=attr_weights) ** -1
+        )

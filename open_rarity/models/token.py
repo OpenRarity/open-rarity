@@ -17,6 +17,8 @@ class Token:
         on the token_standard or chain it lives on.
     token_standard : TokenStandard
         name of token standard (e.g. EIP-721 or EIP-1155)
+    metadata: TokenMetadata
+        contains the metadata of this specific token
     """
 
     token_identifier: TokenIdentifier

@@ -57,22 +57,31 @@ Here is a generic way of using the OpenRarity scoring interface:
 from open_rarity import Collection, Token, RarityScorer
 
 scorer = RarityScorer()
-# A collection of 2 tokens
-collection = Collection() # Replace inputs with your collection-specific details here
+# Your collection details below
+collection = Collection()
 
 # Generate scores for a collection
 token_scores = scorer.score_collection(collection=collection)
 
 # Generate score for a single token in a collection
-token = collection.tokens[0] # Your token details filled in
+token = collection.tokens[0]
 token_score = scorer.score_token(collection=collection, token=token, normalized=True)
 ```
 
 In order to generate the Token and Collection, you will need to properly set the attributes distribution on the collection and the individual attributes belonging to each token. You may either have these details on hand or fetch them through an API. Example of how we do it in order to compare rarity scores across providers live in testset_resolver.py, which leverages the data returned by the opensea API (see opensea_api_helpers.py) to construct the Token and Collection object.
 
-For an actual runnable script that does this, checkout scripts/scoring_example_1.py.
+For an actual runnable script that does this, checkout scripts/score_generated_collection.py.
+In shell run:
+```
+python -m scripts.score_generated_collection
+```
 
-You can run it by running `python -m scripts.scoring_example_1` in terminal.
+For a sample of how to use the existing Opensea API to fetch the collection and token
+metadata and to funnel that into the scoring library, checkout scripts/score_real_collection.
+In shell run:
+```
+python -m scripts.score_real_collection
+```
 
 
 ## Rarity Resolver

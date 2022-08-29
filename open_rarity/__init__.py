@@ -6,4 +6,4 @@ from .models import (
     TokenMetadata,
     TokenStandard,
 )
-from .scoring import InformationContentRarityScorer as RarityScorer
+from .scoring import Scorer as OpenRarityScorer

@@ -5,13 +5,12 @@ import numpy as np
 from open_rarity.models.collection import Collection, CollectionAttribute
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import AttributeName
-from open_rarity.scoring.scorer import Scorer
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 
 logger = logging.getLogger("open_rarity_logger")
 
 
-class InformationContentRarityScorer(Scorer):
+class InformationContentScoringHandler:
     """Rarity describes the information-theoretic "rarity" of a Collection.
     The concept of "rarity" can be considered as a measure of "surprise" at the
     occurrence of a particular token's properties, within the context of the
@@ -45,8 +44,13 @@ class InformationContentRarityScorer(Scorer):
     def score_token(
         self, collection: Collection, token: Token, normalized: bool = True
     ) -> float:
-        """See Scorer interface."""
-        super().score_token(collection, token, normalized)
+        """See ScoringHandler interface.
+
+        Limitations
+        -----------
+            Does not take into account non-String attributes during scoring.
+
+        """
         return self._score_token(collection, token, normalized)
 
     def score_tokens(
@@ -55,9 +59,13 @@ class InformationContentRarityScorer(Scorer):
         tokens: list[Token],
         normalized: bool = True,
     ) -> list[float]:
-        """See Scorer interface."""
-        super().score_tokens(collection, tokens, normalized)
+        """See ScoringHandler interface.
 
+        Limitations
+        -----------
+            Does not take into account non-String attributes during scoring.
+
+        """
         # Precompute for performance
         collection_null_attributes = collection.extract_null_attributes()
         collection_attributes = collection.extract_collection_attributes()
@@ -91,24 +99,27 @@ class InformationContentRarityScorer(Scorer):
         """Calculates the score of the token using information entropy with a
         collection entropy normalization factor.
 
-        Args:
-            collection (Collection): The collection with the attributes frequency
-                counts to base the token trait probabilities on.
-            token (Token): The token to score
-            normalized (bool, optional):
-                Set to true to enable individual trait normalizations base on
-                total number of possible values for an attribute name.
-                Defaults to True.
-            collection_null_attributes
-                (dict[ AttributeName, CollectionAttribute ], optional):
-                Optional memoization of collection.extract_null_attributes().
-                Defaults to None.
-            collection_entropy_normalization (float, optional):
-                Optional memoization of the collection entropy normalization factor.
-                Defaults to None.
+        Parameters
+        ----------
+        collection : Collection
+            The collection with the attributes frequency counts to base the
+            token trait probabilities on to calculate score.
+        token : Token
+            The token to score
+        normalized : bool, optional
+            Set to true to enable individual trait normalizations based on
+            total number of possible values for an attribute name, by default True.
+        collection_null_attributes : dict[AttributeName, CollectionAttribute], optional
+            Optional memoization of collection.extract_null_attributes(),
+            by default None.
+        collection_entropy_normalization : float, optional
+            Optional memoization of the collection entropy normalization factor,
+            by default None.
 
-        Returns:
-            float: The token score
+        Returns
+        -------
+        float
+            The token score
         """
         logger.debug("Computing score for token %s", token)
 
@@ -162,20 +173,25 @@ class InformationContentRarityScorer(Scorer):
         sum of the probability of every possible attribute name/value pair that
         occurs in the collection times that square root of such probability.
 
-        Args:
-            collection (Collection): The collection to calculate probability on
-            collection_attributes
-                (dict[ AttributeName, list[CollectionAttribute] ], optional):
-                Optional memoization of collection.extract_collection_attributes().
-                Defaults to None.
-            collection_null_attributes
-                (dict[ AttributeName, CollectionAttribute ], optional):
-                Optional memoization of collection.extract_null_attributes().
-                Defaults to None.
+        Parameters
+        ----------
+        collection : Collection
+            The collection to calculate probability on
+        collection_attributes : dict[AttributeName, list[CollectionAttribute]], optional
+            Optional memoization of collection.extract_collection_attributes(),
+            by default None.
+        collection_null_attributes : dict[AttributeName, CollectionAttribute], optional
+            Optional memoization of collection.extract_null_attributes(),
+            by default None.
 
-        Returns:
+        Returns
+        -------
+        float
             the collection entropy
 
+        Limitations
+        -----------
+            Does not take into account non-String attributes during scoring.
         """
         attributes: dict[str, list[CollectionAttribute]] = (
             collection_attributes or collection.extract_collection_attributes()

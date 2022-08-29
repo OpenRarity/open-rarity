@@ -1,5 +1,1 @@
-from .scorers.information_content_scorer import InformationContentRarityScorer
-from .scorers.arithmetic_mean_scorer import ArithmeticMeanRarityScorer
-from .scorers.geometric_mean_scorer import GeometricMeanRarityScorer
-from .scorers.harmonic_mean_scorer import HarmonicMeanRarityScorer
-from .scorers.sum_scorer import SumRarityScorer
+from .scorer import Scorer

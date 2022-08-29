@@ -1,7 +1,7 @@
 from open_rarity import (
     Collection,
     EVMContractTokenIdentifier,
-    RarityScorer,
+    OpenRarityScorer,
     StringAttribute,
     Token,
     TokenMetadata,
@@ -9,7 +9,7 @@ from open_rarity import (
 )
 
 if __name__ == "__main__":
-    scorer = RarityScorer()
+    scorer = OpenRarityScorer()
     # A collection of 2 tokens
     collection = Collection(
         name="My Collection Name",

@@ -29,13 +29,23 @@ def fetch_trait_sniper_rank_for_evm_token(
     """Sends a GET request to Trait Sniper API to fetch ranking
     data for a given EVM token. Trait Sniper uses opensea slug as a param.
 
-    Args:
-        collection_slug (str): collection slug of collection you're attempting to fetch
-            This must be the slug on trait sniper's slug system.
-        token_id (int): the token number
+    Parameters
+    ----------
+    collection_slug : str
+        collection slug of collection you're attempting to fetch. This must be
+        the slug on trait sniper's slug system.
+    token_id : int
+        the token number.
 
-    Returns:
+    Returns
+    -------
+    int | None
         Rarity rank for given token ID if request was successful, otherwise None.
+
+    Raises
+    ------
+    ValueError
+        If slug is invalid.
     """
     # TODO [vicky]: In future, we can add retry mechanisms if needed
 
@@ -48,7 +58,7 @@ def fetch_trait_sniper_rank_for_evm_token(
     if not collection_slug:
         msg = f"Failed to fetch traitsniper rank as slug is invalid. {collection_slug=}"
         logger.exception(msg)
-        raise Exception(msg)
+        raise ValueError(msg)
 
     url = TRAIT_SNIPER_URL.format(slug=collection_slug)
     response = requests.request(
@@ -109,7 +119,7 @@ def fetch_rarity_sniffer_rank_for_collection(
             f"{contract_address}. Received: {response.status_code}: "
             f"{response.reason} {response.json()}"
         )
-        raise Exception("RaritySniffer fetching failed for {contract_address}")
+        response.raise_for_status()
 
     tokens_to_rarity_data: dict[int, RarityData] = {
         int(nft["id"]): RarityData(
@@ -238,7 +248,7 @@ class ExternalRarityProvider:
         logger.debug("Resolving rarity sniffer")
         contract_addresses = collection_with_metadata.contract_addresses
         if len(contract_addresses) != 1:
-            raise Exception(
+            raise ValueError(
                 "We cannot calculate rarity sniffer score for collections "
                 f"that do not map to a single contract address: {contract_addresses=}"
             )

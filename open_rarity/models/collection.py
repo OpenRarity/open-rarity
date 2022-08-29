@@ -16,7 +16,7 @@ class CollectionAttribute:
     unique attribute, even though they may belong to the same attribute type (id=name).
 
     Attributes
-     ----------
+    ----------
     attribute : StringAttribute
         the unique attribute pair
     total_tokens : int
@@ -124,8 +124,10 @@ class Collection:
         """Returns the numbers of tokens in this collection with the attribute
         based on the attributes frequency counts.
 
-        Returns:
-            int: The number of tokens with attribute (attribute_name, attribute_value)
+        Returns
+        -------
+        int
+            The number of tokens with attribute (attribute_name, attribute_value)
         """
         return self.attributes_frequency_counts.get(attribute.name, {}).get(
             attribute.value, 0
