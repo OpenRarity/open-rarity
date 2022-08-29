@@ -33,6 +33,9 @@ HEADERS = {
 OS_METADATA_TRAIT_TYPE = "display_type"
 
 
+# Error is thrown if computatation is requested on a non-ERC721/1155
+# token or collection. This is due to library only working for these
+# standards currently.
 class ERCStandardError(ValueError):
     pass
 
