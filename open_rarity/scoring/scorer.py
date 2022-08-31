@@ -1,5 +1,6 @@
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
+from open_rarity.models.token_standard import TokenStandard
 from open_rarity.scoring.handlers.information_content_scoring_handler import (
     InformationContentScoringHandler,
 )
@@ -33,6 +34,11 @@ class Scorer:
             raise ValueError(
                 "OpenRarity currently does not support collections with "
                 "numeric or date traits"
+            )
+
+        if collection.token_standards != [TokenStandard.ERC721]:
+            raise ValueError(
+                "OpenRarity currently does not support non-ERC721 collections"
             )
 
     def score_token(self, collection: Collection, token: Token) -> float:

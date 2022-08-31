@@ -33,7 +33,7 @@ def create_numeric_evm_token(
     token_standard: TokenStandard = TokenStandard.ERC721,
 ) -> Token:
     numeric_metadata = TokenMetadata(
-        numeric_attributes=[NumericAttribute("test", 1)]
+        numeric_attributes={"test": NumericAttribute("test", 1)}
     )
     return create_evm_token(
         token_id=token_id,
