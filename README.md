@@ -103,16 +103,6 @@ poetry install # install dependencies locally
 poetry run pytest # run tests
 ```
 
-# Rarity Datasets
-
-We are sharing collected rarity datasets along with the library code. These datasets are organized as a CSV file per collection. The schema of each CSV file provides ranks for three rarity providers collected via API (TraitsSniper, RaritySniper, RaritySniffer), OpenRarity methodologies and computed rank distance between OpenRarity and rarity providers ranks.
-
-Use AWS CLI command to download rarity datasets locally:
-
-```
-aws s3 cp s3://jul27-openrarity/rarity-datasets . --recursive
-```
-
 # Contributions guide and governance
 
 OpenRarity is a cross-company effort to improve rarity computation for NFTs (Non-Fungible Tokens). The core collaboration group consists of four primary contributors: Curio, icy.tools, OpenSea and Proof
