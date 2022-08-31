@@ -46,6 +46,12 @@ class InformationContentScoringHandler:
     ) -> float:
         """See ScoringHandler interface.
 
+        Parameters
+        ----------
+        normalized : bool, optional
+            Set to true to enable individual trait normalizations based on
+            total number of possible values for an attribute name, by default True.
+
         Limitations
         -----------
             Does not take into account non-String attributes during scoring.
@@ -60,6 +66,12 @@ class InformationContentScoringHandler:
         normalized: bool = True,
     ) -> list[float]:
         """See ScoringHandler interface.
+
+        Parameters
+        ----------
+        normalized : bool, optional
+            Set to true to enable individual trait normalizations based on
+            total number of possible values for an attribute name, by default True.
 
         Limitations
         -----------
