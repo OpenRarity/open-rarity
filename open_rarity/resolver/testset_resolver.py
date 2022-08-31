@@ -11,6 +11,7 @@ from time import process_time, strftime
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
 from open_rarity.models.token_identifier import EVMContractTokenIdentifier
+from open_rarity.rarity_ranker import RarityRanker
 from open_rarity.resolver.models.collection_with_metadata import (
     CollectionWithMetadata,
 )
@@ -253,7 +254,7 @@ def augment_with_open_rarity_scores(
         )
 
 
-def extract_rank(token_id_to_scores: ScoredTokens) -> RankedTokens:
+def extract_rank(token_id_to_scores: dict[str, float]) -> RankedTokens:
     """Sorts dictionary by float score and extract rank according to the score
 
     Parameters
@@ -266,16 +267,16 @@ def extract_rank(token_id_to_scores: ScoredTokens) -> RankedTokens:
     dict[int, RankScore]
         dictionary of token to rank, score pair
     """
-    srt = dict(
-        sorted(token_id_to_scores.items(), key=lambda x: x[1], reverse=True)
+    token_id_to_ranks = RarityRanker.rank_tokens(
+        token_id_to_scores=token_id_to_scores
     )
-
-    res = {}
-    for index, (key, value) in enumerate(srt.items()):
-        # upsacle by 1 position since index start from 0
-        res[key] = (index + 1, value)
-
-    return res
+    return {
+        int(token_id): (
+            token_id_to_ranks[token_id],
+            token_id_to_scores[token_id],
+        )
+        for token_id in token_id_to_scores.keys()
+    }
 
 
 def resolve_open_rarity_score(
@@ -305,7 +306,7 @@ def resolve_open_rarity_score(
     for token in tokens:
         token_identifier = token.token_identifier
         assert isinstance(token_identifier, EVMContractTokenIdentifier)
-        token_id = token_identifier.token_id
+        token_id = str(token_identifier.token_id)
 
         try:
             harmonic_dict[token_id] = harmonic_handler.score_token(
