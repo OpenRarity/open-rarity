@@ -48,8 +48,7 @@ OpenRarity consists of two core parts: **Runtime** and **Rarity Resolver**.
 The **Runtime** part of the library can be integrated into any Python 3.10+ application to perform the scoring of any collection. The runtime doesn’t resolve collections metadata—it’s the responsibility of an application to provide correct metadata to perform collection scoring.
 
 The **Rarity Resolver** is a tool to compare rarity ranks across various providers,
-including various OpenRarity algorithms. We currently only support fetching ranking for
-TraitSniper, RaritySniffer and RaritySniper.
+including various OpenRarity algorithms.
 
 ## Runtime - Using the library
 Here is a generic way of using the OpenRarity scoring interface:
