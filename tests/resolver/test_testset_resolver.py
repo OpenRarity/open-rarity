@@ -33,9 +33,10 @@ class TestTestsetResolver:
         },
     }
 
-    @pytest.mark.skip(
+    @pytest.mark.skipif(
+        "not config.getoption('--run-resolvers')",
         reason="This tests runs too long to have as part of CI/CD but should be "
-        "run whenver someone changes resolver"
+        "run whenver someone changes resolver",
     )
     def test_resolve_collection_data(self):
         # Have the resolver pull in BAYC rarity rankings from various sources
@@ -45,7 +46,7 @@ class TestTestsetResolver:
             resolve_remote_rarity=True,
             package_path="tests",
             filename="resolver/sample_files/bayc.json",
-            # max_tokens_to_calculate=30
+            # max_tokens_to_calculate=30,
         )
         # Read the file and verify columns values are as expected for the given tokens
         output_filename = "testset_boredapeyachtclub.csv"

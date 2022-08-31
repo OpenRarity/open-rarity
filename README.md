@@ -104,6 +104,12 @@ poetry install # install dependencies locally
 poetry run pytest # run tests
 ```
 
+Some tests are skipped by default due to it being more integration/slow tests.
+To run resolver tests:
+```
+poetry run pytest -k test_testset_resolver --run-resolvers
+```
+
 # Rarity Datasets
 
 We are sharing collected rarity datasets along with the library code. These datasets are organized as a CSV file per collection. The schema of each CSV file provides ranks for three rarity providers collected via API (TraitsSniper, RaritySniper, RaritySniffer), OpenRarity methodologies and computed rank distance between OpenRarity and rarity providers ranks.
