@@ -21,7 +21,7 @@ class TestTestsetResolver:
         # Middle token, official rank=3503
         509: {
             # https://app.traitsniper.com/boredapeyachtclub?view=509
-            RankProvider.TRAITS_SNIPER: "3402",
+            RankProvider.TRAITS_SNIPER: "3370",
             # https://raritysniffer.com/viewcollection/boredapeyachtclub?nft=509
             RankProvider.RARITY_SNIFFER: "3257",
             # https://raritysniper.com/bored-ape-yacht-club/509
@@ -32,7 +32,7 @@ class TestTestsetResolver:
         # Common token, official rank=7623
         8002: {
             # https://app.traitsniper.com/boredapeyachtclub?view=8002
-            RankProvider.TRAITS_SNIPER: "6924",
+            RankProvider.TRAITS_SNIPER: "6810",
             # https://raritysniffer.com/viewcollection/boredapeyachtclub?nft=8002
             RankProvider.RARITY_SNIFFER: "7709",
             # https://raritysniper.com/bored-ape-yacht-club/8002
