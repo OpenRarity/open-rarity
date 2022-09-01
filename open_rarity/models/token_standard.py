@@ -1,8 +1,6 @@
-from dataclasses import dataclass
 from enum import Enum
 
 
-@dataclass
 class TokenStandard(Enum):
     """Enum class representing the interface or standard that
     a token is respecting. Each chain may have their own token standards.

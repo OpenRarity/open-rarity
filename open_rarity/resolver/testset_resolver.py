@@ -294,12 +294,12 @@ def resolve_open_rarity_score(
     """
     t1_start = process_time()
 
-    # Dictionaries of token IDs to their respective score for each strategy
-    arthimetic_dict = {}
-    geometric_dict = {}
-    harmonic_dict = {}
-    sum_dict = {}
-    ic_dict = {}
+    # Dictionaries of token IDs to their respective scores for each strategy
+    arthimetic_dict: dict[str, float] = {}
+    geometric_dict: dict[str, float] = {}
+    harmonic_dict: dict[str, float] = {}
+    sum_dict: dict[str, float] = {}
+    ic_dict: dict[str, float] = {}
 
     logger.debug("OpenRarity scoring")
 
@@ -329,11 +329,11 @@ def resolve_open_rarity_score(
             logger.exception(f"Can't score token {token} with OpenRarity")
 
     # Calculate ranks of all assets given the scores
-    arthimetic_dict = extract_rank(arthimetic_dict)
-    geometric_dict = extract_rank(geometric_dict)
-    harmonic_dict = extract_rank(harmonic_dict)
-    sum_dict = extract_rank(sum_dict)
-    ic_dict = extract_rank(ic_dict)
+    arthimetic_ranked_tokens = extract_rank(arthimetic_dict)
+    geometric_ranked_tokens = extract_rank(geometric_dict)
+    harmonic_ranked_tokens = extract_rank(harmonic_dict)
+    sum_ranked_tokens = extract_rank(sum_dict)
+    ic_ranked_tokens = extract_rank(ic_dict)
 
     t1_stop = process_time()
     logger.debug(
@@ -343,11 +343,11 @@ def resolve_open_rarity_score(
     )
 
     return OpenRarityScores(
-        arithmetic_scores=arthimetic_dict,
-        geometric_scores=geometric_dict,
-        harmonic_scores=harmonic_dict,
-        sum_scores=sum_dict,
-        information_content_scores=ic_dict,
+        arithmetic_scores=arthimetic_ranked_tokens,
+        geometric_scores=geometric_ranked_tokens,
+        harmonic_scores=harmonic_ranked_tokens,
+        sum_scores=sum_ranked_tokens,
+        information_content_scores=ic_ranked_tokens,
     )
 
 
