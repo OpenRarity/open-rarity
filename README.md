@@ -76,14 +76,14 @@ python -m scripts.score_generated_collection
 ```
 
 For a sample of how to use the existing Opensea API to fetch the collection and token
-metadata and to funnel that into the scoring library, checkout scripts/score_real_collection.
+metadata and to funnel that into the scoring library, checkout scripts/score_real_collections.
 In shell run:
 ```
-python -m scripts.score_real_collection
+python -m scripts.score_real_collections
 ```
 This may also be used to generate json or csv outputs of OpenRarity scoring and ranks for any number of collections
 ```
-python -m scripts.score_real_collection boredapeyachtclub proof-moonbirds
+python -m scripts.score_real_collections boredapeyachtclub proof-moonbirds
 ```
 
 
@@ -102,11 +102,11 @@ You may use the rarity resolver tool to either view ranking scores across provid
 
 Alternatively, if you just want to generate OpenRarity scoring only, and not do rank comparisons, and output to a json, you may run:
 ```
-python -m scripts.score_real_collection <slugs>
+python -m scripts.score_real_collections <slugs>
 ```
 Example:
 ```
-python -m scripts.score_real_collection boredapeyachtclub proof-moonbirds
+python -m scripts.score_real_collections boredapeyachtclub proof-moonbirds
 ```
 
 ## Running tests locally

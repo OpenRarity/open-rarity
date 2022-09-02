@@ -18,7 +18,7 @@ parser.add_argument(
 parser.add_argument(
     "--filename_prefix",
     dest="filename_prefix",
-    default="score_real_collection_results",
+    default="score_real_collections_results",
     help="The filename prefix to output the ranking results to. "
     "The filename will be {prefix}_{slug}.json/csv",
 )
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     collection via OpenRarity scorer.
 
     It will output results into {prefix}_{slug}.json/csv file, with the default
-    filename being "score_real_collection_results.json".
+    filename being "score_real_collections_results.json".
 
     If JSON, format is:
     {
@@ -104,12 +104,12 @@ if __name__ == "__main__":
     Columns: Token ID, Rank, Score
 
     Command:
-        `python -m scripts.score_real_collection`
+        `python -m scripts.score_real_collections`
 
         If you want to set your own slugs to process, you may pass it in via
         command-line.
         Example:
-        `python -m scripts.score_real_collection boredapeyachtclub proof-moonbirds`
+        `python -m scripts.score_real_collections boredapeyachtclub proof-moonbirds`
     """
     args = parser.parse_args()
     print(f"Scoring collections: {args.slugs}")
