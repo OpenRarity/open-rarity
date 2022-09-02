@@ -18,9 +18,6 @@ class Scorer:
     def __init__(self) -> None:
         # OpenRarity uses InformationContent as the scoring algorithm of choice.
         self.handler = InformationContentScoringHandler()
-        # OpenRarity always normalizes individual traits based on the total number of
-        # possible values for an attribute name.
-        self.trait_normalized = True
 
     def validate_collection(self, collection: Collection) -> None:
         """Validate collection eligibility for OpenRarity scoring
@@ -58,11 +55,7 @@ class Scorer:
             The score of the token
         """
         self.validate_collection(collection=collection)
-        return self.handler.score_token(
-            collection=collection,
-            token=token,
-            normalized=self.trait_normalized,
-        )
+        return self.handler.score_token(collection=collection, token=token)
 
     def score_tokens(
         self, collection: Collection, tokens: list[Token]
@@ -84,11 +77,7 @@ class Scorer:
             list of scores in order of `tokens`
         """
         self.validate_collection(collection=collection)
-        return self.handler.score_tokens(
-            collection=collection,
-            tokens=tokens,
-            normalized=self.trait_normalized,
-        )
+        return self.handler.score_tokens(collection=collection, tokens=tokens)
 
     def score_collection(self, collection: Collection) -> list[float]:
         """Scores all tokens on collection.tokens
@@ -107,7 +96,6 @@ class Scorer:
         return self.handler.score_tokens(
             collection=collection,
             tokens=collection.tokens,
-            normalized=self.trait_normalized,
         )
 
     def score_collections(
@@ -119,10 +107,6 @@ class Scorer:
         ----------
         collections: list[Collection])
             The collections to score
-        normalized: bool, optional
-            Set to true to enable individual trait normalizations based on
-            total number of possible values for an attribute name.
-            Defaults to True.
 
         Returns
         -------
@@ -133,8 +117,6 @@ class Scorer:
         for collection in collections:
             self.validate_collection(collection=collection)
         return [
-            self.handler.score_tokens(
-                collection=c, tokens=c.tokens, normalized=self.trait_normalized
-            )
+            self.handler.score_tokens(collection=c, tokens=c.tokens)
             for c in collections
         ]

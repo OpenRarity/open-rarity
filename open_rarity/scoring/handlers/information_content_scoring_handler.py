@@ -41,37 +41,22 @@ class InformationContentScoringHandler:
 
     # TODO [@danmeshkov]: To support numeric types in a follow-up version.
 
-    def score_token(
-        self, collection: Collection, token: Token, normalized: bool = True
-    ) -> float:
+    def score_token(self, collection: Collection, token: Token) -> float:
         """See ScoringHandler interface.
-
-        Parameters
-        ----------
-        normalized : bool, optional
-            Set to true to enable individual trait normalizations based on
-            total number of possible values for an attribute name, by default True.
 
         Limitations
         -----------
             Does not take into account non-String attributes during scoring.
 
         """
-        return self._score_token(collection, token, normalized)
+        return self._score_token(collection, token)
 
     def score_tokens(
         self,
         collection: Collection,
         tokens: list[Token],
-        normalized: bool = True,
     ) -> list[float]:
         """See ScoringHandler interface.
-
-        Parameters
-        ----------
-        normalized : bool, optional
-            Set to true to enable individual trait normalizations based on
-            total number of possible values for an attribute name, by default True.
 
         Limitations
         -----------
@@ -90,7 +75,6 @@ class InformationContentScoringHandler:
             self._score_token(
                 collection=collection,
                 token=t,
-                normalized=normalized,
                 collection_null_attributes=collection_null_attributes,
                 collection_entropy_normalization=collection_entropy,
             )
@@ -102,7 +86,6 @@ class InformationContentScoringHandler:
         self,
         collection: Collection,
         token: Token,
-        normalized: bool = True,
         collection_null_attributes: dict[
             AttributeName, CollectionAttribute
         ] = None,
@@ -118,9 +101,6 @@ class InformationContentScoringHandler:
             token trait probabilities on to calculate score.
         token : Token
             The token to score
-        normalized : bool, optional
-            Set to true to enable individual trait normalizations based on
-            total number of possible values for an attribute name, by default True.
         collection_null_attributes : dict[AttributeName, CollectionAttribute], optional
             Optional memoization of collection.extract_null_attributes(),
             by default None.
@@ -141,7 +121,7 @@ class InformationContentScoringHandler:
         attr_scores, _ = get_token_attributes_scores_and_weights(
             collection=collection,
             token=token,
-            normalized=normalized,
+            normalized=False,
             collection_null_attributes=collection_null_attributes,
         )
 

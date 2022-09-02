@@ -202,7 +202,7 @@ def resolve_collection_data(
         # Calculate and append open rarity scores
         if max_tokens_to_calculate is None:
             open_rarity_scores = resolve_open_rarity_score(
-                collection, collection.tokens, normalized=True
+                collection, collection.tokens
             )
             augment_with_open_rarity_scores(
                 tokens_with_rarity=tokens_with_rarity,
@@ -280,7 +280,7 @@ def extract_rank(token_id_to_scores: dict[str, float]) -> RankedTokens:
 
 
 def resolve_open_rarity_score(
-    collection: Collection, tokens: list[Token], normalized: bool
+    collection: Collection, tokens: list[Token]
 ) -> OpenRarityScores:
     """Resolve scores from all scorers with trait_normalization
 
@@ -310,19 +310,19 @@ def resolve_open_rarity_score(
 
         try:
             harmonic_dict[token_id] = harmonic_handler.score_token(
-                collection=collection, token=token, normalized=normalized
+                collection=collection, token=token
             )
             arthimetic_dict[token_id] = arithmetic_handler.score_token(
-                collection=collection, token=token, normalized=normalized
+                collection=collection, token=token
             )
             geometric_dict[token_id] = geometric_handler.score_token(
-                collection=collection, token=token, normalized=normalized
+                collection=collection, token=token
             )
             sum_dict[token_id] = sum_handler.score_token(
-                collection=collection, token=token, normalized=normalized
+                collection=collection, token=token
             )
             ic_dict[token_id] = ic_handler.score_token(
-                collection=collection, token=token, normalized=normalized
+                collection=collection, token=token
             )
 
         except Exception:

@@ -1,5 +1,8 @@
 import pytest
 from open_rarity import OpenRarityScorer, Collection, TokenStandard
+from open_rarity.scoring.handlers.information_content_scoring_handler import (
+    InformationContentScoringHandler,
+)
 from tests.helpers import (
     generate_collection_with_token_traits,
     create_evm_token,
@@ -7,6 +10,10 @@ from tests.helpers import (
 
 
 class TestScorer:
+    def test_init_settings(self):
+        scorer = OpenRarityScorer()
+        assert isinstance(scorer.handler, InformationContentScoringHandler)
+
     def test_score_collections_string_attributes(self):
         collection = generate_collection_with_token_traits(
             [
