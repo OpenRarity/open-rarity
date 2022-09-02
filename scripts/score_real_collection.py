@@ -32,7 +32,7 @@ parser.add_argument(
 )
 
 
-def score_collection_and_output(
+def score_collection_and_output_results(
     scorer: OpenRarityScorer, slug: str, output_filename: str
 ):
     # Get collection
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     for slug in args.slugs:
         output_filename = f"{args.filename_prefix}_{slug}.{args.filetype}"
         print(f"Generating results for: {slug}")
-        score_collection_and_output(
+        score_collection_and_output_results(
             scorer=scorer,
             slug=slug,
             output_filename=output_filename,
