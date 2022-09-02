@@ -124,15 +124,6 @@ class TestCollection:
         assert collection_1.token_total_supply == 100
         assert collection_2.token_total_supply == 50
 
-        new_tokens = [create_evm_token(token_id=100_000)]
-        collection_1.tokens = new_tokens
-        assert collection_1.tokens == new_tokens
-        assert collection_1.token_total_supply == 1
-
-        collection_2.tokens = []
-        assert collection_2.tokens == []
-        assert collection_2.token_total_supply == 0
-
     def test_extract_null_attributes(self):
         assert self.test_collection.extract_null_attributes() == {
             "attribute1": CollectionAttribute(

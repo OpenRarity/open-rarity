@@ -56,7 +56,6 @@ class Collection:
     """
 
     attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
-    tokens: list[Token]
     name: str | None = ""
 
     def __init__(
@@ -67,13 +66,50 @@ class Collection:
         tokens: list[Token],
         name: str | None = "",
     ):
+        self._tokens = tokens
         self.attributes_frequency_counts = (
             self._normalize_attributes_frequency_counts(
                 attributes_frequency_counts
             )
         )
-        self.tokens = tokens
         self.name = name
+
+    @property
+    def tokens(self) -> list[Token]:
+        return self._tokens
+
+    @property
+    def token_total_supply(self) -> int:
+        return len(self._tokens)
+
+    @cached_property
+    def has_numeric_attribute(self) -> bool:
+        return (
+            next(
+                filter(
+                    lambda t: len(t.metadata.numeric_attributes)
+                    or len(t.metadata.date_attributes),
+                    self._tokens,
+                ),
+                None,
+            )
+            is not None
+        )
+
+    @cached_property
+    def token_standards(self) -> list[TokenStandard]:
+        """Returns token standards for this collection.
+
+        Returns
+        -------
+        list[TokenStandard]
+            the set of unique token standards that any token in this collection
+            interfaces or uses.
+        """
+        token_standards = set()
+        for token in self._tokens:
+            token_standards.add(token.token_standard)
+        return list(token_standards)
 
     def _normalize_attributes_frequency_counts(
         self,
@@ -108,39 +144,6 @@ class Collection:
                     normalized[normalized_name][normalized_value] += attr_count
 
         return normalized
-
-    @property
-    def token_total_supply(self) -> int:
-        return len(self.tokens)
-
-    @cached_property
-    def has_numeric_attribute(self) -> bool:
-        return (
-            next(
-                filter(
-                    lambda t: len(t.metadata.numeric_attributes)
-                    or len(t.metadata.date_attributes),
-                    self.tokens,
-                ),
-                None,
-            )
-            is not None
-        )
-
-    @cached_property
-    def token_standards(self) -> list[TokenStandard]:
-        """Returns token standards for this collection.
-
-        Returns
-        -------
-        list[TokenStandard]
-            the set of unique token standards that any token in this collection
-            interfaces or uses.
-        """
-        token_standards = set()
-        for token in self.tokens:
-            token_standards.add(token.token_standard)
-        return list(token_standards)
 
     def total_tokens_with_attribute(self, attribute: StringAttribute) -> int:
         """Returns the numbers of tokens in this collection with the attribute
