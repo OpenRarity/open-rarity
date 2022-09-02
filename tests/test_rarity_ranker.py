@@ -37,10 +37,16 @@ class TestRarityRanker:
                 "BAYC #9": 1239.120303023,
                 "BAYC #8": 1239.12,
                 "BAYC #3": 629.03948,
+                "BAYC #10": 1.120303023,
+                "BAYC #11": 1.120303022,
+                "BAYC #12": 1.120303020,
+                "BAYC #13": 0.1203030203,
+                "BAYC #14": 0.1203030202,
+                "BAYC #15": 0.1203030200,
             }
         )
         print(token_ids_to_ranks)
-        assert len(token_ids_to_ranks) == 9
+        assert len(token_ids_to_ranks) == 15
         assert token_ids_to_ranks["BAYC #4"] == 1
         assert token_ids_to_ranks["BAYC #2"] == 2
         assert token_ids_to_ranks["BAYC #6"] == 3
@@ -50,3 +56,9 @@ class TestRarityRanker:
         assert token_ids_to_ranks["BAYC #9"] == 4
         assert token_ids_to_ranks["BAYC #8"] == 8
         assert token_ids_to_ranks["BAYC #3"] == 9
+        assert token_ids_to_ranks["BAYC #10"] == 10
+        assert token_ids_to_ranks["BAYC #11"] == 10
+        assert token_ids_to_ranks["BAYC #12"] == 12
+        assert token_ids_to_ranks["BAYC #13"] == 13
+        assert token_ids_to_ranks["BAYC #14"] == 13
+        assert token_ids_to_ranks["BAYC #15"] == 15

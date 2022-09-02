@@ -11,9 +11,11 @@ class RarityRanker:
         contains all tokens for a given cohort/collection to rank tokens for.
         Scores that are higher indicate a higher rarity, and thus a lower rank.
 
-        Tokens with the same score (with a small tolerance of ~1e-6) will be
-        assigned the same rank.
+        Tokens with the same score will be assigned the same rank.
         Example: 1, 2, 2, 2, 5.
+        Scores are considered the same if they are within about 9 decimal digits
+        of each other.
+
 
         Parameters
         ----------
