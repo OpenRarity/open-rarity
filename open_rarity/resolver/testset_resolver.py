@@ -11,6 +11,7 @@ from time import process_time, strftime
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
 from open_rarity.models.token_identifier import EVMContractTokenIdentifier
+from open_rarity.rarity_ranker import RarityRanker
 from open_rarity.resolver.models.collection_with_metadata import (
     CollectionWithMetadata,
 )
@@ -201,7 +202,7 @@ def resolve_collection_data(
         # Calculate and append open rarity scores
         if max_tokens_to_calculate is None:
             open_rarity_scores = resolve_open_rarity_score(
-                collection, collection.tokens, normalized=True
+                collection, collection.tokens
             )
             augment_with_open_rarity_scores(
                 tokens_with_rarity=tokens_with_rarity,
@@ -253,7 +254,7 @@ def augment_with_open_rarity_scores(
         )
 
 
-def extract_rank(token_id_to_scores: ScoredTokens) -> RankedTokens:
+def extract_rank(token_id_to_scores: dict[str, float]) -> RankedTokens:
     """Sorts dictionary by float score and extract rank according to the score
 
     Parameters
@@ -266,20 +267,20 @@ def extract_rank(token_id_to_scores: ScoredTokens) -> RankedTokens:
     dict[int, RankScore]
         dictionary of token to rank, score pair
     """
-    srt = dict(
-        sorted(token_id_to_scores.items(), key=lambda x: x[1], reverse=True)
+    token_id_to_ranks = RarityRanker.rank_tokens(
+        token_id_to_scores=token_id_to_scores
     )
-
-    res = {}
-    for index, (key, value) in enumerate(srt.items()):
-        # upsacle by 1 position since index start from 0
-        res[key] = (index + 1, value)
-
-    return res
+    return {
+        int(token_id): (
+            token_id_to_ranks[token_id],
+            token_id_to_scores[token_id],
+        )
+        for token_id in token_id_to_scores.keys()
+    }
 
 
 def resolve_open_rarity_score(
-    collection: Collection, tokens: list[Token], normalized: bool
+    collection: Collection, tokens: list[Token]
 ) -> OpenRarityScores:
     """Resolve scores from all scorers with trait_normalization
 
@@ -293,46 +294,46 @@ def resolve_open_rarity_score(
     """
     t1_start = process_time()
 
-    # Dictionaries of token IDs to their respective score for each strategy
-    arthimetic_dict = {}
-    geometric_dict = {}
-    harmonic_dict = {}
-    sum_dict = {}
-    ic_dict = {}
+    # Dictionaries of token IDs to their respective scores for each strategy
+    arthimetic_dict: dict[str, float] = {}
+    geometric_dict: dict[str, float] = {}
+    harmonic_dict: dict[str, float] = {}
+    sum_dict: dict[str, float] = {}
+    ic_dict: dict[str, float] = {}
 
     logger.debug("OpenRarity scoring")
 
     for token in tokens:
         token_identifier = token.token_identifier
         assert isinstance(token_identifier, EVMContractTokenIdentifier)
-        token_id = token_identifier.token_id
+        token_id = str(token_identifier.token_id)
 
         try:
             harmonic_dict[token_id] = harmonic_handler.score_token(
-                collection=collection, token=token, normalized=normalized
+                collection=collection, token=token
             )
             arthimetic_dict[token_id] = arithmetic_handler.score_token(
-                collection=collection, token=token, normalized=normalized
+                collection=collection, token=token
             )
             geometric_dict[token_id] = geometric_handler.score_token(
-                collection=collection, token=token, normalized=normalized
+                collection=collection, token=token
             )
             sum_dict[token_id] = sum_handler.score_token(
-                collection=collection, token=token, normalized=normalized
+                collection=collection, token=token
             )
             ic_dict[token_id] = ic_handler.score_token(
-                collection=collection, token=token, normalized=normalized
+                collection=collection, token=token
             )
 
         except Exception:
             logger.exception(f"Can't score token {token} with OpenRarity")
 
     # Calculate ranks of all assets given the scores
-    arthimetic_dict = extract_rank(arthimetic_dict)
-    geometric_dict = extract_rank(geometric_dict)
-    harmonic_dict = extract_rank(harmonic_dict)
-    sum_dict = extract_rank(sum_dict)
-    ic_dict = extract_rank(ic_dict)
+    arthimetic_ranked_tokens = extract_rank(arthimetic_dict)
+    geometric_ranked_tokens = extract_rank(geometric_dict)
+    harmonic_ranked_tokens = extract_rank(harmonic_dict)
+    sum_ranked_tokens = extract_rank(sum_dict)
+    ic_ranked_tokens = extract_rank(ic_dict)
 
     t1_stop = process_time()
     logger.debug(
@@ -342,11 +343,11 @@ def resolve_open_rarity_score(
     )
 
     return OpenRarityScores(
-        arithmetic_scores=arthimetic_dict,
-        geometric_scores=geometric_dict,
-        harmonic_scores=harmonic_dict,
-        sum_scores=sum_dict,
-        information_content_scores=ic_dict,
+        arithmetic_scores=arthimetic_ranked_tokens,
+        geometric_scores=geometric_ranked_tokens,
+        harmonic_scores=harmonic_ranked_tokens,
+        sum_scores=sum_ranked_tokens,
+        information_content_scores=ic_ranked_tokens,
     )
 
 

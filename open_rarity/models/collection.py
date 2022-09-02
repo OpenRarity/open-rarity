@@ -1,5 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass
+from functools import cached_property
 
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import (
@@ -7,6 +8,7 @@ from open_rarity.models.token_metadata import (
     AttributeValue,
     StringAttribute,
 )
+from open_rarity.models.token_standard import TokenStandard
 
 
 @dataclass
@@ -47,13 +49,15 @@ class Collection:
         All trait names and values should be lowercased.
     name: A reference string only used for debugger log lines
 
+    We do not recommend resetting @tokens attribute after Collection initialization
+    as that will mess up cached property values:
+        has_numeric_attributes
+        get_token_standards
     """
 
     attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
     tokens: list[Token]
     name: str | None = ""
-    # This does not need to be passed in but will be set upon init
-    has_numeric_attribute: bool | None = None
 
     def __init__(
         self,
@@ -70,17 +74,6 @@ class Collection:
         )
         self.tokens = tokens
         self.name = name
-        self.has_numeric_attribute = (
-            next(
-                filter(
-                    lambda t: len(t.metadata.numeric_attributes)
-                    or len(t.metadata.date_attributes),
-                    self.tokens,
-                ),
-                None,
-            )
-            is not None
-        )
 
     def _normalize_attributes_frequency_counts(
         self,
@@ -119,6 +112,35 @@ class Collection:
     @property
     def token_total_supply(self) -> int:
         return len(self.tokens)
+
+    @cached_property
+    def has_numeric_attribute(self) -> bool:
+        return (
+            next(
+                filter(
+                    lambda t: len(t.metadata.numeric_attributes)
+                    or len(t.metadata.date_attributes),
+                    self.tokens,
+                ),
+                None,
+            )
+            is not None
+        )
+
+    @cached_property
+    def token_standards(self) -> list[TokenStandard]:
+        """Returns token standards for this collection.
+
+        Returns
+        -------
+        list[TokenStandard]
+            the set of unique token standards that any token in this collection
+            interfaces or uses.
+        """
+        token_standards = set()
+        for token in self.tokens:
+            token_standards.add(token.token_standard)
+        return list(token_standards)
 
     def total_tokens_with_attribute(self, attribute: StringAttribute) -> int:
         """Returns the numbers of tokens in this collection with the attribute

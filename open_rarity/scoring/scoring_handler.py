@@ -12,9 +12,7 @@ class ScoringHandler(Protocol):
     """
 
     @abstractmethod
-    def score_token(
-        self, collection: Collection, token: Token, normalized: bool = True
-    ) -> float:
+    def score_token(self, collection: Collection, token: Token) -> float:
         """Scores an individual token based on the traits distribution across
         the whole collection.
 
@@ -25,9 +23,6 @@ class ScoringHandler(Protocol):
             token trait probabilities on to calculate score.
         token : Token
             The token to score
-        normalized : bool, optional
-            Set to true to enable individual trait normalizations based on
-            total number of possible values for an attribute name, by default True.
 
         Returns
         -------
@@ -41,7 +36,6 @@ class ScoringHandler(Protocol):
         self,
         collection: Collection,
         tokens: list[Token],
-        normalized: bool = True,
     ) -> list[float]:
         """Used if you only want to score a batch of tokens that belong to collection.
         This will typically be more efficient than calling score_token for each
@@ -53,10 +47,6 @@ class ScoringHandler(Protocol):
             The collection to score from
         tokens : list[Token]
             a batch of tokens belonging to collection to be scored
-        normalized : bool, optional
-            Set to true to enable individual trait normalizations based on
-            total number of possible values for an attribute name.
-            Defaults to True.
 
         Returns
         -------

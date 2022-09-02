@@ -1,5 +1,6 @@
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
+from open_rarity.models.token_standard import TokenStandard
 from open_rarity.scoring.handlers.information_content_scoring_handler import (
     InformationContentScoringHandler,
 )
@@ -32,9 +33,12 @@ class Scorer:
                 "numeric or date traits"
             )
 
-    def score_token(
-        self, collection: Collection, token: Token, normalized: bool = True
-    ) -> float:
+        if collection.token_standards != [TokenStandard.ERC721]:
+            raise ValueError(
+                "OpenRarity currently does not support non-ERC721 collections"
+            )
+
+    def score_token(self, collection: Collection, token: Token) -> float:
         """Scores an individual token based on the traits distribution across
         the whole collection.
 
@@ -44,10 +48,6 @@ class Scorer:
             The collection to score from
         token : Token
             a single Token to score
-        normalized : bool, optional
-            Set to true to enable individual trait normalizations based on
-            total number of possible values for an attribute name.
-            Defaults to True.
 
         Returns
         -------
@@ -55,15 +55,10 @@ class Scorer:
             The score of the token
         """
         self.validate_collection(collection=collection)
-        return self.handler.score_token(
-            collection=collection, token=token, normalized=normalized
-        )
+        return self.handler.score_token(collection=collection, token=token)
 
     def score_tokens(
-        self,
-        collection: Collection,
-        tokens: list[Token],
-        normalized: bool = True,
+        self, collection: Collection, tokens: list[Token]
     ) -> list[float]:
         """Used if you only want to score a batch of tokens that belong to collection.
         This will typically be more efficient than calling score_token for each
@@ -75,10 +70,6 @@ class Scorer:
             The collection to score from
         tokens : list[Token]
             a batch of tokens belonging to collection to be scored
-        normalized : bool, optional
-            Set to true to enable individual trait normalizations based on
-            total number of possible values for an attribute name.
-            Defaults to True.
 
         Returns
         -------
@@ -86,23 +77,15 @@ class Scorer:
             list of scores in order of `tokens`
         """
         self.validate_collection(collection=collection)
-        return self.handler.score_tokens(
-            collection=collection, tokens=tokens, normalized=normalized
-        )
+        return self.handler.score_tokens(collection=collection, tokens=tokens)
 
-    def score_collection(
-        self, collection: Collection, normalized: bool = True
-    ) -> list[float]:
+    def score_collection(self, collection: Collection) -> list[float]:
         """Scores all tokens on collection.tokens
 
         Parameters
         ----------
         collection : Collection
             The collection to score all tokens from
-        normalized : bool, optional
-            Set to true to enable individual trait normalizations based on
-            total number of possible values for an attribute name.
-            Defaults to True.
 
         Returns
         -------
@@ -113,11 +96,10 @@ class Scorer:
         return self.handler.score_tokens(
             collection=collection,
             tokens=collection.tokens,
-            normalized=normalized,
         )
 
     def score_collections(
-        self, collections: list[Collection], normalized: bool = True
+        self, collections: list[Collection]
     ) -> list[list[float]]:
         """Scores all tokens in every collection provided.
 
@@ -125,10 +107,6 @@ class Scorer:
         ----------
         collections: list[Collection])
             The collections to score
-        normalized: bool, optional
-            Set to true to enable individual trait normalizations based on
-            total number of possible values for an attribute name.
-            Defaults to True.
 
         Returns
         -------
@@ -139,8 +117,6 @@ class Scorer:
         for collection in collections:
             self.validate_collection(collection=collection)
         return [
-            self.handler.score_tokens(
-                collection=c, tokens=c.tokens, normalized=normalized
-            )
+            self.handler.score_tokens(collection=c, tokens=c.tokens)
             for c in collections
         ]

@@ -220,7 +220,7 @@ def get_tokens_from_opensea(
                 token_identifier=EVMContractTokenIdentifier(
                     identifier_type="evm_contract",
                     contract_address=asset_contract_address,
-                    token_id=asset["token_id"],
+                    token_id=int(asset["token_id"]),
                 ),
                 token_standard=token_standard,
                 metadata=token_metadata,

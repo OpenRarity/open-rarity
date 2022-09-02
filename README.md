@@ -103,6 +103,12 @@ poetry install # install dependencies locally
 poetry run pytest # run tests
 ```
 
+Some tests are skipped by default due to it being more integration/slow tests.
+To run resolver tests:
+```
+poetry run pytest -k test_testset_resolver --run-resolvers
+```
+
 # Contributions guide and governance
 
 OpenRarity is a cross-company effort to improve rarity computation for NFTs (Non-Fungible Tokens). The core collaboration group consists of four primary contributors: Curio, icy.tools, OpenSea and Proof

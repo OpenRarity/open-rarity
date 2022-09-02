@@ -1,13 +1,15 @@
 from open_rarity import OpenRarityScorer
+from open_rarity import RarityRanker
 from open_rarity.resolver.opensea_api_helpers import (
     get_collection_from_opensea,
 )
-from open_rarity.resolver.testset_resolver import extract_rank
 
 if __name__ == "__main__":
     """This script fetches bored ape yacht club collection and token metadata
     from the Opensea API via opensea_api_helpers and scores the
     collection via OpenRarity scorer.
+
+    Command: `python -m scripts.score_real_collection`
     """
     scorer = OpenRarityScorer()
     slug = "boredapeyachtclub"
@@ -27,14 +29,28 @@ if __name__ == "__main__":
         print(f"\tToken {collection.tokens[i]} has score: {token_score}")
 
     # Convert scores to rank
-    token_id_to_rank_score = extract_rank(
-        token_id_to_scores={
-            token_id: score for token_id, score in enumerate(token_scores)
-        }
-    )
+    token_id_to_scores = {
+        str(token_id): score for token_id, score in enumerate(token_scores)
+    }
 
     # Print out ranks and scores
-    for token_id, rank_score in token_id_to_rank_score.items():
+    print("Token ID and their ranks and scores, sorted by token ID")
+    token_id_to_ranks = RarityRanker.rank_tokens(
+        token_id_to_scores=token_id_to_scores
+    )
+    for token_id in range(collection.token_total_supply):
+        token_key = str(token_id)
         print(
-            f"\tToken {token_id} has rank {rank_score[0]} score: {rank_score[1]}"
+            f"\tToken {token_id} has rank {token_id_to_ranks[token_key]} "
+            f"score: {token_id_to_scores[token_key]}"
+        )
+
+    print("Token ID and their ranks and scores, sorted by rank")
+    sorted_token_ids = sorted(
+        token_id_to_ranks.keys(), key=lambda tid: token_id_to_ranks[tid]
+    )
+    for token_id in sorted_token_ids:
+        print(
+            f"\tToken {token_id} has rank {token_id_to_ranks[token_id]} "
+            f"score: {token_id_to_scores[token_id]}"
         )

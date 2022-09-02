@@ -64,8 +64,6 @@ if __name__ == "__main__":
 
     # Generate score for a single token in a collection
     token = collection.tokens[0]  # Your token details filled in
-    token_score = scorer.score_token(
-        collection=collection, token=token, normalized=True
-    )
+    token_score = scorer.score_token(collection=collection, token=token)
 
     print(f"Token score: {token_score}")
