@@ -21,7 +21,6 @@ from open_rarity.resolver.models.collection_with_metadata import (
 )
 import httpx
 
-client = httpx.AsyncClient()
 logger = logging.getLogger("open_rarity_logger")
 
 # https://docs.opensea.io/reference/retrieving-a-single-collection
@@ -349,7 +348,7 @@ async def get_collection_from_opensea(
 
     # Fetch token metadata
     tokens: list[Token] = []
-    batch_size = 20
+    batch_size = 30
     initial_token_id = 0
 
     # Return list of lists for batched token_ids
@@ -366,7 +365,7 @@ async def get_collection_from_opensea(
 
     # We need to bound the number of awaitables to avoid hitting the OS rate limit
     sem = aio.BoundedSemaphore(4)
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=5) as client:
         tasks = [
             get_tokens_from_opensea(
                 opensea_slug=opensea_collection_slug,
