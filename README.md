@@ -37,15 +37,19 @@ You can install open rarity as a [python package](https://pypi.org/project/open-
 ```
 pip install open-rarity
 ```
+
 Please refer to the [scripts/](/scripts/) folder for an example of how to use the library.
 
 If you have downloaded the repo, you can use OpenRarity shell tool to generate json or csv outputs of OpenRarity scoring and ranks for any collections:
 ```
 python -m scripts.score_real_collections boredapeyachtclub proof-moonbirds
 ```
+
+This may also be used to generate json or csv outputs of OpenRarity scoring and ranks for any number of collections
+
+Please note that there are rate limits when fetching data. Unless you have a special Api Key it is probably best to only run one collection at a time.
+
 Read [developer documentation](https://openrarity.gitbook.io/developers/) for advanced library usage
-
-
 
 # Contributions guide and governance
 

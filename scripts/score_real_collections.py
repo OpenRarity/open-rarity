@@ -1,3 +1,4 @@
+import asyncio as aio
 import argparse
 from open_rarity import RarityRanker
 from open_rarity.models.token_rarity import TokenRarity
@@ -34,7 +35,7 @@ parser.add_argument(
 
 def score_collection_and_output_results(slug: str, output_filename: str):
     # Get collection
-    collection = get_collection_from_opensea(slug)
+    collection = aio.run(get_collection_from_opensea(slug))
     print(
         f"Created collection {slug} with {collection.token_total_supply} tokens"
     )
