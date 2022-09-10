@@ -69,17 +69,21 @@ token_score = scorer.score_token(collection=collection, token=token, normalized=
 
 In order to generate the Token and Collection, you will need to properly set the attributes distribution on the collection and the individual attributes belonging to each token. You may either have these details on hand or fetch them through an API. Example of how we do it in order to compare rarity scores across providers live in testset_resolver.py, which leverages the data returned by the opensea API (see opensea_api_helpers.py) to construct the Token and Collection object.
 
-For an actual runnable script that does this, checkout scripts/score_generated_collection.py.
+For an actual runnable demo script that does this, checkout scripts/score_generated_collection.py.
 In shell run:
 ```
 python -m scripts.score_generated_collection
 ```
 
 For a sample of how to use the existing Opensea API to fetch the collection and token
-metadata and to funnel that into the scoring library, checkout scripts/score_real_collection.
+metadata and to funnel that into the scoring library, checkout scripts/score_real_collections.
 In shell run:
 ```
-python -m scripts.score_real_collection
+python -m scripts.score_real_collections
+```
+This may also be used to generate json or csv outputs of OpenRarity scoring and ranks for any number of collections
+```
+python -m scripts.score_real_collections boredapeyachtclub proof-moonbirds
 ```
 
 
@@ -95,6 +99,15 @@ You may use the rarity resolver tool to either view ranking scores across provid
     python -m open_rarity.resolver.testset_resolver external # with external rarity resolution
     ```
 - Inspect scorring log file and csv files with ranking result
+
+Alternatively, if you just want to generate OpenRarity scoring only, and not do rank comparisons, and output to a json, you may run:
+```
+python -m scripts.score_real_collections <slugs>
+```
+Example:
+```
+python -m scripts.score_real_collections boredapeyachtclub proof-moonbirds
+```
 
 ## Running tests locally
 

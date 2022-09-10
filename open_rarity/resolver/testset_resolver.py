@@ -194,8 +194,13 @@ def resolve_collection_data(
             resolve_remote_rarity=resolve_remote_rarity,
             max_tokens_to_calculate=max_tokens_to_calculate,
         )
+        old_collection = collection_with_metadata.collection
+        collection_with_metadata.collection = Collection(
+            attributes_frequency_counts=old_collection.attributes_frequency_counts,
+            tokens=[tr.token for tr in tokens_with_rarity],
+        )
         collection = collection_with_metadata.collection
-        collection.tokens = [tr.token for tr in tokens_with_rarity]
+
         if max_tokens_to_calculate is None:
             assert collection.token_total_supply == len(tokens_with_rarity)
         else:
