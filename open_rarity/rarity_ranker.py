@@ -28,14 +28,14 @@ class RarityRanker:
         Parameters
         ----------
         collection : Collection
-            OpenRarity collection object with populated tokens
+            Collection object with populated tokens
         scorer: Scorer
-            Scorer instance that specifies the formula
+            Scorer instance
 
         Returns
         -------
         Collection
-            A collection with the populated rarity data
+            Collection with populated rarity ranks and scores
         """
 
         if (

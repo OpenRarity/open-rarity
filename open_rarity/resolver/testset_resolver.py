@@ -2,6 +2,7 @@ import csv
 import io
 import json
 import logging
+import math
 import pkgutil
 from dataclasses import dataclass
 from sys import argv
@@ -97,7 +98,7 @@ def get_tokens_with_rarity(
         max_tokens_to_calculate or collection_with_metadata.token_total_supply,
         collection_with_metadata.token_total_supply,
     )
-    num_batches = 2
+    num_batches = math.ceil(total_supply / batch_size)
     initial_token_id = 0
     tokens_with_rarity: list[TokenWithRarityData] = []
 
@@ -256,13 +257,13 @@ def augment_with_open_rarity_scores(
 
 
 def extract_rank(
-    token_to_score: dict[int, Tuple[Token, float]]
+    tokens_to_score: dict[int, Tuple[Token, float]]
 ) -> RankedTokens:
     """Sorts dictionary by float score and extract rank according to the score
 
     Parameters
     ----------
-    token_id_to_scores : dict
+    token_id_to_scores : dict[int, Tuple[Token, float]
         dictionary of token_id_to_scores with token_id to score mapping
 
     Returns
@@ -272,7 +273,7 @@ def extract_rank(
     """
     tokens: list[Token] = []
 
-    for _, tuple in token_to_score.items():
+    for _, tuple in tokens_to_score.items():
 
         tuple[0].token_rarity = TokenRarity(score=tuple[1])
         tokens.append(tuple[0])
