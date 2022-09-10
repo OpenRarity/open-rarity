@@ -1,6 +1,7 @@
 import argparse
 from open_rarity import OpenRarityScorer
 from open_rarity import RarityRanker
+from open_rarity.models.token import Token
 from open_rarity.resolver.opensea_api_helpers import (
     get_collection_from_opensea,
 )
@@ -47,25 +48,25 @@ def score_collection_and_output_results(
         f"Calculated {len(token_scores)} token scores for collection: {slug}"
     )
 
-    # Convert scores to rank
-    token_id_to_scores = {
-        str(token_id): score for token_id, score in enumerate(token_scores)
-    }
-    token_id_to_ranks = RarityRanker.rank_tokens(
-        token_id_to_scores=token_id_to_scores
+    # Print out ranks and scores
+    collection = RarityRanker.rank_collection(collection=collection)
+
+    print("Token ID and their ranks and scores, sorted by rank")
+    tokens_with_rarity = collection.tokens
+
+    sorted_tokens: list[Token] = sorted(
+        tokens_with_rarity, key=lambda t: t.token_rarity.rank
     )
 
     # Print out ranks and scores
     print("Token ID and their ranks and scores, sorted by rank")
-    sorted_token_ids = sorted(
-        token_id_to_ranks.keys(), key=lambda tid: token_id_to_ranks[tid]
-    )
     json_output = {}
     csv_rows = []
-    for token_id in sorted_token_ids:
-        rank = token_id_to_ranks[token_id]
-        score = token_id_to_scores[token_id]
-        json_output[token_id] = {"rank": rank, "score": score}
+    for token in sorted_tokens:
+        token_id = token.token_identifier.token_id
+        rank = token.token_rarity.rank
+        score = token.token_rarity.score
+        json_output[token] = {"rank": rank, "score": score}
         csv_rows.append([token_id, rank, score])
         print(f"\tToken {token_id} has rank {rank} score: {score}")
 
