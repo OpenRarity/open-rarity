@@ -39,9 +39,6 @@ class TestScorer:
             ]
         )
 
-        scores = self.scorer.score_token(collection, collection.tokens[0])
-        assert scores == 1.3186587200141973
-
         scores = self.scorer.score_collection(collection)
         assert len(scores) == 5
 
