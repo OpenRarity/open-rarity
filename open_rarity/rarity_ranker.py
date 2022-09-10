@@ -57,7 +57,7 @@ class RarityRanker:
             token.token_rarity = TokenRarity(score=scores[idx])
 
         # assign sorted tokens list to the collection object
-        collection.tokens = RarityRanker.rank_tokens(collection.tokens)
+        collection._tokens = RarityRanker.rank_tokens(collection.tokens)
 
         return collection
 

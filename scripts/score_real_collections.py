@@ -66,7 +66,7 @@ def score_collection_and_output_results(
         token_id = token.token_identifier.token_id
         rank = token.token_rarity.rank
         score = token.token_rarity.score
-        json_output[token] = {"rank": rank, "score": score}
+        json_output[token_id] = {"rank": rank, "score": score}
         csv_rows.append([token_id, rank, score])
         print(f"\tToken {token_id} has rank {rank} score: {score}")
 
