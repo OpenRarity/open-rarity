@@ -37,6 +37,7 @@ isort = "^5.10.1"
 flake8-bugbear = "^22.7.1"
 pep8-naming = "^0.13.1"
 types-requests = "^2.28.6"
+pytest-cov = "^3.0"
 
 [tool.black]
 line-length = 79

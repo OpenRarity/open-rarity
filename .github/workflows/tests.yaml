@@ -21,4 +21,4 @@ jobs:
         uses: psf/black@stable
 
       - name: Unit tests
-        run: poetry run pytest
+        run: poetry run pytest --cov-config=.coveragerc --cov=open_rarity tests/
