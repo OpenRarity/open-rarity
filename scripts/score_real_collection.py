@@ -1,4 +1,3 @@
-from open_rarity import OpenRarityScorer
 from open_rarity import RarityRanker
 from open_rarity.models.token import Token
 from open_rarity.resolver.opensea_api_helpers import (
@@ -12,7 +11,6 @@ if __name__ == "__main__":
 
     Command: `python -m scripts.score_real_collection`
     """
-    scorer = OpenRarityScorer()
     slug = "boredapeyachtclub"
 
     # Get collection
