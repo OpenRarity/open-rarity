@@ -2,15 +2,16 @@ import csv
 import io
 import json
 import logging
-import math
 import pkgutil
 from dataclasses import dataclass
 from sys import argv
 from time import process_time, strftime
+from typing import Tuple
 
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
 from open_rarity.models.token_identifier import EVMContractTokenIdentifier
+from open_rarity.models.token_rarity import TokenRarity
 from open_rarity.rarity_ranker import RarityRanker
 from open_rarity.resolver.models.collection_with_metadata import (
     CollectionWithMetadata,
@@ -96,7 +97,7 @@ def get_tokens_with_rarity(
         max_tokens_to_calculate or collection_with_metadata.token_total_supply,
         collection_with_metadata.token_total_supply,
     )
-    num_batches = math.ceil(total_supply / batch_size)
+    num_batches = 2
     initial_token_id = 0
     tokens_with_rarity: list[TokenWithRarityData] = []
 
@@ -254,7 +255,9 @@ def augment_with_open_rarity_scores(
         )
 
 
-def extract_rank(token_id_to_scores: dict[str, float]) -> RankedTokens:
+def extract_rank(
+    token_to_score: dict[int, Tuple[Token, float]]
+) -> RankedTokens:
     """Sorts dictionary by float score and extract rank according to the score
 
     Parameters
@@ -267,15 +270,20 @@ def extract_rank(token_id_to_scores: dict[str, float]) -> RankedTokens:
     dict[int, RankScore]
         dictionary of token to rank, score pair
     """
-    token_id_to_ranks = RarityRanker.rank_tokens(
-        token_id_to_scores=token_id_to_scores
-    )
+    tokens: list[Token] = []
+
+    for _, tuple in token_to_score.items():
+
+        tuple[0].token_rarity = TokenRarity(score=tuple[1])
+        tokens.append(tuple[0])
+
+    ranked_tokens: list[Token] = RarityRanker.rank_tokens(tokens=tokens)
     return {
-        int(token_id): (
-            token_id_to_ranks[token_id],
-            token_id_to_scores[token_id],
+        int(token.token_identifier.token_id): (
+            token.token_rarity.rank,
+            token.token_rarity.score,
         )
-        for token_id in token_id_to_scores.keys()
+        for token in ranked_tokens
     }
 
 
@@ -309,20 +317,31 @@ def resolve_open_rarity_score(
         token_id = str(token_identifier.token_id)
 
         try:
-            harmonic_dict[token_id] = harmonic_handler.score_token(
-                collection=collection, token=token
+            harmonic_dict[token_id] = (
+                token,
+                harmonic_handler.score_token(
+                    collection=collection, token=token
+                ),
             )
-            arthimetic_dict[token_id] = arithmetic_handler.score_token(
-                collection=collection, token=token
+            arthimetic_dict[token_id] = (
+                token,
+                arithmetic_handler.score_token(
+                    collection=collection, token=token
+                ),
             )
-            geometric_dict[token_id] = geometric_handler.score_token(
-                collection=collection, token=token
+            geometric_dict[token_id] = (
+                token,
+                geometric_handler.score_token(
+                    collection=collection, token=token
+                ),
             )
-            sum_dict[token_id] = sum_handler.score_token(
-                collection=collection, token=token
+            sum_dict[token_id] = (
+                token,
+                sum_handler.score_token(collection=collection, token=token),
             )
-            ic_dict[token_id] = ic_handler.score_token(
-                collection=collection, token=token
+            ic_dict[token_id] = (
+                token,
+                ic_handler.score_token(collection=collection, token=token),
             )
 
         except Exception:

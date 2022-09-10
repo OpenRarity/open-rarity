@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from open_rarity.models.token_rarity import TokenRarity
 
 from open_rarity.models.token_identifier import TokenIdentifier
 from open_rarity.models.token_metadata import TokenMetadata
@@ -19,11 +20,14 @@ class Token:
         name of token standard (e.g. EIP-721 or EIP-1155)
     metadata: TokenMetadata
         contains the metadata of this specific token
+    token_rarity: TokenRarity
+        rarity data for the specific token
     """
 
     token_identifier: TokenIdentifier
     token_standard: TokenStandard
     metadata: TokenMetadata
+    token_rarity: TokenRarity | None = None
 
     def __str__(self):
         return f"Token[{self.token_identifier}]"

@@ -1,5 +1,6 @@
 from open_rarity import OpenRarityScorer
 from open_rarity import RarityRanker
+from open_rarity.models.token import Token
 from open_rarity.resolver.opensea_api_helpers import (
     get_collection_from_opensea,
 )
@@ -18,39 +19,19 @@ if __name__ == "__main__":
     collection = get_collection_from_opensea(slug)
     print(f"Created collection with {collection.token_total_supply} tokens")
 
-    # Score the entire collection
-    token_scores = scorer.score_collection(collection=collection)
-    print(
-        f"Calculated {len(token_scores)} token scores for collection: {slug}"
-    )
-
-    # Print out scores
-    for i, token_score in enumerate(token_scores):
-        print(f"\tToken {collection.tokens[i]} has score: {token_score}")
-
-    # Convert scores to rank
-    token_id_to_scores = {
-        str(token_id): score for token_id, score in enumerate(token_scores)
-    }
-
     # Print out ranks and scores
-    print("Token ID and their ranks and scores, sorted by token ID")
-    token_id_to_ranks = RarityRanker.rank_tokens(
-        token_id_to_scores=token_id_to_scores
-    )
-    for token_id in range(collection.token_total_supply):
-        token_key = str(token_id)
-        print(
-            f"\tToken {token_id} has rank {token_id_to_ranks[token_key]} "
-            f"score: {token_id_to_scores[token_key]}"
-        )
+    token_id_to_ranks = RarityRanker.rank_collection(collection=collection)
 
     print("Token ID and their ranks and scores, sorted by rank")
-    sorted_token_ids = sorted(
-        token_id_to_ranks.keys(), key=lambda tid: token_id_to_ranks[tid]
+    tokens_with_rarity = collection.tokens
+
+    sorted_tokens: list[Token] = sorted(
+        tokens_with_rarity, key=lambda t: t.token_rarity.rank
     )
-    for token_id in sorted_token_ids:
+
+    for token in sorted_tokens:
         print(
-            f"\tToken {token_id} has rank {token_id_to_ranks[token_id]} "
-            f"score: {token_id_to_scores[token_id]}"
+            f"\tToken {token.token_identifier.token_id}"
+            f"rank: {token.token_rarity.rank} "
+            f"score: {token.token_rarity.score}"
         )
