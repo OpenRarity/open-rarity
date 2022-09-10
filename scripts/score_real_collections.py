@@ -1,7 +1,5 @@
 import argparse
-from open_rarity import OpenRarityScorer
 from open_rarity import RarityRanker
-from open_rarity.models.token import Token
 from open_rarity.resolver.opensea_api_helpers import (
     get_collection_from_opensea,
 )
@@ -33,30 +31,17 @@ parser.add_argument(
 )
 
 
-def score_collection_and_output_results(
-    scorer: OpenRarityScorer, slug: str, output_filename: str
-):
+def score_collection_and_output_results(slug: str, output_filename: str):
     # Get collection
     collection = get_collection_from_opensea(slug)
     print(
         f"Created collection {slug} with {collection.token_total_supply} tokens"
     )
 
-    # Score the entire collection
-    token_scores = scorer.score_collection(collection=collection)
-    print(
-        f"Calculated {len(token_scores)} token scores for collection: {slug}"
-    )
-
     # Print out ranks and scores
-    collection = RarityRanker.rank_collection(collection=collection)
+    sorted_tokens = RarityRanker.rank_collection(collection=collection).tokens
 
     print("Token ID and their ranks and scores, sorted by rank")
-    tokens_with_rarity = collection.tokens
-
-    sorted_tokens: list[Token] = sorted(
-        tokens_with_rarity, key=lambda t: t.token_rarity.rank
-    )
 
     # Print out ranks and scores
     print("Token ID and their ranks and scores, sorted by rank")
@@ -118,13 +103,11 @@ if __name__ == "__main__":
         f"Output file prefix: {args.filename_prefix} with type {args.filetype}"
     )
 
-    scorer = OpenRarityScorer()
     files = []
     for slug in args.slugs:
         output_filename = f"{args.filename_prefix}_{slug}.{args.filetype}"
         print(f"Generating results for: {slug}")
         score_collection_and_output_results(
-            scorer=scorer,
             slug=slug,
             output_filename=output_filename,
         )
