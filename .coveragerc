@@ -1,0 +1,4 @@
+[run]
+omit = tests/*
+       # exclude resolver from coverage
+       open_rarity/resolver/*

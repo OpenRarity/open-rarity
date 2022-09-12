@@ -29,3 +29,6 @@ MANIFEST
 
 # Log files
 *.log
+
+# Test Coverage report
+.coverage
