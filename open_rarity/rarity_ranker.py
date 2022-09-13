@@ -57,10 +57,12 @@ class RarityRanker:
         for idx, token in enumerate(tokens):
             token_rarities.append(TokenRarity(token=token, score=scores[idx]))
 
-        return RarityRanker.rank_tokens(token_rarities)
+        return RarityRanker.set_rarity_ranks(token_rarities)
 
     @staticmethod
-    def rank_tokens(token_rarities: list[TokenRarity]) -> list[TokenRarity]:
+    def set_rarity_ranks(
+        token_rarities: list[TokenRarity],
+    ) -> list[TokenRarity]:
         """Ranks a set of tokens Scores that are higher indicate a higher rarity,
         and thus a lower rank.
         Tokens with the same score will be assigned the same rank, e.g. we use RANK

@@ -273,7 +273,7 @@ def extract_rank(tokens_to_score: dict[int, TokenRarity]) -> RankedTokens:
     dict[int, RankScore]
         dictionary of token to rank, score pair
     """
-    ranked_tokens: list[TokenRarity] = RarityRanker.rank_tokens(
+    ranked_tokens: list[TokenRarity] = RarityRanker.set_rarity_ranks(
         token_rarities=tokens_to_score.values()
     )
     return {
