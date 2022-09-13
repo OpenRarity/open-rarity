@@ -19,8 +19,6 @@ class Token:
         name of token standard (e.g. EIP-721 or EIP-1155)
     metadata: TokenMetadata
         contains the metadata of this specific token
-    token_rarity: TokenRarity
-        rarity data for the specific token
     """
 
     token_identifier: TokenIdentifier
