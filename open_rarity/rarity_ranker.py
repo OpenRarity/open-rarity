@@ -34,8 +34,8 @@ class RarityRanker:
 
         Returns
         -------
-        Collection
-            Collection with populated rarity ranks and scores
+        list[TokenRarity]
+            list of TokenRarity objects with score, rank and token information
         """
 
         if (
@@ -72,12 +72,13 @@ class RarityRanker:
 
         Parameters
         ----------
-        tokens : list[Token]
+        tokens : list[TokenRarity]
             unordered list of tokens with rarity score information
 
         Returns
         -------
-        tokens: list[Token]
+        tokens: list[TokenRarity]
+            list of tokens with rarity scores sorted by rank
 
         """
         sorted_tokens_by_score: list[TokenRarity] = sorted(
