@@ -14,13 +14,12 @@ class TestRarityRanker:
             [{"trait1": "value1"}]  # Token 0
         )
 
-        ranked_collection: Collection = RarityRanker.rank_collection(
+        tokens: list[TokenRarity] = RarityRanker.rank_collection(
             collection=test_collection
         )
 
-        assert ranked_collection.tokens[0].token_rarity == TokenRarity(
-            score=0, rank=1
-        )
+        assert tokens[0].score == 0
+        assert tokens[0].rank == 1
 
     def test_rarity_ranker_unique_scores(self) -> None:
 
@@ -36,26 +35,21 @@ class TestRarityRanker:
             ]
         )
 
-        ranked_collection: Collection = RarityRanker.rank_collection(
+        tokens: list[TokenRarity] = RarityRanker.rank_collection(
             collection=test_collection
         )
 
-        tokens = ranked_collection.tokens
+        assert tokens[0].token.token_identifier.token_id == 2
+        assert tokens[0].score == 1.3629912289393598
+        assert tokens[0].rank == 1
 
-        assert tokens[0].token_identifier.token_id == 2
-        assert tokens[0].token_rarity == TokenRarity(
-            score=1.3629912289393598, rank=1
-        )
+        assert tokens[1].token.token_identifier.token_id == 0
+        assert tokens[1].score == 1.0000000000000002
+        assert tokens[1].rank == 2
 
-        assert tokens[1].token_identifier.token_id == 0
-        assert tokens[1].token_rarity == TokenRarity(
-            score=1.0000000000000002, rank=2
-        )
-
-        assert tokens[2].token_identifier.token_id == 1
-        assert tokens[2].token_rarity == TokenRarity(
-            score=0.6370087710606406, rank=3
-        )
+        assert tokens[2].token.token_identifier.token_id == 1
+        assert tokens[2].score == 0.6370087710606406
+        assert tokens[2].rank == 3
 
     def test_rarity_ranker_same_scores(self) -> None:
         test_collection: Collection = generate_collection_with_token_traits(
@@ -88,43 +82,26 @@ class TestRarityRanker:
             ]
         )
 
-        ranked_collection: Collection = RarityRanker.rank_collection(
+        tokens: list[TokenRarity] = RarityRanker.rank_collection(
             collection=test_collection
         )
 
-        tokens = ranked_collection.tokens
-        print(
-            [
-                (
-                    t.token_identifier.token_id,
-                    t.token_rarity.score,
-                    t.token_rarity.rank,
-                )
-                for t in ranked_collection.tokens
-            ]
-        )
+        assert tokens[0].token.token_identifier.token_id == 4
+        assert tokens[0].score == 1.3926137488801251
+        assert tokens[0].rank == 1
 
-        assert tokens[0].token_identifier.token_id == 4
-        assert tokens[0].token_rarity == TokenRarity(
-            score=1.3926137488801251, rank=1
-        )
+        assert tokens[1].token.token_identifier.token_id == 3
+        assert tokens[1].score == 1.1338031424711967
+        assert tokens[1].rank == 2
 
-        assert tokens[1].token_identifier.token_id == 3
-        assert tokens[1].token_rarity == TokenRarity(
-            score=1.1338031424711967, rank=2
-        )
+        assert tokens[2].token.token_identifier.token_id == 0
+        assert tokens[2].score == 0.8749925360622679
+        assert tokens[2].rank == 3
 
-        assert tokens[2].token_identifier.token_id == 0
-        assert tokens[2].token_rarity == TokenRarity(
-            score=0.8749925360622679, rank=3
-        )
+        assert tokens[3].token.token_identifier.token_id == 1
+        assert tokens[3].score == 0.8749925360622679
+        assert tokens[3].rank == 3
 
-        assert tokens[3].token_identifier.token_id == 1
-        assert tokens[3].token_rarity == TokenRarity(
-            score=0.8749925360622679, rank=3
-        )
-
-        assert tokens[4].token_identifier.token_id == 2
-        assert tokens[4].token_rarity == TokenRarity(
-            score=0.7235980365241422, rank=5
-        )
+        assert tokens[4].token.token_identifier.token_id == 2
+        assert tokens[4].score == 0.7235980365241422
+        assert tokens[4].rank == 5

@@ -1,5 +1,6 @@
 import argparse
 from open_rarity import RarityRanker
+from open_rarity.models.token_rarity import TokenRarity
 from open_rarity.resolver.opensea_api_helpers import (
     get_collection_from_opensea,
 )
@@ -39,7 +40,9 @@ def score_collection_and_output_results(slug: str, output_filename: str):
     )
 
     # Print out ranks and scores
-    sorted_tokens = RarityRanker.rank_collection(collection=collection).tokens
+    sorted_tokens: list[TokenRarity] = RarityRanker.rank_collection(
+        collection=collection
+    )
 
     print("Token ID and their ranks and scores, sorted by rank")
 
@@ -47,10 +50,10 @@ def score_collection_and_output_results(slug: str, output_filename: str):
     print("Token ID and their ranks and scores, sorted by rank")
     json_output = {}
     csv_rows = []
-    for token in sorted_tokens:
-        token_id = token.token_identifier.token_id
-        rank = token.token_rarity.rank
-        score = token.token_rarity.score
+    for rarity_token in sorted_tokens:
+        token_id = rarity_token.token.token_identifier.token_id
+        rank = rarity_token.rank
+        score = rarity_token.score
         json_output[token_id] = {"rank": rank, "score": score}
         csv_rows.append([token_id, rank, score])
         print(f"\tToken {token_id} has rank {rank} score: {score}")

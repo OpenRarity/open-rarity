@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from open_rarity.models.token_rarity import TokenRarity
 
 from open_rarity.models.token_identifier import TokenIdentifier
 from open_rarity.models.token_metadata import TokenMetadata
@@ -27,7 +26,6 @@ class Token:
     token_identifier: TokenIdentifier
     token_standard: TokenStandard
     metadata: TokenMetadata
-    token_rarity: TokenRarity | None = None
 
     def __str__(self):
         return f"Token[{self.token_identifier}]"
