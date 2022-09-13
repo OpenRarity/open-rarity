@@ -5,7 +5,7 @@ from open_rarity.models.token import Token
 
 @dataclass
 class TokenRarity:
-    """The class holds rarity and rank information along with the token
+    """The class holds rarity and optional rank information along with the token
 
     Attributes
     ----------

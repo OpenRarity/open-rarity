@@ -6,7 +6,15 @@ from tests.helpers import generate_collection_with_token_traits
 
 class TestRarityRanker:
     def test_rarity_ranker_empty_collection(self) -> None:
-        assert RarityRanker.rank_collection(collection=None) is None
+        assert RarityRanker.rank_collection(collection=None) == []
+        assert (
+            RarityRanker.rank_collection(
+                collection=Collection(
+                    attributes_frequency_counts={}, tokens=[]
+                )
+            )
+            == []
+        )
 
     def test_rarity_ranker_one_item(self) -> None:
 

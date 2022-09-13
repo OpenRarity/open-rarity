@@ -36,6 +36,7 @@ class RarityRanker:
         -------
         list[TokenRarity]
             list of TokenRarity objects with score, rank and token information
+            sorted by rank
         """
 
         if (
@@ -43,7 +44,7 @@ class RarityRanker:
             or collection.tokens is None
             or len(collection.tokens) == 0
         ):
-            return collection
+            return []
 
         tokens = collection.tokens
         scores: list[float] = scorer.score_tokens(collection, tokens=tokens)
@@ -51,17 +52,15 @@ class RarityRanker:
         # fail ranking if dimension of scores doesn't match dimension of tokens
         assert len(tokens) == len(scores)
 
-        token_rarity_list: list[TokenRarity] = []
-        # augment collection tokes with score information
+        token_rarities: list[TokenRarity] = []
+        # augment collection tokens with score information
         for idx, token in enumerate(tokens):
-            token_rarity_list.append(
-                TokenRarity(token=token, score=scores[idx])
-            )
+            token_rarities.append(TokenRarity(token=token, score=scores[idx]))
 
-        return RarityRanker.rank_tokens(token_rarity_list)
+        return RarityRanker.rank_tokens(token_rarities)
 
     @staticmethod
-    def rank_tokens(tokens: list[TokenRarity]) -> list[TokenRarity]:
+    def rank_tokens(token_rarities: list[TokenRarity]) -> list[TokenRarity]:
         """Ranks a set of tokens Scores that are higher indicate a higher rarity,
         and thus a lower rank.
         Tokens with the same score will be assigned the same rank, e.g. we use RANK
@@ -81,21 +80,21 @@ class RarityRanker:
             list of tokens with rarity scores sorted by rank
 
         """
-        sorted_tokens_by_score: list[TokenRarity] = sorted(
-            tokens,
+        sorted_token_rarities: list[TokenRarity] = sorted(
+            token_rarities,
             key=lambda k: k.score,
             reverse=True,
         )
 
         # perform ranking of each token in collection
-        for i, token in enumerate(sorted_tokens_by_score):
+        for i, token in enumerate(sorted_token_rarities):
             rank = i + 1
             if i > 0:
-                prev_token = sorted_tokens_by_score[i - 1]
+                prev_token = sorted_token_rarities[i - 1]
                 scores_equal = math.isclose(token.score, prev_token.score)
                 if scores_equal:
                     rank = prev_token.rank
 
             token.rank = rank
 
-        return sorted_tokens_by_score
+        return sorted_token_rarities
