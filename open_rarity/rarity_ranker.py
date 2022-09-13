@@ -73,13 +73,13 @@ class RarityRanker:
 
         Parameters
         ----------
-        tokens : list[TokenRarity]
+        token_rarities : list[TokenRarity]
             unordered list of tokens with rarity score
             information that should have the ranks set on
 
         Returns
         -------
-        tokens: list[TokenRarity]
+        list[TokenRarity]
             modified input token_rarities with ranking data set,
             ordered by rank ascending and score descending
 
