@@ -39,12 +39,10 @@ def score_collection_and_output_results(slug: str, output_filename: str):
         f"Created collection {slug} with {collection.token_total_supply} tokens"
     )
 
-    # Print out ranks and scores
+    # Score, rank  and sort ascending by token rarity rank
     sorted_token_rarities: list[TokenRarity] = RarityRanker.rank_collection(
         collection=collection
     )
-
-    print("Token ID and their ranks and scores, sorted by rank")
 
     # Print out ranks and scores
     print("Token ID and their ranks and scores, sorted by rank")
