@@ -40,7 +40,7 @@ def score_collection_and_output_results(slug: str, output_filename: str):
     )
 
     # Print out ranks and scores
-    sorted_tokens: list[TokenRarity] = RarityRanker.rank_collection(
+    sorted_token_rarities: list[TokenRarity] = RarityRanker.rank_collection(
         collection=collection
     )
 
@@ -50,7 +50,7 @@ def score_collection_and_output_results(slug: str, output_filename: str):
     print("Token ID and their ranks and scores, sorted by rank")
     json_output = {}
     csv_rows = []
-    for rarity_token in sorted_tokens:
+    for rarity_token in sorted_token_rarities:
         token_id = rarity_token.token.token_identifier.token_id
         rank = rarity_token.rank
         score = rarity_token.score
