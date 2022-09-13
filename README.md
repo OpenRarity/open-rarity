@@ -91,7 +91,6 @@ python -m scripts.score_real_collections boredapeyachtclub proof-moonbirds
 You may use the rarity resolver tool to either view ranking scores across providers, or to debug any collections scoring. Follow these steps to score the collection with the tool (by calling OpenSea API):
 
 - Curate the <a href="https://github.com/ProjectOpenSea/open-rarity/blob/main/open_rarity/data/test_collections.json" title=“Collections>collections list </a> you want to score with OpenRarity
-- Provide your <a href="https://github.com/ProjectOpenSea/open-rarity/blob/main/open_rarity/resolver/opensea_api_helpers.py#L20"> OpenSea API Key </a>
 - Run scoring for these collections with the following command:
 
     ```python
