@@ -1,6 +1,6 @@
 import argparse
-from open_rarity import OpenRarityScorer
 from open_rarity import RarityRanker
+from open_rarity.models.token_rarity import TokenRarity
 from open_rarity.resolver.opensea_api_helpers import (
     get_collection_from_opensea,
 )
@@ -32,39 +32,28 @@ parser.add_argument(
 )
 
 
-def score_collection_and_output_results(
-    scorer: OpenRarityScorer, slug: str, output_filename: str
-):
+def score_collection_and_output_results(slug: str, output_filename: str):
     # Get collection
     collection = get_collection_from_opensea(slug)
     print(
         f"Created collection {slug} with {collection.token_total_supply} tokens"
     )
 
-    # Score the entire collection
-    token_scores = scorer.score_collection(collection=collection)
-    print(
-        f"Calculated {len(token_scores)} token scores for collection: {slug}"
+    # Print out ranks and scores
+    sorted_token_rarities: list[TokenRarity] = RarityRanker.rank_collection(
+        collection=collection
     )
 
-    # Convert scores to rank
-    token_id_to_scores = {
-        str(token_id): score for token_id, score in enumerate(token_scores)
-    }
-    token_id_to_ranks = RarityRanker.rank_tokens(
-        token_id_to_scores=token_id_to_scores
-    )
+    print("Token ID and their ranks and scores, sorted by rank")
 
     # Print out ranks and scores
     print("Token ID and their ranks and scores, sorted by rank")
-    sorted_token_ids = sorted(
-        token_id_to_ranks.keys(), key=lambda tid: token_id_to_ranks[tid]
-    )
     json_output = {}
     csv_rows = []
-    for token_id in sorted_token_ids:
-        rank = token_id_to_ranks[token_id]
-        score = token_id_to_scores[token_id]
+    for rarity_token in sorted_token_rarities:
+        token_id = rarity_token.token.token_identifier.token_id
+        rank = rarity_token.rank
+        score = rarity_token.score
         json_output[token_id] = {"rank": rank, "score": score}
         csv_rows.append([token_id, rank, score])
         print(f"\tToken {token_id} has rank {rank} score: {score}")
@@ -117,13 +106,11 @@ if __name__ == "__main__":
         f"Output file prefix: {args.filename_prefix} with type {args.filetype}"
     )
 
-    scorer = OpenRarityScorer()
     files = []
     for slug in args.slugs:
         output_filename = f"{args.filename_prefix}_{slug}.{args.filetype}"
         print(f"Generating results for: {slug}")
         score_collection_and_output_results(
-            scorer=scorer,
             slug=slug,
             output_filename=output_filename,
         )

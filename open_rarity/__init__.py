@@ -5,6 +5,7 @@ from .models import (
     Token,
     TokenMetadata,
     TokenStandard,
+    TokenRarity,
 )
 from .scoring import Scorer as OpenRarityScorer
 from .rarity_ranker import RarityRanker

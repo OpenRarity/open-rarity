@@ -11,6 +11,7 @@ from time import process_time, strftime
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
 from open_rarity.models.token_identifier import EVMContractTokenIdentifier
+from open_rarity.models.token_rarity import TokenRarity
 from open_rarity.rarity_ranker import RarityRanker
 from open_rarity.resolver.models.collection_with_metadata import (
     CollectionWithMetadata,
@@ -259,12 +260,12 @@ def augment_with_open_rarity_scores(
         )
 
 
-def extract_rank(token_id_to_scores: dict[str, float]) -> RankedTokens:
+def extract_rank(tokens_to_score: dict[int, TokenRarity]) -> RankedTokens:
     """Sorts dictionary by float score and extract rank according to the score
 
     Parameters
     ----------
-    token_id_to_scores : dict
+    token_id_to_scores : dict[int, TokenRarity]
         dictionary of token_id_to_scores with token_id to score mapping
 
     Returns
@@ -272,15 +273,15 @@ def extract_rank(token_id_to_scores: dict[str, float]) -> RankedTokens:
     dict[int, RankScore]
         dictionary of token to rank, score pair
     """
-    token_id_to_ranks = RarityRanker.rank_tokens(
-        token_id_to_scores=token_id_to_scores
+    ranked_tokens: list[TokenRarity] = RarityRanker.set_rarity_ranks(
+        token_rarities=tokens_to_score.values()
     )
     return {
-        int(token_id): (
-            token_id_to_ranks[token_id],
-            token_id_to_scores[token_id],
+        int(token.token.token_identifier.token_id): (
+            token.rank,
+            token.score,
         )
-        for token_id in token_id_to_scores.keys()
+        for token in ranked_tokens
     }
 
 
@@ -299,12 +300,12 @@ def resolve_open_rarity_score(
     """
     t1_start = process_time()
 
-    # Dictionaries of token IDs to their respective scores for each strategy
-    arthimetic_dict: dict[str, float] = {}
-    geometric_dict: dict[str, float] = {}
-    harmonic_dict: dict[str, float] = {}
-    sum_dict: dict[str, float] = {}
-    ic_dict: dict[str, float] = {}
+    # Dictionaries of token IDs to their respective TokenRarity for each strategy
+    arthimetic_dict: dict[str, TokenRarity] = {}
+    geometric_dict: dict[str, TokenRarity] = {}
+    harmonic_dict: dict[str, TokenRarity] = {}
+    sum_dict: dict[str, TokenRarity] = {}
+    ic_dict: dict[str, TokenRarity] = {}
 
     logger.debug("OpenRarity scoring")
 
@@ -314,20 +315,35 @@ def resolve_open_rarity_score(
         token_id = str(token_identifier.token_id)
 
         try:
-            harmonic_dict[token_id] = harmonic_handler.score_token(
-                collection=collection, token=token
+            harmonic_dict[token_id] = TokenRarity(
+                token=token,
+                score=harmonic_handler.score_token(
+                    collection=collection, token=token
+                ),
             )
-            arthimetic_dict[token_id] = arithmetic_handler.score_token(
-                collection=collection, token=token
+            arthimetic_dict[token_id] = TokenRarity(
+                token=token,
+                score=arithmetic_handler.score_token(
+                    collection=collection, token=token
+                ),
             )
-            geometric_dict[token_id] = geometric_handler.score_token(
-                collection=collection, token=token
+            geometric_dict[token_id] = TokenRarity(
+                token=token,
+                score=geometric_handler.score_token(
+                    collection=collection, token=token
+                ),
             )
-            sum_dict[token_id] = sum_handler.score_token(
-                collection=collection, token=token
+            sum_dict[token_id] = TokenRarity(
+                token=token,
+                score=sum_handler.score_token(
+                    collection=collection, token=token
+                ),
             )
-            ic_dict[token_id] = ic_handler.score_token(
-                collection=collection, token=token
+            ic_dict[token_id] = TokenRarity(
+                token=token,
+                score=ic_handler.score_token(
+                    collection=collection, token=token
+                ),
             )
 
         except Exception:

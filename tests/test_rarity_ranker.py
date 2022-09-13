@@ -1,64 +1,115 @@
+from open_rarity.models.collection import Collection
+from open_rarity.models.token_rarity import TokenRarity
 from open_rarity.rarity_ranker import RarityRanker
+from tests.helpers import generate_collection_with_token_traits
 
 
 class TestRarityRanker:
-    def test_rarity_ranker_empty(self) -> None:
-        assert RarityRanker.rank_tokens(token_id_to_scores={}) == {}
+    def test_rarity_ranker_empty_collection(self) -> None:
+        assert RarityRanker.rank_collection(collection=None) == []
+        assert (
+            RarityRanker.rank_collection(
+                collection=Collection(
+                    attributes_frequency_counts={}, tokens=[]
+                )
+            )
+            == []
+        )
 
     def test_rarity_ranker_one_item(self) -> None:
-        assert RarityRanker.rank_tokens(
-            token_id_to_scores={"Cat #10": 38492.1203}
-        ) == {"Cat #10": 1}
+
+        test_collection: Collection = generate_collection_with_token_traits(
+            [{"trait1": "value1"}]  # Token 0
+        )
+
+        tokens: list[TokenRarity] = RarityRanker.rank_collection(
+            collection=test_collection
+        )
+
+        assert tokens[0].score == 0
+        assert tokens[0].rank == 1
 
     def test_rarity_ranker_unique_scores(self) -> None:
-        token_ids_to_ranks = RarityRanker.rank_tokens(
-            token_id_to_scores={
-                "BAYC #1": 1239.120304,
-                "BAYC #2": 1239.120302,
-                "BAYC #3": 629.03948,
-                "BAYC #4": 8038.302340,
-            }
+
+        test_collection: Collection = generate_collection_with_token_traits(
+            [
+                {"trait1": "value1", "trait2": "value1"},  # Token 0
+                {"trait1": "value1", "trait2": "value2"},  # Token 1
+                {
+                    "trait1": "value2",
+                    "trait2": "value2",
+                    "trait3": " value3",
+                },  # Token 3
+            ]
         )
-        assert len(token_ids_to_ranks) == 4
-        assert token_ids_to_ranks["BAYC #4"] == 1
-        assert token_ids_to_ranks["BAYC #1"] == 2
-        assert token_ids_to_ranks["BAYC #2"] == 3
-        assert token_ids_to_ranks["BAYC #3"] == 4
+
+        tokens: list[TokenRarity] = RarityRanker.rank_collection(
+            collection=test_collection
+        )
+
+        assert tokens[0].token.token_identifier.token_id == 2
+        assert tokens[0].score == 1.3629912289393598
+        assert tokens[0].rank == 1
+
+        assert tokens[1].token.token_identifier.token_id == 0
+        assert tokens[1].score == 1.0000000000000002
+        assert tokens[1].rank == 2
+
+        assert tokens[2].token.token_identifier.token_id == 1
+        assert tokens[2].score == 0.6370087710606406
+        assert tokens[2].rank == 3
 
     def test_rarity_ranker_same_scores(self) -> None:
-        token_ids_to_ranks = RarityRanker.rank_tokens(
-            token_id_to_scores={
-                "BAYC #4": 8038.302340,
-                "BAYC #2": 3049.30340,
-                "BAYC #6": 1239.1203061,
-                "BAYC #7": 1239.1203048,
-                "BAYC #5": 1239.1203041,
-                "BAYC #1": 1239.120304023,
-                "BAYC #9": 1239.120303023,
-                "BAYC #8": 1239.12,
-                "BAYC #3": 629.03948,
-                "BAYC #10": 1.120303023,
-                "BAYC #11": 1.120303022,
-                "BAYC #12": 1.120303020,
-                "BAYC #13": 0.1203030203,
-                "BAYC #14": 0.1203030202,
-                "BAYC #15": 0.1203030200,
-            }
+        test_collection: Collection = generate_collection_with_token_traits(
+            [
+                {
+                    "trait1": "value1",
+                    "trait2": "value1",
+                    "trait3": "value1",
+                },  # 0
+                {
+                    "trait1": "value1",
+                    "trait2": "value1",
+                    "trait3": "value1",
+                },  # 1
+                {
+                    "trait1": "value2",
+                    "trait2": "value1",
+                    "trait3": "value3",
+                },  # 2
+                {
+                    "trait1": "value2",
+                    "trait2": "value2",
+                    "trait3": "value3",
+                },  # 3
+                {
+                    "trait1": "value3",
+                    "trait2": "value3",
+                    "trait3": "value3",
+                },  # 4
+            ]
         )
-        print(token_ids_to_ranks)
-        assert len(token_ids_to_ranks) == 15
-        assert token_ids_to_ranks["BAYC #4"] == 1
-        assert token_ids_to_ranks["BAYC #2"] == 2
-        assert token_ids_to_ranks["BAYC #6"] == 3
-        assert token_ids_to_ranks["BAYC #7"] == 4
-        assert token_ids_to_ranks["BAYC #5"] == 4
-        assert token_ids_to_ranks["BAYC #1"] == 4
-        assert token_ids_to_ranks["BAYC #9"] == 4
-        assert token_ids_to_ranks["BAYC #8"] == 8
-        assert token_ids_to_ranks["BAYC #3"] == 9
-        assert token_ids_to_ranks["BAYC #10"] == 10
-        assert token_ids_to_ranks["BAYC #11"] == 10
-        assert token_ids_to_ranks["BAYC #12"] == 12
-        assert token_ids_to_ranks["BAYC #13"] == 13
-        assert token_ids_to_ranks["BAYC #14"] == 13
-        assert token_ids_to_ranks["BAYC #15"] == 15
+
+        tokens: list[TokenRarity] = RarityRanker.rank_collection(
+            collection=test_collection
+        )
+
+        assert tokens[0].token.token_identifier.token_id == 4
+        assert tokens[0].score == 1.3926137488801251
+        assert tokens[0].rank == 1
+
+        assert tokens[1].token.token_identifier.token_id == 3
+        assert tokens[1].score == 1.1338031424711967
+        assert tokens[1].rank == 2
+
+        assert tokens[2].token.token_identifier.token_id == 0
+        assert tokens[2].score == 0.8749925360622679
+        assert tokens[2].rank == 3
+
+        assert tokens[3].token.token_identifier.token_id == 1
+        assert tokens[3].score == 0.8749925360622679
+        assert tokens[3].rank == 3
+
+        assert tokens[4].token.token_identifier.token_id == 2
+        assert tokens[4].score == 0.7235980365241422
+        assert tokens[4].rank == 5

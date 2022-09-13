@@ -76,7 +76,10 @@ class InformationContentScoringHandler:
                 collection=collection,
                 token=t,
                 collection_null_attributes=collection_null_attributes,
-                collection_entropy_normalization=collection_entropy,
+                # covering the corner case when collection has one item.
+                collection_entropy_normalization=collection_entropy
+                if collection_entropy
+                else 1,
             )
             for t in tokens
         ]
