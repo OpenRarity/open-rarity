@@ -31,7 +31,14 @@ poetry run pytest -k test_testset_resolver --run-resolvers
 ```
 
 # Library usage
-You can use OpenRarity shell tool to generate json or csv outputs of OpenRarity scoring and ranks for any collections
+You can install open rarity as a [python package](https://pypi.org/project/open-rarity/)
+```
+pip install open-rarity
+```
+and directly use the models and rankers. Example of how to use the library lives in the scripts/ folder.
+
+If you already have the repo downloaded, you can use OpenRarity shell tool to generate json or csv outputs
+of OpenRarity scoring and ranks for any collections:
 ```
 python -m scripts.score_real_collections boredapeyachtclub proof-moonbirds
 ```
