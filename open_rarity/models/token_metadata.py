@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field
 
+from open_rarity.models.utils.attribute_utils import normalize_attribute_string
+
 AttributeName = str
 AttributeValue = str
 
@@ -20,9 +22,10 @@ class StringAttribute:
     value: AttributeValue
 
     def __init__(self, name: AttributeName, value: AttributeValue):
-        # We treat string attributes name and value the same regardless of casing.
-        self.name = str(name).lower()
-        self.value = str(value).lower()
+        # We treat string attributes name and value the same regardless of
+        # casing or leading/trailing whitespaces.
+        self.name = normalize_attribute_string(name)
+        self.value = normalize_attribute_string(value)
 
 
 @dataclass

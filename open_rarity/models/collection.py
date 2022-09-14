@@ -9,6 +9,7 @@ from open_rarity.models.token_metadata import (
     StringAttribute,
 )
 from open_rarity.models.token_standard import TokenStandard
+from open_rarity.models.utils.attribute_utils import normalize_attribute_string
 
 
 @dataclass
@@ -117,8 +118,9 @@ class Collection:
             AttributeName, dict[AttributeValue, int]
         ],
     ) -> dict[AttributeName, dict[AttributeValue, int]]:
-        """We normalize all collection attributes by ensuring that upper/lower
-        casing doesn't produce different attributes (e.g. 'Hat' == 'hat').
+        """We normalize all collection attributes to ensure that neither casing nor
+        leading/trailing spaces produce different attributes:
+            (e.g. 'Hat' == 'hat' == 'hat ')
         If a collection has the following in their attributes frequency counts:
             ('Hat', 'beanie') 5 tokens and
             ('hat', 'beanie') 10 tokens
@@ -129,12 +131,12 @@ class Collection:
             attr_name,
             attr_value_to_count,
         ) in attributes_frequency_counts.items():
-            normalized_name = attr_name.lower()
+            normalized_name = normalize_attribute_string(attr_name)
             if normalized_name not in normalized:
                 normalized[normalized_name] = {}
             for attr_value, attr_count in attr_value_to_count.items():
                 normalized_value = (
-                    attr_value.lower()
+                    normalize_attribute_string(attr_value)
                     if isinstance(attr_value, str)
                     else attr_value
                 )

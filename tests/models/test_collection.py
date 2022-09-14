@@ -92,6 +92,27 @@ class TestCollection:
                 },
                 all_lower_case_attributes,
             ],
+            # Trailing or leading whitespaces
+            [
+                {
+                    " hat": {"beanie": 40, "cap": 25},
+                    "Hat ": {"Cap": 35},
+                    "bottom": {"special": 1},
+                },
+                all_lower_case_attributes,
+            ],
+            # Middle whitespace
+            [
+                {
+                    "hat": {
+                        "big beanie": 40,
+                        "cap": 25,
+                        "big beanie ": 10,
+                        "beanie": 5,
+                    },
+                },
+                {"hat": {"big beanie": 50, "cap": 25, "beanie": 5}},
+            ],
             # Empty
             [{}, {}],
         ]
