@@ -20,9 +20,10 @@ class StringAttribute:
     value: AttributeValue
 
     def __init__(self, name: AttributeName, value: AttributeValue):
-        # We treat string attributes name and value the same regardless of casing.
-        self.name = str(name).lower()
-        self.value = str(value).lower()
+        # We treat string attributes name and value the same regardless of
+        # casing or leading/trailing whitespaces.
+        self.name = str(name).lower().strip()
+        self.value = str(value).lower().strip()
 
 
 @dataclass

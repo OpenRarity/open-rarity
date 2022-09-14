@@ -117,8 +117,9 @@ class Collection:
             AttributeName, dict[AttributeValue, int]
         ],
     ) -> dict[AttributeName, dict[AttributeValue, int]]:
-        """We normalize all collection attributes by ensuring that upper/lower
-        casing doesn't produce different attributes (e.g. 'Hat' == 'hat').
+        """We normalize all collection attributes to ensure that neither casing nor
+        leading/trailing spaces produce different attributes:
+            (e.g. 'Hat' == 'hat' == 'hat ')
         If a collection has the following in their attributes frequency counts:
             ('Hat', 'beanie') 5 tokens and
             ('hat', 'beanie') 10 tokens
@@ -129,12 +130,12 @@ class Collection:
             attr_name,
             attr_value_to_count,
         ) in attributes_frequency_counts.items():
-            normalized_name = attr_name.lower()
+            normalized_name = self._normalize_string(attr_name)
             if normalized_name not in normalized:
                 normalized[normalized_name] = {}
             for attr_value, attr_count in attr_value_to_count.items():
                 normalized_value = (
-                    attr_value.lower()
+                    self._normalize_string(attr_value)
                     if isinstance(attr_value, str)
                     else attr_value
                 )
@@ -144,6 +145,9 @@ class Collection:
                     normalized[normalized_name][normalized_value] += attr_count
 
         return normalized
+
+    def _normalize_string(self, word: str) -> str:
+        return word.lower().strip()
 
     def total_tokens_with_attribute(self, attribute: StringAttribute) -> int:
         """Returns the numbers of tokens in this collection with the attribute
