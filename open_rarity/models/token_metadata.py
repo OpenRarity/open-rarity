@@ -122,6 +122,8 @@ class TokenMetadata:
         for attribute_name, attr in attributes_dict.items():
             normalized_attr_name = normalize_attribute_string(attribute_name)
             normalized_attributes_dict[normalized_attr_name] = attr
+            if normalized_attr_name != attr.name:
+                attr.name = normalized_attr_name
         return normalized_attributes_dict
 
     @classmethod
