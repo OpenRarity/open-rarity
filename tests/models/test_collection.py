@@ -2,10 +2,15 @@ from open_rarity.models.collection import Collection, CollectionAttribute
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import (
     StringAttribute,
+    TokenMetadata,
 )
 from open_rarity.models.token_standard import TokenStandard
 
-from tests.helpers import create_evm_token, create_numeric_evm_token
+from tests.helpers import (
+    create_evm_token,
+    create_numeric_evm_token,
+    generate_mixed_collection,
+)
 
 
 class TestCollection:
@@ -189,6 +194,63 @@ class TestCollection:
     def test_has_numeric_attributes(self):
         assert self.test_numeric_attributes_collection.has_numeric_attribute
         assert not self.test_collection.has_numeric_attribute
+
+    def test_collection_without_attributes_init(self):
+        collection = Collection(
+            tokens=[
+                create_evm_token(
+                    token_id=1,
+                    metadata=TokenMetadata.from_attributes(
+                        {
+                            "hat": "cap",
+                            "bottom": "jeans",
+                            "something another": "special",
+                        }
+                    ),
+                ),
+                create_evm_token(
+                    token_id=2,
+                    metadata=TokenMetadata.from_attributes(
+                        {
+                            "hat": "cap",
+                            "bottom": "pjs",
+                            "something another": "not special",
+                        }
+                    ),
+                ),
+                create_evm_token(
+                    token_id=2,
+                    metadata=TokenMetadata.from_attributes(
+                        {
+                            "hat": "bucket hat",
+                            "new": "very special",
+                            "integer trait - will not be shown": 1,
+                        }
+                    ),
+                ),
+            ]
+        )
+
+        assert collection.attributes_frequency_counts == {
+            "hat": {
+                "cap": 2,
+                "bucket hat": 1,
+            },
+            "bottom": {
+                "jeans": 1,
+                "pjs": 1,
+            },
+            "something another": {"special": 1, "not special": 1},
+            "new": {"very special": 1},
+        }
+
+    def test_collection_without_attributes_init_equality(self):
+        large_collection = generate_mixed_collection()
+        comparable_collection = Collection(tokens=large_collection.tokens)
+        assert (
+            comparable_collection.attributes_frequency_counts
+            == large_collection.attributes_frequency_counts
+        )
 
     def test_token_standards(self):
         assert self.test_collection.token_standards == [TokenStandard.ERC721]
