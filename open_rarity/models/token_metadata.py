@@ -45,6 +45,12 @@ class NumericAttribute:
     name: AttributeName
     value: float | int
 
+    def __init__(self, name: AttributeName, value: float | int):
+        # We treat attributes names the same regardless of
+        # casing or leading/trailing whitespaces.
+        self.name = normalize_attribute_string(name)
+        self.value = value
+
 
 @dataclass
 class DateAttribute:
@@ -61,6 +67,12 @@ class DateAttribute:
     name: AttributeName
     value: int
 
+    def __init__(self, name: AttributeName, value: int):
+        # We treat attributes names the same regardless of
+        # casing or leading/trailing whitespaces.
+        self.name = normalize_attribute_string(name)
+        self.value = value
+
 
 @dataclass
 class TokenMetadata:
@@ -74,6 +86,10 @@ class TokenMetadata:
         mapping of atrribute name to list of numeric attribute values
     date_attributes : dict
         mapping of attribute name to list of date attribute values
+
+
+    All attributes names are normalized and all string attribute values are
+    normalized in the same way - lowercased and leading/trailing whitespace stripped.
     """
 
     string_attributes: dict[AttributeName, StringAttribute] = field(
@@ -85,6 +101,28 @@ class TokenMetadata:
     date_attributes: dict[AttributeName, DateAttribute] = field(
         default_factory=dict
     )
+
+    def __post_init__(self):
+        self.string_attributes = self._normalize_attributes_dict(
+            self.string_attributes
+        )
+        self.numeric_attributes = self._normalize_attributes_dict(
+            self.numeric_attributes
+        )
+        self.date_attributes = self._normalize_attributes_dict(
+            self.date_attributes
+        )
+
+    def _normalize_attributes_dict(self, attributes_dict: dict) -> dict:
+        """Helper function that takes in an attributes dictionary
+        and normalizes attribute name in the dictionary to ensure all
+        letters are lower cases and whitespace is stripped.
+        """
+        normalized_attributes_dict = {}
+        for attribute_name, attr in attributes_dict.items():
+            normalized_attr_name = normalize_attribute_string(attribute_name)
+            normalized_attributes_dict[normalized_attr_name] = attr
+        return normalized_attributes_dict
 
     @classmethod
     def from_attributes(cls, attributes: dict[AttributeName, Any]):
@@ -112,18 +150,17 @@ class TokenMetadata:
         numeric_attributes = {}
         date_attributes = {}
         for attr_name, attr_value in attributes.items():
-            normalized_attr_name = normalize_attribute_string(attr_name)
             if isinstance(attr_value, str):
-                string_attributes[normalized_attr_name] = StringAttribute(
-                    name=normalized_attr_name, value=attr_value
+                string_attributes[attr_name] = StringAttribute(
+                    name=attr_name, value=attr_value
                 )
             elif isinstance(attr_value, (float, int)):
-                numeric_attributes[normalized_attr_name] = NumericAttribute(
-                    name=normalized_attr_name, value=attr_value
+                numeric_attributes[attr_name] = NumericAttribute(
+                    name=attr_name, value=attr_value
                 )
             elif isinstance(attr_value, datetime.datetime):
-                date_attributes[normalized_attr_name] = DateAttribute(
-                    name=normalized_attr_name,
+                date_attributes[attr_name] = DateAttribute(
+                    name=attr_name,
                     value=int(attr_value.timestamp()),
                 )
             else:
