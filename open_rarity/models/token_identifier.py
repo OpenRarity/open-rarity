@@ -19,6 +19,9 @@ class EVMContractTokenIdentifier:
     def __str__(self):
         return f"Contract({self.contract_address}) #{self.token_id}"
 
+    def __hash__(self):
+        return hash((self.contract_address, self.token_id, self.identifier_type))
+
 
 @dataclass
 class SolanaMintAddressTokenIdentifier:
@@ -33,6 +36,9 @@ class SolanaMintAddressTokenIdentifier:
 
     def __str__(self):
         return f"MintAddress({self.mint_address})"
+
+    def __hash__(self):
+        return hash((self.mint_address, self.identifier_type))
 
 
 # This is used to specifies how the collection is identified and the
