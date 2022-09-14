@@ -44,20 +44,20 @@ class Token:
             A new normalized token metadata
         """
 
-        def normalize_and_reset(attributes_dict):
+        def normalize_and_reset(attributes_dict: dict):
             """Helper function that takes in an attributes dictionary
             and normalizes both attribute name in the dictionary as the key
             and the repeated field inside the <Type>Attribute class
             """
             normalized_attributes_dict = {}
 
-            for attribute_name, str_attr in attributes_dict.items():
+            for attribute_name, attr in attributes_dict.items():
                 normalized_attr_name = normalize_attribute_string(
                     attribute_name
                 )
-                normalized_attributes_dict[normalized_attr_name] = str_attr
-                if str_attr.name != normalized_attr_name:
-                    str_attr.name = normalized_attr_name
+                normalized_attributes_dict[normalized_attr_name] = attr
+                if attr.name != normalized_attr_name:
+                    attr.name = normalized_attr_name
             return normalized_attributes_dict
 
         return TokenMetadata(
