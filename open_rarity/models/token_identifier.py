@@ -54,8 +54,8 @@ class SolanaMintAddressTokenIdentifier:
             return False
 
         return (
-                self.mint_address == other.mint_address
-                and self.identifier_type == other.identifier_type
+            self.mint_address == other.mint_address
+            and self.identifier_type == other.identifier_type
         )
 
     def __hash__(self):
