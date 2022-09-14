@@ -20,7 +20,9 @@ class EVMContractTokenIdentifier:
         return f"Contract({self.contract_address}) #{self.token_id}"
 
     def __hash__(self):
-        return hash((self.contract_address, self.token_id, self.identifier_type))
+        return hash(
+            (self.contract_address, self.token_id, self.identifier_type)
+        )
 
 
 @dataclass
