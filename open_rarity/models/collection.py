@@ -57,23 +57,53 @@ class Collection:
     """
 
     attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
-    name: str | None = ""
+    name: str
 
     def __init__(
         self,
+        tokens: list[Token],
         attributes_frequency_counts: dict[
             AttributeName, dict[AttributeValue, int]
-        ],
-        tokens: list[Token],
+        ]
+        | None = None,
         name: str | None = "",
     ):
-        self._tokens = tokens
-        self.attributes_frequency_counts = (
-            self._normalize_attributes_frequency_counts(
+        """
+        Parameters
+        ----------
+        tokens : list[Token]
+            list of all tokens that belong to the collection. Must have meteadata
+            properly set if attributes_frequency_counts is not provided.
+        attributes_frequency_counts:
+            dict[AttributeName, dict[AttributeValue, int]] | None, optional
+            dictionary of attributes to the number of tokens in this collection
+            that has a specific value for every possible value for the given
+            attribute, by default None.
+            If not provided, the attributes distribution will be derived from the
+            attributes on the tokens provided.
+
+            Example:
+                {"hair": {"brown": 500, "blonde": 100}
+                which means 500 tokens has hair=brown, 100 token has hair=blonde
+            Note: All trait names and string values should be lowercased and stripped
+            of leading and trialing whitespace.
+            Note 2: We currently only support string attributes in
                 attributes_frequency_counts
+        name : str | None, optional
+            A reference string only used for debugging or identification, by default ""
+        """
+        self._tokens = tokens
+        self.name = name or ""
+        if attributes_frequency_counts:
+            self.attributes_frequency_counts = (
+                self._normalize_attributes_frequency_counts(
+                    attributes_frequency_counts
+                )
             )
-        )
-        self.name = name
+        else:
+            self.attributes_frequency_counts = (
+                self._derive_normalized_attributes_frequency_counts()
+            )
 
     @property
     def tokens(self) -> list[Token]:
@@ -230,6 +260,38 @@ class Collection:
                 )
 
         return collection_traits
+
+    def _derive_normalized_attributes_frequency_counts(
+        self,
+    ) -> dict[AttributeName, dict[AttributeValue, int]]:
+        """Derives and constructs attributes_frequency_counts based on
+        string attributes on tokens. Numeric or date attributes currently not
+        supported.
+
+        Returns
+        -------
+        dict[ AttributeName, dict[AttributeValue, int] ]
+            dictionary of attributes to the number of tokens in this collection
+            that has a specific value for every possible value for the given
+            attribute, by default None.
+        """
+        attrs_freq_counts: dict[
+            AttributeName, dict[AttributeValue, int]
+        ] = defaultdict(dict)
+
+        for token in self._tokens:
+            for (
+                attr_name,
+                str_attr,
+            ) in token.metadata.string_attributes.items():
+                normalized_name = normalize_attribute_string(attr_name)
+                normalized_value = normalize_attribute_string(str_attr.value)
+                if normalized_value not in attrs_freq_counts[attr_name]:
+                    attrs_freq_counts[normalized_name][normalized_value] = 1
+                else:
+                    attrs_freq_counts[normalized_name][normalized_value] += 1
+
+        return dict(attrs_freq_counts)
 
     def __str__(self) -> str:
         return f"Collection[{self.name}]"
