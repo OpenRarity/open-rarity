@@ -44,10 +44,17 @@ class Collection:
         dictionary of attributes to the number of tokens in this collection that has
         a specific value for every possible value for the given attribute.
 
+        If not provided, the attributes distribution will be derived from the
+        attributes on the tokens provided.
+
         Example:
             {"hair": {"brown": 500, "blonde": 100}
             which means 500 tokens has hair=brown, 100 token has hair=blonde
-        All trait names and values should be lowercased.
+
+        Note: All trait names and string values should be lowercased and stripped
+        of leading and trialing whitespace.
+        Note 2: We currently only support string attributes.
+
     name: A reference string only used for debugger log lines
 
     We do not recommend resetting @tokens attribute after Collection initialization
@@ -68,30 +75,6 @@ class Collection:
         | None = None,
         name: str | None = "",
     ):
-        """
-        Parameters
-        ----------
-        tokens : list[Token]
-            list of all tokens that belong to the collection. Must have meteadata
-            properly set if attributes_frequency_counts is not provided.
-        attributes_frequency_counts:
-            dict[AttributeName, dict[AttributeValue, int]] | None, optional
-            dictionary of attributes to the number of tokens in this collection
-            that has a specific value for every possible value for the given
-            attribute, by default None.
-            If not provided, the attributes distribution will be derived from the
-            attributes on the tokens provided.
-
-            Example:
-                {"hair": {"brown": 500, "blonde": 100}
-                which means 500 tokens has hair=brown, 100 token has hair=blonde
-            Note: All trait names and string values should be lowercased and stripped
-            of leading and trialing whitespace.
-            Note 2: We currently only support string attributes in
-                attributes_frequency_counts
-        name : str | None, optional
-            A reference string only used for debugging or identification, by default ""
-        """
         self._tokens = tokens
         self.name = name or ""
         if attributes_frequency_counts:
