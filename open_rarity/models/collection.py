@@ -142,41 +142,6 @@ class Collection:
             token_standards.add(token.token_standard)
         return list(token_standards)
 
-    def _normalize_attributes_frequency_counts(
-        self,
-        attributes_frequency_counts: dict[
-            AttributeName, dict[AttributeValue, int]
-        ],
-    ) -> dict[AttributeName, dict[AttributeValue, int]]:
-        """We normalize all collection attributes to ensure that neither casing nor
-        leading/trailing spaces produce different attributes:
-            (e.g. 'Hat' == 'hat' == 'hat ')
-        If a collection has the following in their attributes frequency counts:
-            ('Hat', 'beanie') 5 tokens and
-            ('hat', 'beanie') 10 tokens
-        this would produce: ('hat', 'beanie') 15 tokens
-        """
-        normalized: dict[AttributeName, dict[AttributeValue, int]] = {}
-        for (
-            attr_name,
-            attr_value_to_count,
-        ) in attributes_frequency_counts.items():
-            normalized_name = normalize_attribute_string(attr_name)
-            if normalized_name not in normalized:
-                normalized[normalized_name] = {}
-            for attr_value, attr_count in attr_value_to_count.items():
-                normalized_value = (
-                    normalize_attribute_string(attr_value)
-                    if isinstance(attr_value, str)
-                    else attr_value
-                )
-                if normalized_value not in normalized[normalized_name]:
-                    normalized[normalized_name][normalized_value] = attr_count
-                else:
-                    normalized[normalized_name][normalized_value] += attr_count
-
-        return normalized
-
     def total_tokens_with_attribute(self, attribute: StringAttribute) -> int:
         """Returns the numbers of tokens in this collection with the attribute
         based on the attributes frequency counts.
@@ -260,6 +225,41 @@ class Collection:
                 )
 
         return collection_traits
+
+    def _normalize_attributes_frequency_counts(
+        self,
+        attributes_frequency_counts: dict[
+            AttributeName, dict[AttributeValue, int]
+        ],
+    ) -> dict[AttributeName, dict[AttributeValue, int]]:
+        """We normalize all collection attributes to ensure that neither casing nor
+        leading/trailing spaces produce different attributes:
+            (e.g. 'Hat' == 'hat' == 'hat ')
+        If a collection has the following in their attributes frequency counts:
+            ('Hat', 'beanie') 5 tokens and
+            ('hat', 'beanie') 10 tokens
+        this would produce: ('hat', 'beanie') 15 tokens
+        """
+        normalized: dict[AttributeName, dict[AttributeValue, int]] = {}
+        for (
+            attr_name,
+            attr_value_to_count,
+        ) in attributes_frequency_counts.items():
+            normalized_name = normalize_attribute_string(attr_name)
+            if normalized_name not in normalized:
+                normalized[normalized_name] = {}
+            for attr_value, attr_count in attr_value_to_count.items():
+                normalized_value = (
+                    normalize_attribute_string(attr_value)
+                    if isinstance(attr_value, str)
+                    else attr_value
+                )
+                if normalized_value not in normalized[normalized_name]:
+                    normalized[normalized_name][normalized_value] = attr_count
+                else:
+                    normalized[normalized_name][normalized_value] += attr_count
+
+        return normalized
 
     def _derive_normalized_attributes_frequency_counts(
         self,
