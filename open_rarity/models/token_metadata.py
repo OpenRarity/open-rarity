@@ -1,4 +1,6 @@
 from dataclasses import dataclass, field
+import datetime
+from typing import Any
 
 from open_rarity.models.utils.attribute_utils import normalize_attribute_string
 
@@ -83,3 +85,55 @@ class TokenMetadata:
     date_attributes: dict[AttributeName, DateAttribute] = field(
         default_factory=dict
     )
+
+    @classmethod
+    def from_attributes(cls, attributes: dict[AttributeName, Any]):
+        """Constructs TokenMetadata class based on an attributes dictionary
+
+        Parameters
+        ----------
+        attributes : dict[AttributeName, Any]
+            Dictionary of attribute name to attribute value for the given token.
+            The type of the value determines whether the attribute is a string,
+            numeric or date attribute.
+
+            class           attribute type
+            ------------    -------------
+            string          string attribute
+            int | float     numeric_attribute
+            datetime        date_attribute (stored as timestamp, seconds from epoch)
+
+        Returns
+        -------
+        TokenMetadata
+            token metadata from input
+        """
+        string_attributes = {}
+        numeric_attributes = {}
+        date_attributes = {}
+        for attr_name, attr_value in attributes.items():
+            normalized_attr_name = normalize_attribute_string(attr_name)
+            if isinstance(attr_value, str):
+                string_attributes[normalized_attr_name] = StringAttribute(
+                    name=normalized_attr_name, value=attr_value
+                )
+            elif isinstance(attr_value, (float, int)):
+                numeric_attributes[normalized_attr_name] = NumericAttribute(
+                    name=normalized_attr_name, value=attr_value
+                )
+            elif isinstance(attr_value, datetime.datetime):
+                date_attributes[normalized_attr_name] = DateAttribute(
+                    name=normalized_attr_name,
+                    value=int(attr_value.timestamp()),
+                )
+            else:
+                raise TypeError(
+                    f"Provided attribute value has invalid type: {type(attr_value)}. "
+                    "Must be either str, float, int or datetime."
+                )
+
+        return cls(
+            string_attributes=string_attributes,
+            numeric_attributes=numeric_attributes,
+            date_attributes=date_attributes,
+        )
