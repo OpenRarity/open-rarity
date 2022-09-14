@@ -1,4 +1,7 @@
-from open_rarity.models.token_identifier import EVMContractTokenIdentifier, SolanaMintAddressTokenIdentifier
+from open_rarity.models.token_identifier import (
+    EVMContractTokenIdentifier,
+    SolanaMintAddressTokenIdentifier,
+)
 
 
 class TestTokenIdentifier:
