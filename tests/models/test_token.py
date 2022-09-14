@@ -1,13 +1,42 @@
+from open_rarity.models.token import Token
+from open_rarity.models.token_identifier import EVMContractTokenIdentifier
 from open_rarity.models.token_metadata import (
     NumericAttribute,
     StringAttribute,
     TokenMetadata,
 )
+from open_rarity.models.token_standard import TokenStandard
 
 from tests.helpers import create_evm_token
 
 
 class TestToken:
+    def test_create_erc721(self):
+        token = Token(
+            token_identifier=EVMContractTokenIdentifier(
+                contract_address="0xa3049...", token_id=1
+            ),
+            token_standard=TokenStandard.ERC721,
+            metadata=TokenMetadata.from_attributes(
+                {"hat": "cap", "shirt": "blue"}
+            ),
+        )
+        token_equal = Token.from_erc721(
+            contract_address="0xa3049...",
+            token_id=1,
+            metadata_dict={"hat": "cap", "shirt": "blue"},
+        )
+
+        assert token == token_equal
+
+        token_not_equal = Token.from_erc721(
+            contract_address="0xmew...",
+            token_id=1,
+            metadata_dict={"hat": "cap", "shirt": "blue"},
+        )
+
+        assert token != token_not_equal
+
     def test_token_init_metadata_non_matching_attribute_names(self):
         token = create_evm_token(
             token_id=1,

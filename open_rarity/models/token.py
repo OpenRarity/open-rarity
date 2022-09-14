@@ -1,9 +1,12 @@
 from dataclasses import dataclass
+from typing import Any
 
-from open_rarity.models.token_identifier import TokenIdentifier
-from open_rarity.models.token_metadata import TokenMetadata
+from open_rarity.models.token_identifier import (
+    EVMContractTokenIdentifier,
+    TokenIdentifier,
+)
+from open_rarity.models.token_metadata import AttributeName, TokenMetadata
 from open_rarity.models.token_standard import TokenStandard
-from open_rarity.models.utils.attribute_utils import normalize_attribute_string
 
 
 @dataclass
@@ -26,46 +29,44 @@ class Token:
     token_standard: TokenStandard
     metadata: TokenMetadata
 
-    def __post_init__(self):
-        self.metadata = self._normalize_metadata(self.metadata)
-
-    def _normalize_metadata(self, metadata: TokenMetadata) -> TokenMetadata:
-        """Normalizes token metadata to ensure the attribute names are lower cased
-        and whitespace stripped to ensure equality consistency.
+    @classmethod
+    def from_erc721(
+        cls,
+        contract_address: str,
+        token_id: int,
+        metadata_dict: dict[AttributeName, Any],
+    ):
+        """Creates a Token class representing an ERC721 evm token given the following
+        parameters.
 
         Parameters
         ----------
-        metadata : TokenMetadata
-            The original token metadata
+        contract_address : str
+            Contract address of the token
+        token_id : int
+            Token ID number of the token
+        metadata_dict : dict
+            Dictionary of attribute name to attribute value for the given token.
+            The type of the value determines whether the attribute is a string,
+            numeric or date attribute.
+
+            class           attribute type
+            ------------    -------------
+            string          string attribute
+            int | float     numeric_attribute
+            datetime        date_attribute (stored as timestamp, seconds from epoch)
 
         Returns
         -------
-        TokenMetadata
-            A new normalized token metadata
+        Token
+            A Token instance with EVMContractTokenIdentifier and ERC721 standard set.
         """
-
-        def normalize_and_reset(attributes_dict: dict):
-            """Helper function that takes in an attributes dictionary
-            and normalizes both attribute name in the dictionary as the key
-            and the repeated field inside the <Type>Attribute class
-            """
-            normalized_attributes_dict = {}
-
-            for attribute_name, attr in attributes_dict.items():
-                normalized_attr_name = normalize_attribute_string(
-                    attribute_name
-                )
-                normalized_attributes_dict[normalized_attr_name] = attr
-                if attr.name != normalized_attr_name:
-                    attr.name = normalized_attr_name
-            return normalized_attributes_dict
-
-        return TokenMetadata(
-            string_attributes=normalize_and_reset(metadata.string_attributes),
-            numeric_attributes=normalize_and_reset(
-                metadata.numeric_attributes
+        return cls(
+            token_identifier=EVMContractTokenIdentifier(
+                contract_address=contract_address, token_id=token_id
             ),
-            date_attributes=normalize_and_reset(metadata.date_attributes),
+            token_standard=TokenStandard.ERC721,
+            metadata=TokenMetadata.from_attributes(metadata_dict),
         )
 
     def __str__(self):
