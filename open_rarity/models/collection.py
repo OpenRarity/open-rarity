@@ -9,6 +9,7 @@ from open_rarity.models.token_metadata import (
     StringAttribute,
 )
 from open_rarity.models.token_standard import TokenStandard
+from open_rarity.models.utils.attribute_utils import normalize_attribute_string
 
 
 @dataclass
@@ -130,12 +131,12 @@ class Collection:
             attr_name,
             attr_value_to_count,
         ) in attributes_frequency_counts.items():
-            normalized_name = self._normalize_string(attr_name)
+            normalized_name = normalize_attribute_string(attr_name)
             if normalized_name not in normalized:
                 normalized[normalized_name] = {}
             for attr_value, attr_count in attr_value_to_count.items():
                 normalized_value = (
-                    self._normalize_string(attr_value)
+                    normalize_attribute_string(attr_value)
                     if isinstance(attr_value, str)
                     else attr_value
                 )
@@ -145,9 +146,6 @@ class Collection:
                     normalized[normalized_name][normalized_value] += attr_count
 
         return normalized
-
-    def _normalize_string(self, word: str) -> str:
-        return word.lower().strip()
 
     def total_tokens_with_attribute(self, attribute: StringAttribute) -> int:
         """Returns the numbers of tokens in this collection with the attribute

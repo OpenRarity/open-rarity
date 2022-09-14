@@ -126,7 +126,6 @@ class TestCollection:
                 tokens=[],
                 attributes_frequency_counts=input_attributes,
             )
-            print(f"[vicky-debug] {c.attributes_frequency_counts}")
             assert c.attributes_frequency_counts == expected_attributes
 
     def test_tokens(self):

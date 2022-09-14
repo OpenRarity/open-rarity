@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from open_rarity.models.token_identifier import TokenIdentifier
 from open_rarity.models.token_metadata import TokenMetadata
 from open_rarity.models.token_standard import TokenStandard
+from open_rarity.models.utils.attribute_utils import normalize_attribute_string
 
 
 @dataclass
@@ -25,42 +26,47 @@ class Token:
     token_standard: TokenStandard
     metadata: TokenMetadata
 
-    def __init__(
-        self,
-        token_identifier: TokenIdentifier,
-        token_standard: TokenStandard,
-        metadata: TokenMetadata,
-    ):
-        self.token_identifier = token_identifier
-        self.token_standard = token_standard
-        self.metadata = self._normalize_metadata(metadata)
+    def __post_init__(self):
+        self.metadata = self._normalize_metadata(self.metadata)
 
     def _normalize_metadata(self, metadata: TokenMetadata) -> TokenMetadata:
-        def normalize_and_reset(attributes_dict, acc):
-            # Helper function that takes in an attributes dictionary and accumulator
-            # and normalizes both attribute name in the dictionary as the key
-            # and the repeated field inside the <Type>Attribute class
+        """Normalizes token metadata to ensure the attribute names are lower cased
+        and whitespace stripped to ensure equality consistency.
+
+        Parameters
+        ----------
+        metadata : TokenMetadata
+            The original token metadata
+
+        Returns
+        -------
+        TokenMetadata
+            A new normalized token metadata
+        """
+
+        def normalize_and_reset(attributes_dict):
+            """Helper function that takes in an attributes dictionary
+            and normalizes both attribute name in the dictionary as the key
+            and the repeated field inside the <Type>Attribute class
+            """
+            normalized_attributes_dict = {}
+
             for attribute_name, str_attr in attributes_dict.items():
-                normalized_attr_name = self._normalize_attribute_name(
+                normalized_attr_name = normalize_attribute_string(
                     attribute_name
                 )
-                acc[normalized_attr_name] = str_attr
+                normalized_attributes_dict[normalized_attr_name] = str_attr
                 if str_attr.name != normalized_attr_name:
                     str_attr.name = normalized_attr_name
-            return acc
+            return normalized_attributes_dict
 
         return TokenMetadata(
-            string_attributes=normalize_and_reset(
-                metadata.string_attributes, {}
-            ),
+            string_attributes=normalize_and_reset(metadata.string_attributes),
             numeric_attributes=normalize_and_reset(
-                metadata.numeric_attributes, {}
+                metadata.numeric_attributes
             ),
-            date_attributes=normalize_and_reset(metadata.date_attributes, {}),
+            date_attributes=normalize_and_reset(metadata.date_attributes),
         )
-
-    def _normalize_attribute_name(self, attribute_name: str) -> str:
-        return attribute_name.lower().strip()
 
     def __str__(self):
         return f"Token[{self.token_identifier}]"
