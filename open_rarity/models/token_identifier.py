@@ -4,7 +4,7 @@ from typing import Annotated, Literal
 from pydantic import Field
 
 
-@dataclass
+@dataclass(frozen=True)
 class EVMContractTokenIdentifier:
     """This token is identified by the contract address and token ID number.
 
@@ -19,23 +19,8 @@ class EVMContractTokenIdentifier:
     def __str__(self):
         return f"Contract({self.contract_address}) #{self.token_id}"
 
-    def __eq__(self, other):
-        if not isinstance(other, EVMContractTokenIdentifier):
-            return False
 
-        return (
-            self.contract_address == other.contract_address
-            and self.token_id == other.token_id
-            and self.identifier_type == other.identifier_type
-        )
-
-    def __hash__(self):
-        return hash(
-            (self.contract_address, self.token_id, self.identifier_type)
-        )
-
-
-@dataclass
+@dataclass(frozen=True)
 class SolanaMintAddressTokenIdentifier:
     """This token is identified by their solana account address.
 
@@ -48,18 +33,6 @@ class SolanaMintAddressTokenIdentifier:
 
     def __str__(self):
         return f"MintAddress({self.mint_address})"
-
-    def __eq__(self, other):
-        if not isinstance(other, SolanaMintAddressTokenIdentifier):
-            return False
-
-        return (
-            self.mint_address == other.mint_address
-            and self.identifier_type == other.identifier_type
-        )
-
-    def __hash__(self):
-        return hash((self.mint_address, self.identifier_type))
 
 
 # This is used to specifies how the collection is identified and the
