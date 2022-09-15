@@ -31,14 +31,13 @@ poetry run pytest -k test_testset_resolver --run-resolvers
 ```
 
 # Library usage
-You can install open rarity as a [python package](https://pypi.org/project/open-rarity/)
+You can install open rarity as a [python package](https://pypi.org/project/open-rarity/) to use OpenRarity in your project:
 ```
 pip install open-rarity
 ```
-and directly use the models and rankers. Example of how to use the library lives in the scripts/ folder.
+Please refer to the [scripts/](/scripts/) folder for an example of how to use the library.
 
-If you already have the repo downloaded, you can use OpenRarity shell tool to generate json or csv outputs
-of OpenRarity scoring and ranks for any collections:
+If you have downloaded the repo, you can use OpenRarity shell tool to generate json or csv outputs of OpenRarity scoring and ranks for any collections:
 ```
 python -m scripts.score_real_collections boredapeyachtclub proof-moonbirds
 ```
@@ -48,7 +47,7 @@ Read [developer documentation](https://openrarity.gitbook.io/developers/) for ad
 
 # Contributions guide and governance
 
-OpenRarity is a community effort to improve rarity computation for NFTs (Non-Fungible Tokens). The core collaboration group consists of four primary contributors: Curio, icy.tools, OpenSea and Proof
+OpenRarity is a community effort to improve rarity computation for NFTs (Non-Fungible Tokens). The core collaboration group consists of four primary contributors: [Curio](https://curio.tools), [icy.tools](https://icy.tools), [OpenSea](https://opensea.io) and [Proof](https://www.proof.xyz/)
 
 OpenRarity is an open-source project and all contributions are welcome. Consider following steps when you request/propose contribution:
 
