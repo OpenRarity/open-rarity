@@ -15,6 +15,8 @@ We are releasing the OpenRarity library in a Beta preview to crowdsource feedbac
 
 See the full announcement in the [blog post](https://mirror.xyz/openrarity.eth/LUoJnybWuNYedIQHD6RRdX1SS9MiowdI6a69X-lefGM).
 
+# Developer documentation
+
 Read [developer documentation](https://openrarity.gitbook.io/developers/) on how to integrate with OpenRarity.
 
 # Setup and run tests locally
