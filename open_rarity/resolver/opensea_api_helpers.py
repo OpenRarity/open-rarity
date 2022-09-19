@@ -124,7 +124,11 @@ async def get_tokens_from_opensea(
     slug : str
         Opensea collection slug
     token_ids : list[int]
-        List of token ids to fetch for
+        List of token ids to fetch
+    client : httpx.AsyncClient
+        Async client used to make api calls
+    sem : BoundedSemaphore | Semaphore
+        From the asyncio library and is used to rate limit api calls
 
     Returns
     -------
@@ -172,7 +176,7 @@ async def get_tokens_from_opensea(
                 r.raise_for_status()
 
             # The API does not sort return value assets by token ID, so sort then return
-            tokens = []
+            tokens: list[Token] = []
             assets = sorted(
                 r.json()["assets"], key=(lambda a: int(a["token_id"]))
             )
