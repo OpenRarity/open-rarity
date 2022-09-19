@@ -1,8 +1,8 @@
 import asyncio as aio
 import logging
-
 from itertools import chain
-from numpy import array_split
+
+from satchel import chunk
 import requests
 from requests.models import HTTPError
 from tqdm.asyncio import tqdm_asyncio as tqdm_aio
@@ -63,97 +63,6 @@ def fetch_opensea_collection_data(slug: str) -> dict:
     return response.json()["collection"]
 
 
-async def fetch_opensea_assets_data(
-    slug: str, token_ids: list[int], limit=30, **kwargs
-) -> list[dict]:
-    """Fetches asset data from Opensea's GET assets endpoint for the given token ids
-
-    Parameters
-    ----------
-    slug: str
-        Opensea collection slug
-    token_ids: list[int]
-        the token id
-    limit: int, optional
-        How many to fetch at once. Defaults to 30, with a max of 30, by default 30.
-
-    Returns
-    -------
-    list[dict]
-        list of asset data dictionaries, e.g. the response in "assets" field,
-        sorted by token_id asc
-
-    Raises
-    ------
-        Exception: If api request fails
-
-
-    """
-    client = kwargs.get("client", None)
-    assert len(token_ids) <= limit
-    # Max 30 limit enforced on API
-    assert limit <= 30
-    querystring = {
-        "token_ids": [int(i) for i in token_ids],
-        "collection_slug": slug,
-        "offset": "0",
-        "limit": limit,
-    }
-    if client:
-        response = await client.get(
-            OS_ASSETS_URL,
-            headers=HEADERS,
-            params=querystring,
-        )
-    else:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                OS_ASSETS_URL,
-                headers=HEADERS,
-                params=querystring,
-            )
-
-    if response.status_code != 200:
-        logger.debug(
-            f"[Opensea] Failed to resolve assets for {slug}."
-            f"Received {response.status_code}: {response.text}. {response.json()}"
-        )
-        response.raise_for_status()
-
-    # The API does not sort return value assets by token ID, so sort then return
-    tokens = []
-    assets = sorted(
-        response.json()["assets"], key=(lambda a: int(a["token_id"]))
-    )
-    for asset in assets:
-        token_metadata = opensea_traits_to_token_metadata(
-            asset_traits=asset["traits"]
-        )
-        asset_contract_address = asset["asset_contract"]["address"]
-        asset_contract_type = asset["asset_contract"]["asset_contract_type"]
-        if asset_contract_type == "non-fungible":
-            token_standard = TokenStandard.ERC721
-        elif asset_contract_type == "semi-fungible":
-            token_standard = TokenStandard.ERC1155
-        else:
-            raise ValueError(
-                f"Unexpected asset contrat type: {asset_contract_type}"
-            )
-        tokens.append(
-            Token(
-                token_identifier=EVMContractTokenIdentifier(
-                    identifier_type="evm_contract",
-                    contract_address=asset_contract_address,
-                    token_id=int(asset["token_id"]),
-                ),
-                token_standard=token_standard,
-                metadata=token_metadata,
-            )
-        )
-
-    return tokens
-
-
 def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
     """Converts asset traits list returned by opensea assets API and converts
     it into a TokenMetadata.
@@ -202,7 +111,7 @@ def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
 
 
 async def get_tokens_from_opensea(
-    opensea_slug: str,
+    slug: str,
     token_ids: list[int],
     client: httpx.AsyncClient,
     sem: aio.BoundedSemaphore | aio.Semaphore,
@@ -211,7 +120,7 @@ async def get_tokens_from_opensea(
 
     Parameters
     ----------
-    opensea_slug : str
+    slug : str
         Opensea collection slug
     token_ids : list[int]
         List of token ids to fetch for
@@ -228,11 +137,72 @@ async def get_tokens_from_opensea(
     HTTPError
         if request to opensea fails
     """
+    limit = 30
     try:
         async with sem:
-            tokens = await fetch_opensea_assets_data(
-                slug=opensea_slug, token_ids=token_ids, client=client
+            assert len(token_ids) <= limit
+            # Max 30 limit enforced on API
+            assert limit <= 30
+            querystring = {
+                "token_ids": token_ids,
+                "collection_slug": slug,
+                "offset": "0",
+                "limit": limit,
+            }
+            if client:
+                r = await client.get(
+                    OS_ASSETS_URL,
+                    headers=HEADERS,
+                    params=querystring,
+                )
+            else:
+                async with httpx.AsyncClient() as client:
+                    r = await client.get(
+                        OS_ASSETS_URL,
+                        headers=HEADERS,
+                        params=querystring,
+                    )
+
+            if r.status_code != 200:
+                logger.debug(
+                    f"[Opensea] Failed to resolve assets for {slug}."
+                    f"Received {r.status_code}: {r.text}. {r.json()}"
+                )
+                r.raise_for_status()
+
+            # The API does not sort return value assets by token ID, so sort then return
+            tokens = []
+            assets = sorted(
+                r.json()["assets"], key=(lambda a: int(a["token_id"]))
             )
+            for asset in assets:
+                token_metadata = opensea_traits_to_token_metadata(
+                    asset_traits=asset["traits"]
+                )
+                asset_contract_address = asset["asset_contract"]["address"]
+                asset_contract_type = asset["asset_contract"][
+                    "asset_contract_type"
+                ]
+                if asset_contract_type == "non-fungible":
+                    token_standard = TokenStandard.ERC721
+                elif asset_contract_type == "semi-fungible":
+                    token_standard = TokenStandard.ERC1155
+                else:
+                    raise ValueError(
+                        f"Unexpected asset contrat type: {asset_contract_type}"
+                    )
+                tokens.append(
+                    Token(
+                        token_identifier=EVMContractTokenIdentifier(
+                            identifier_type="evm_contract",
+                            contract_address=asset_contract_address,
+                            token_id=int(asset["token_id"]),
+                        ),
+                        token_standard=token_standard,
+                        metadata=token_metadata,
+                    )
+                )
+
     except HTTPError as e:
         logger.exception(
             "FAILED: get_assets: could not fetch opensea assets for %s: %s",
@@ -241,32 +211,6 @@ async def get_tokens_from_opensea(
             exc_info=True,
         )
         raise
-
-    # for asset in assets:
-    #     token_metadata = opensea_traits_to_token_metadata(
-    #         asset_traits=asset["traits"]
-    #     )
-    #     asset_contract_address = asset["asset_contract"]["address"]
-    #     asset_contract_type = asset["asset_contract"]["asset_contract_type"]
-    #     if asset_contract_type == "non-fungible":
-    #         token_standard = TokenStandard.ERC721
-    #     elif asset_contract_type == "semi-fungible":
-    #         token_standard = TokenStandard.ERC1155
-    #     else:
-    #         raise ValueError(
-    #             f"Unexpected asset contrat type: {asset_contract_type}"
-    #         )
-    #     tokens.append(
-    #         Token(
-    #             token_identifier=EVMContractTokenIdentifier(
-    #                 identifier_type="evm_contract",
-    #                 contract_address=asset_contract_address,
-    #                 token_id=int(asset["token_id"]),
-    #             ),
-    #             token_standard=token_standard,
-    #             metadata=token_metadata,
-    #         )
-    #     )
 
     return tokens
 
@@ -289,7 +233,7 @@ def get_collection_with_metadata_from_opensea(
 
     """
     collection_obj = fetch_opensea_collection_data(
-        slug=opensea_collection_slug
+        opensea_slug=opensea_collection_slug
     )
     contracts = collection_obj["primary_asset_contracts"]
     interfaces = set([contract["schema_name"] for contract in contracts])
@@ -309,7 +253,7 @@ def get_collection_with_metadata_from_opensea(
         collection=collection,
         contract_addresses=[contract["address"] for contract in contracts],
         token_total_supply=int(stats["total_supply"]),
-        opensea_slug=opensea_collection_slug,
+        slug=opensea_collection_slug,
     )
 
     return collection_with_metadata
@@ -358,17 +302,18 @@ async def get_collection_from_opensea(
         batch_size: int = 30,
     ):
         token_ids = list(range(initial_token_id, max_token_id))
-        return array_split(
+        return chunk(
             token_ids,
-            len(token_ids) // batch_size + 1,
+            batch_size,
+            as_list=True,
         )
 
     # We need to bound the number of awaitables to avoid hitting the OS rate limit
     sem = aio.BoundedSemaphore(4)
-    async with httpx.AsyncClient(timeout=5) as client:
+    async with httpx.AsyncClient(timeout=None) as client:
         tasks = [
             get_tokens_from_opensea(
-                opensea_slug=opensea_collection_slug,
+                slug=opensea_collection_slug,
                 token_ids=token_ids,
                 client=client,
                 sem=sem,
