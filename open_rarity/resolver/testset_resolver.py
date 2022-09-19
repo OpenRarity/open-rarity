@@ -1,12 +1,16 @@
+import asyncio as aio
 import csv
 import io
 import json
 import logging
-import math
 import pkgutil
 from dataclasses import dataclass
 from sys import argv
 from time import process_time, strftime
+from itertools import chain
+from tqdm.asyncio import tqdm_asyncio as tqdm_aio
+import httpx
+from satchel import chunk
 
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
@@ -66,7 +70,7 @@ class OpenRarityScores:
     information_content_scores: RankedTokens
 
 
-def get_tokens_with_rarity(
+async def get_tokens_with_rarity(
     collection_with_metadata: CollectionWithMetadata,
     resolve_remote_rarity: bool = True,
     batch_size: int = 30,
@@ -97,39 +101,39 @@ def get_tokens_with_rarity(
         max_tokens_to_calculate or collection_with_metadata.token_total_supply,
         collection_with_metadata.token_total_supply,
     )
-    num_batches = math.ceil(total_supply / batch_size)
     initial_token_id = 0
+
     tokens_with_rarity: list[TokenWithRarityData] = []
-
-    # Returns a list of `batch_size` token IDs, such that no token ID
-    # can exceed `max_token_id` (in which case len(return_value) < `batch_size`)
-    def get_token_ids(
-        batch_id: int, max_token_id: int = total_supply - 1
-    ) -> list[int]:
-        token_id_start = initial_token_id + (batch_id * batch_size)
-        token_id_end = int(min(token_id_start + batch_size - 1, max_token_id))
-        return [
-            token_id for token_id in range(token_id_start, token_id_end + 1)
-        ]
-
     t1_start = process_time()
-    for batch_id in range(num_batches):
-        token_ids = get_token_ids(batch_id)
-        logger.debug(
-            f"Starting batch {batch_id} for collection "
-            f"{slug}: Processing {len(token_ids)} tokens"
-        )
 
-        tokens = get_tokens_from_opensea(
-            opensea_slug=collection_with_metadata.opensea_slug,
-            token_ids=token_ids,
+    # We need to bound the number of awaitables to avoid hitting the OS rate limit
+    sem = aio.BoundedSemaphore(4)
+    async with httpx.AsyncClient(timeout=None) as client:
+        tasks = [
+            get_tokens_from_opensea(
+                slug=slug,
+                token_ids=token_ids,
+                client=client,
+                sem=sem,
+            )
+            for token_ids in chunk(
+                list(range(initial_token_id, total_supply)), batch_size
+            )
+        ]
+        tokens = list(
+            chain(
+                *(
+                    await tqdm_aio.gather(
+                        *tasks,
+                        desc=f"Fetch {slug} Token Batches from OS",
+                    )
+                )
+            )
         )
-
         # We will store all rarities calculated across providers in this list
         tokens_rarity_batch = [
             TokenWithRarityData(token=t, rarities=[]) for t in tokens
         ]
-
         if resolve_remote_rarity:
             external_rarity_provider.fetch_and_update_ranks(
                 collection_with_metadata=collection_with_metadata,
@@ -148,7 +152,7 @@ def get_tokens_with_rarity(
     return tokens_with_rarity
 
 
-def resolve_collection_data(
+async def resolve_collection_data(
     resolve_remote_rarity: bool,
     package_path: str = "open_rarity.data",
     filename: str = "test_collections.json",
@@ -188,7 +192,9 @@ def resolve_collection_data(
         collection_with_metadata = get_collection_with_metadata_from_opensea(
             opensea_collection_slug=opensea_slug
         )
-        tokens_with_rarity: list[TokenWithRarityData] = get_tokens_with_rarity(
+        tokens_with_rarity: list[
+            TokenWithRarityData
+        ] = await get_tokens_with_rarity(
             collection_with_metadata=collection_with_metadata,
             resolve_remote_rarity=resolve_remote_rarity,
             max_tokens_to_calculate=max_tokens_to_calculate,

@@ -238,7 +238,7 @@ def get_collection_with_metadata_from_opensea(
 
     """
     collection_obj = fetch_opensea_collection_data(
-        opensea_slug=opensea_collection_slug
+        slug=opensea_collection_slug
     )
     contracts = collection_obj["primary_asset_contracts"]
     interfaces = set([contract["schema_name"] for contract in contracts])
@@ -258,7 +258,7 @@ def get_collection_with_metadata_from_opensea(
         collection=collection,
         contract_addresses=[contract["address"] for contract in contracts],
         token_total_supply=int(stats["total_supply"]),
-        slug=opensea_collection_slug,
+        opensea_slug=opensea_collection_slug,
     )
 
     return collection_with_metadata
@@ -299,19 +299,7 @@ async def get_collection_from_opensea(
     tokens: list[Token] = []
     batch_size = 30
     initial_token_id = 0
-
-    # Return list of lists for batched token_ids
-    def batch_token_ids(
-        intial_token_id: int = 0,
-        max_token_id: int = total_supply - 1,
-        batch_size: int = 30,
-    ):
-        token_ids = list(range(initial_token_id, max_token_id))
-        return chunk(
-            token_ids,
-            batch_size,
-            as_list=True,
-        )
+    max_token_id: int = total_supply - 1
 
     # We need to bound the number of awaitables to avoid hitting the OS rate limit
     sem = aio.BoundedSemaphore(4)
@@ -323,7 +311,9 @@ async def get_collection_from_opensea(
                 client=client,
                 sem=sem,
             )
-            for token_ids in batch_token_ids(tokens, batch_size=batch_size)
+            for token_ids in chunk(
+                list(range(initial_token_id, max_token_id)), batch_size
+            )
         ]
         tokens = list(
             chain(
