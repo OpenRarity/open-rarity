@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
 import datetime
+from dataclasses import dataclass, field
 from typing import Any
 
 from open_rarity.models.utils.attribute_utils import normalize_attribute_string

@@ -2,10 +2,12 @@ import asyncio as aio
 import logging
 from itertools import chain
 
-from satchel import chunk
+import httpx
 import requests
 from requests.models import HTTPError
+from satchel import chunk
 from tqdm.asyncio import tqdm_asyncio as tqdm_aio
+
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
 from open_rarity.models.token_identifier import EVMContractTokenIdentifier
@@ -19,7 +21,6 @@ from open_rarity.models.token_standard import TokenStandard
 from open_rarity.resolver.models.collection_with_metadata import (
     CollectionWithMetadata,
 )
-import httpx
 
 logger = logging.getLogger("open_rarity_logger")
 

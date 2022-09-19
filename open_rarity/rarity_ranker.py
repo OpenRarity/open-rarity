@@ -1,7 +1,7 @@
 import math
+
 from open_rarity.models.collection import Collection
 from open_rarity.models.token_rarity import TokenRarity
-
 from open_rarity.scoring.scorer import Scorer
 
 
