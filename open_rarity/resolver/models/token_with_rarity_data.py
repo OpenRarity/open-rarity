@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+
 from open_rarity.models.token import Token
 
 

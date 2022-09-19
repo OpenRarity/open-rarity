@@ -1,15 +1,17 @@
 import logging
 
 import requests
+from tqdm import tqdm
+
+from open_rarity.models.token_identifier import EVMContractTokenIdentifier
 from open_rarity.resolver.models.collection_with_metadata import (
     CollectionWithMetadata,
 )
-from open_rarity.models.token_identifier import EVMContractTokenIdentifier
 from open_rarity.resolver.models.token_with_rarity_data import (
+    EXTERNAL_RANK_PROVIDERS,
     RankProvider,
     RarityData,
     TokenWithRarityData,
-    EXTERNAL_RANK_PROVIDERS,
 )
 
 TRAIT_SNIPER_URL = "https://api.traitsniper.com/api/projects/{slug}/nfts"
@@ -48,7 +50,6 @@ def fetch_trait_sniper_rank_for_evm_token(
         If slug is invalid.
     """
     # TODO [vicky]: In future, we can add retry mechanisms if needed
-
     querystring = {
         "trait_norm": "true",
         "trait_count": "true",
@@ -96,7 +97,6 @@ def fetch_rarity_sniffer_rank_for_collection(
     Exception
         If call to the rarity sniffer failed the method throws exception
     """
-
     querystring = {
         "query": "fetch",
         "collection": contract_address,
@@ -193,7 +193,9 @@ class ExternalRarityProvider:
         # We're currently using opensea slug to calculate trait sniper slug
         slug = collection_with_metadata.opensea_slug
 
-        for token_with_rarity in tokens_with_rarity:
+        for token_with_rarity in tqdm(
+            tokens_with_rarity, desc="Fetch Trait Sniper Data"
+        ):
             token = token_with_rarity.token
             token_identifer = token.token_identifier
             # Needed for type-checking
@@ -292,7 +294,9 @@ class ExternalRarityProvider:
         opensea_slug = collection_with_metadata.opensea_slug
         slug = get_rarity_sniper_slug(opensea_slug=opensea_slug)
 
-        for token_with_rarity in tokens_with_rarity:
+        for token_with_rarity in tqdm(
+            tokens_with_rarity, desc="Fetch Rarity Sniper Data"
+        ):
             token = token_with_rarity.token
             token_identifer = token.token_identifier
             # Needed for type-checking

@@ -3,6 +3,8 @@ import pytest
 from open_rarity.resolver.models.token_with_rarity_data import RankProvider
 from open_rarity.resolver.testset_resolver import resolve_collection_data
 
+pytest_plugins = ("pytest_asyncio",)
+
 
 class TestTestsetResolver:
     # Note: Official ranking is rarity tools (linked by site)
@@ -47,22 +49,26 @@ class TestTestsetResolver:
         reason="This tests runs too long to have as part of CI/CD but should be "
         "run whenver someone changes resolver",
     )
-    def test_resolve_collection_data(self):
+    @pytest.mark.asyncio
+    async def test_resolve_collection_data(self):
         # Have the resolver pull in BAYC rarity rankings from various sources
         # Just do a check to ensure the ranks from different providers are
         # as expected
-        resolve_collection_data(
+        print("Resolve collection data")
+        await resolve_collection_data(
             resolve_remote_rarity=True,
             package_path="tests",
             filename="resolver/sample_files/bayc.json",
             # max_tokens_to_calculate=100,
         )
+        print("Finished resolving")
         # Read the file and verify columns values are as expected for the given tokens
         output_filename = "testset_boredapeyachtclub.csv"
         import csv
 
+        print("Compare")
         rows = 0
-        with open(output_filename) as csvfile:
+        with open(output_filename, "w+") as csvfile:
             resolver_output_reader = csv.reader(csvfile)
             for idx, row in enumerate(resolver_output_reader):
                 rows += 1

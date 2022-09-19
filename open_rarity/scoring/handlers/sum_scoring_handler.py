@@ -7,7 +7,6 @@ from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import AttributeName
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 
-
 logger = logging.getLogger("open_rarity_logger")
 
 
