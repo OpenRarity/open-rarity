@@ -275,7 +275,7 @@ def get_collection_with_metadata_from_opensea(
 
 
 def get_collection_from_opensea(
-    opensea_collection_slug: str,
+    opensea_collection_slug: str, batch_size: int = 30
 ) -> Collection:
     """Fetches collection and token data with OpenSea endpoint and API key
     and stores it in the Collection object
@@ -284,6 +284,10 @@ def get_collection_from_opensea(
     ----------
     opensea_collection_slug : str
         collection slug on opensea's system
+
+    batch_size: int
+        batch size for the opensea API requests
+        maximum value is 30
 
     Returns
     -------
@@ -307,7 +311,6 @@ def get_collection_from_opensea(
 
     # Fetch token metadata
     tokens: list[Token] = []
-    batch_size = 30
     num_batches = math.ceil(total_supply / batch_size)
     initial_token_id = 0
 
