@@ -286,9 +286,8 @@ def get_collection_from_opensea(
         collection slug on opensea's system
 
     batch_size: int
-        controls batch size for the opensea API requests
+        batch size for the opensea API requests
         maximum value is 30
-
 
     Returns
     -------
