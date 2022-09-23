@@ -24,11 +24,9 @@ def get_trait_count(token: Token) -> int:
         return sum(map(lambda a: a.value.lower() != "none", attributes))
 
     return (
-        get_attributes_count(token.token_metadata.string_attributes.values())
-        + get_attributes_count(
-            token.token_metadata.numeric_attributes.values()
-        )
-        + get_attributes_count(token.token_metadata.date_attributes.values())
+        get_attributes_count(token.metadata.string_attributes.values())
+        + get_attributes_count(token.metadata.numeric_attributes.values())
+        + get_attributes_count(token.metadata.date_attributes.values())
     )
 
 
@@ -289,8 +287,12 @@ class Collection:
                     token,
                     metadata=TokenMetadata(
                         string_attributes={
-                            **token.metadata.string_attribute,
-                            **{"trait_count": str(trait_count)},
+                            **token.metadata.string_attributes,
+                            **{
+                                "trait_count": StringAttribute(
+                                    name="trait_count", value=str(trait_count)
+                                )
+                            },
                         },
                         numeric_attributes=token.metadata.numeric_attributes,
                         date_attributes=token.metadata.date_attributes,

@@ -1,4 +1,8 @@
-from open_rarity.models.collection import Collection, CollectionAttribute
+from open_rarity.models.collection import (
+    Collection,
+    CollectionAttribute,
+    MetaAttribute,
+)
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import (
     StringAttribute,
@@ -267,3 +271,54 @@ class TestCollection:
         assert set(mixed_standards) == set(
             [TokenStandard.ERC721, TokenStandard.ERC1155]
         )
+
+    def test_meta_attributes_trait_count(self):
+        token1_metadata = {"hat": "cap", "shirt": "blue"}
+        token2_metadata = {"hat": "cap"}
+        token3_metadata = {"hat": "cap", "shirt": "blue", "pants": "three"}
+        token4_metadata = {"hat": "beanie", "shirt": "red", "pants": "three"}
+
+        c = Collection(
+            tokens=[
+                create_evm_token(
+                    token_id=1,
+                    metadata=TokenMetadata.from_attributes(token1_metadata),
+                ),
+                create_evm_token(
+                    token_id=1,
+                    metadata=TokenMetadata.from_attributes(token2_metadata),
+                ),
+                create_evm_token(
+                    token_id=1,
+                    metadata=TokenMetadata.from_attributes(token3_metadata),
+                ),
+                create_evm_token(
+                    token_id=1,
+                    metadata=TokenMetadata.from_attributes(token4_metadata),
+                ),
+            ],
+            meta_attributes={MetaAttribute.TRAIT_COUNT},
+        )
+        assert c.attributes_frequency_counts == {
+            "hat": {"cap": 3, "beanie": 1},
+            "shirt": {"blue": 2, "red": 1},
+            "pants": {"three": 2},
+            "trait_count": {"1": 1, "2": 1, "3": 2},
+        }
+
+        assert c.tokens[0].attributes() == {
+            **token1_metadata,
+            "trait_count": "2",
+        }
+        assert c.tokens[1].attributes() == {
+            **token2_metadata,
+            "trait_count": "1",
+        }
+        assert c.tokens[2].attributes() == {
+            **token3_metadata,
+            "trait_count": "3",
+        }
+        assert c.tokens[3].attributes() == {
+            **token4_metadata,
+            "trait_count": "3",
+        }

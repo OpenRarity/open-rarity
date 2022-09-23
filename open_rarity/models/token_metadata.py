@@ -129,6 +129,17 @@ class TokenMetadata:
                 attr.name = normalized_attr_name
         return normalized_attributes_dict
 
+    def to_attributes(self) -> dict[AttributeName, Any]:
+        """Returns a dictionary of all attributes in this metadata object."""
+        attributes = {}
+        for attr in self.string_attributes.values():
+            attributes[attr.name] = attr.value
+        for attr in self.numeric_attributes.values():
+            attributes[attr.name] = attr.value
+        for attr in self.date_attributes.values():
+            attributes[attr.name] = datetime.fromtimestamp(attr.value)
+        return attributes
+
     @classmethod
     def from_attributes(cls, attributes: dict[AttributeName, Any]):
         """Constructs TokenMetadata class based on an attributes dictionary

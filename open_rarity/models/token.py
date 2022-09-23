@@ -89,5 +89,8 @@ class Token:
             metadata=TokenMetadata.from_attributes(metadata_dict),
         )
 
+    def attributes(self):
+        return self.metadata.to_attributes()
+
     def __str__(self):
         return f"Token[{self.token_identifier}]"
