@@ -140,6 +140,7 @@ def get_rarity_sniper_slug(opensea_slug: str) -> str:
     slug = slug.replace("wtf", "")
     slug = slug.replace("invisiblefriends", "invisible-friends")
     slug = slug.replace("boredapeyachtclub", "bored-ape-yacht-club")
+    slug = slug.replace("pudgypenguins", "pudgy-penguins")
     return slug
 
 

@@ -1,3 +1,4 @@
+import argparse
 import csv
 import io
 import json
@@ -5,7 +6,6 @@ import logging
 import math
 import pkgutil
 from dataclasses import dataclass
-from sys import argv
 from time import process_time, strftime
 
 from open_rarity.models.collection import Collection
@@ -57,6 +57,22 @@ RankedTokens = dict[int, RankScore]
 logger = logging.getLogger("open_rarity_logger")
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "resolve_external_rarity",
+    type=str,
+    default=None,
+    help="Specify 'external' if you want to resolve rarity from external providers",
+)
+parser.add_argument(
+    "--add_trait_count",
+    dest="add_trait_count",
+    type=bool,
+    default=False,
+    help="Specify 'True' if you want to add a meta attribuet trait count",
+)
+
+
 @dataclass
 class OpenRarityScores:
     arithmetic_scores: RankedTokens
@@ -71,6 +87,7 @@ def get_tokens_with_rarity(
     resolve_remote_rarity: bool = True,
     batch_size: int = 30,
     max_tokens_to_calculate: int = None,
+    add_trait_count: bool = False,
 ) -> list[TokenWithRarityData]:
     """Resolves assets through OpenSea API asset endpoint and turns them
     into token with rarity data, augmented with rankings from Gem, RaritySniper
@@ -123,6 +140,7 @@ def get_tokens_with_rarity(
         tokens = get_tokens_from_opensea(
             opensea_slug=collection_with_metadata.opensea_slug,
             token_ids=token_ids,
+            add_trait_count=add_trait_count,
         )
 
         # We will store all rarities calculated across providers in this list
@@ -153,6 +171,7 @@ def resolve_collection_data(
     package_path: str = "open_rarity.data",
     filename: str = "test_collections.json",
     max_tokens_to_calculate: int = None,
+    add_trait_count: bool = False,
 ) -> None:
     """Resolves collection information through OpenSea API
 
@@ -192,13 +211,19 @@ def resolve_collection_data(
             collection_with_metadata=collection_with_metadata,
             resolve_remote_rarity=resolve_remote_rarity,
             max_tokens_to_calculate=max_tokens_to_calculate,
+            add_trait_count=add_trait_count,
         )
-        old_collection = collection_with_metadata.collection
         collection_with_metadata.collection = Collection(
-            attributes_frequency_counts=old_collection.attributes_frequency_counts,
             tokens=[tr.token for tr in tokens_with_rarity],
         )
         collection = collection_with_metadata.collection
+        print("Collection: ", collection)
+        print(
+            "Collection attributes: ", collection.attributes_frequency_counts
+        )
+
+        print("Token 0: ", collection.tokens[0].metadata.string_attributes)
+        print("Token 10: ", collection.tokens[10].metadata.string_attributes)
 
         if max_tokens_to_calculate is None:
             assert collection.token_total_supply == len(tokens_with_rarity)
@@ -523,9 +548,10 @@ if __name__ == "__main__":
 
     command to run: python -m  openrarity.resolver.testset_resolver external
     """
+    args = parser.parse_args()
 
-    resolve_remote_rarity = len(argv) > 1
-    print(f"Executing main: with {argv}. Setting {resolve_remote_rarity=}")
+    resolve_remote_rarity = bool(args.resolve_external_rarity)
+    print(f"Executing main: {resolve_remote_rarity=} {args.add_trait_count=}")
 
     logger = logging.getLogger("open_rarity_logger")
     logger.setLevel(logging.DEBUG)
@@ -535,4 +561,6 @@ if __name__ == "__main__":
 
     logger.addHandler(fh)
 
-    resolve_collection_data(resolve_remote_rarity)
+    resolve_collection_data(
+        resolve_remote_rarity, add_trait_count=args.add_trait_count
+    )
