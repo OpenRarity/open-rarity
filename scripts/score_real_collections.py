@@ -34,7 +34,7 @@ parser.add_argument(
 
 def score_collection_and_output_results(slug: str, output_filename: str):
     # Get collection
-    collection = get_collection_from_opensea(slug)
+    collection = get_collection_from_opensea(slug, add_trait_count=True)
     print(
         f"Created collection {slug} with {collection.token_total_supply} tokens"
     )

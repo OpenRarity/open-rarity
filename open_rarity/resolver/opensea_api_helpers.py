@@ -164,7 +164,7 @@ def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
 
 
 def get_tokens_from_opensea(
-    opensea_slug: str, token_ids: list[int]
+    opensea_slug: str, token_ids: list[int], add_trait_count: bool = False
 ) -> list[Token]:
     """Fetches eth nft data from opensea API and stores them into Token objects
 
@@ -205,6 +205,20 @@ def get_tokens_from_opensea(
         token_metadata = opensea_traits_to_token_metadata(
             asset_traits=asset["traits"]
         )
+        if add_trait_count:
+            # In opensea, we return none as explicit empty traits
+            trait_count = str(
+                sum(
+                    map(
+                        lambda a: a.value.lower() != "none",
+                        token_metadata.string_attributes.values(),
+                    )
+                )
+            )
+            token_metadata.string_attributes["trait_count"] = StringAttribute(
+                name="trait_count", value=trait_count
+            )
+
         asset_contract_address = asset["asset_contract"]["address"]
         asset_contract_type = asset["asset_contract"]["asset_contract_type"]
         if asset_contract_type == "non-fungible":
@@ -275,7 +289,9 @@ def get_collection_with_metadata_from_opensea(
 
 
 def get_collection_from_opensea(
-    opensea_collection_slug: str, batch_size: int = 30
+    opensea_collection_slug: str,
+    batch_size: int = 30,
+    add_trait_count: bool = False,
 ) -> Collection:
     """Fetches collection and token data with OpenSea endpoint and API key
     and stores it in the Collection object
@@ -326,14 +342,15 @@ def get_collection_from_opensea(
     for batch_id in range(num_batches):
         token_ids = get_token_ids(batch_id)
         tokens_batch = get_tokens_from_opensea(
-            opensea_slug=opensea_collection_slug, token_ids=token_ids
+            opensea_slug=opensea_collection_slug,
+            token_ids=token_ids,
+            add_trait_count=add_trait_count,
         )
 
         tokens.extend(tokens_batch)
 
     collection = Collection(
         name=collection_obj["name"],
-        attributes_frequency_counts=collection_obj["traits"],
         tokens=tokens,
     )
 
