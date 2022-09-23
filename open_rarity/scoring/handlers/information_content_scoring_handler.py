@@ -121,16 +121,17 @@ class InformationContentScoringHandler:
         # First calculate the individual attribute scores for all attributes
         # of the provided token. Scores are the inverted probabilities of the
         # attribute in the collection.
-        attr_scores, _ = get_token_attributes_scores_and_weights(
+        attr_scores, weights = get_token_attributes_scores_and_weights(
             collection=collection,
             token=token,
             normalized=False,
+            token_count_boosting=True,
             collection_null_attributes=collection_null_attributes,
         )
 
         # Get a single score (via information content) for the token by taking
         # the sum of the logarithms of the attributes' scores.
-        ic_token_score = -np.sum(np.log2(np.reciprocal(attr_scores)))
+        ic_token_score = -np.dot(weights, np.log2(np.reciprocal(attr_scores)))
         logger.debug("IC token score %s", ic_token_score)
 
         # Now, calculate the collection entropy to use as a normalization for

@@ -7,6 +7,7 @@ def get_token_attributes_scores_and_weights(
     collection: Collection,
     token: Token,
     normalized: bool,
+    token_count_boosting: bool = False,
     collection_null_attributes: dict[
         AttributeName, CollectionAttribute
     ] = None,
@@ -24,6 +25,8 @@ def get_token_attributes_scores_and_weights(
     normalized : bool
         Set to true to enable individual trait normalizations based on total
         number of possible values for an attribute, by default True.
+    token_count_boosting : bool
+         boosting factors for attributes that has less then certain token count
     collection_null_attributes : dict[ AttributeName, CollectionAttribute ], optional
         Optional memoization of collection.extract_null_attributes(), by default None.
 
@@ -52,7 +55,7 @@ def get_token_attributes_scores_and_weights(
     )
 
     sorted_attr_names = sorted(list(combined_attributes.keys()))
-    sorted_attrs = [
+    sorted_attrs: list[CollectionAttribute] = [
         combined_attributes[attr_name] for attr_name in sorted_attr_names
     ]
 
@@ -73,12 +76,35 @@ def get_token_attributes_scores_and_weights(
     else:
         attr_weights = [1.0] * len(sorted_attr_names)
 
+    # Apply attribute weights boosting.
+    # OpenRarity supports unique attribute based boosting at
+    # the moment with the boosting factor of 2 for unique attributes in collection.
+    # Once attribute_weights array constructed we multiply them by 2 to provide
+    if token_count_boosting:
+
+        # Boosting factor for unique assets
+        boosting_factor = 2
+
+        # Count of assets when we apply boosting factor
+        unique_count_threshold = 1
+
+        boosted_weights = [
+            attr_weights[i] * boosting_factor
+            if sorted_attrs[i].total_tokens <= unique_count_threshold
+            else attr_weights[i]
+            for i in range(0, len(sorted_attr_names))
+        ]
+    else:
+        boosted_weights = attr_weights
+
     scores = [total_supply / attr.total_tokens for attr in sorted_attrs]
 
-    return (scores, attr_weights)
+    return (scores, boosted_weights)
 
 
-def _convert_to_collection_attributes_dict(collection, token):
+def _convert_to_collection_attributes_dict(
+    collection: Collection, token: Token
+):
     # NOTE: We currently only support string attributes
     return {
         attribute.name: CollectionAttribute(

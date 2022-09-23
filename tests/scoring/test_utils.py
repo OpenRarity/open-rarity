@@ -200,3 +200,38 @@ class TestScoringUtils:
                 )
                 assert scores == expected_scores[i]
                 assert weights == expected_weights
+
+    def test_get_token_attributes_with_boosting_weights(self):
+        collection = generate_collection_with_token_traits(
+            [
+                {"bottom": "1", "hat": "1"},
+                {"bottom": "1", "hat": "1"},
+                {"bottom": "1", "hat": "2"},
+            ]
+        )
+        _, weights = get_token_attributes_scores_and_weights(
+            collection=collection,
+            token=collection.tokens[1],
+            normalized=False,
+            token_count_boosting=True,
+        )
+
+        assert weights == [1, 1]
+
+        _, weights = get_token_attributes_scores_and_weights(
+            collection=collection,
+            token=collection.tokens[2],
+            normalized=False,
+            token_count_boosting=True,
+        )
+
+        assert weights == [1, 2]
+
+        _, weights = get_token_attributes_scores_and_weights(
+            collection=collection,
+            token=collection.tokens[2],
+            normalized=False,
+            token_count_boosting=False,
+        )
+
+        assert weights == [1, 1]

@@ -39,7 +39,7 @@ class TestRarityRanker:
                     "trait1": "value2",
                     "trait2": "value2",
                     "trait3": " value3",
-                },  # Token 3
+                },  # Token 2
             ]
         )
 
@@ -48,11 +48,11 @@ class TestRarityRanker:
         )
 
         assert tokens[0].token.token_identifier.token_id == 2
-        assert tokens[0].score == 1.3629912289393598
+        assert tokens[0].score == 2.513646200858506
         assert tokens[0].rank == 1
 
         assert tokens[1].token.token_identifier.token_id == 0
-        assert tokens[1].score == 1.0000000000000002
+        assert tokens[1].score == 1.5753274859595732
         assert tokens[1].rank == 2
 
         assert tokens[2].token.token_identifier.token_id == 1
@@ -95,11 +95,11 @@ class TestRarityRanker:
         )
 
         assert tokens[0].token.token_identifier.token_id == 4
-        assert tokens[0].score == 1.3926137488801251
+        assert tokens[0].score == 2.594492985431578
         assert tokens[0].rank == 1
 
         assert tokens[1].token.token_identifier.token_id == 3
-        assert tokens[1].score == 1.1338031424711967
+        assert tokens[1].score == 1.7347427607469232
         assert tokens[1].rank == 2
 
         assert tokens[2].token.token_identifier.token_id == 0
