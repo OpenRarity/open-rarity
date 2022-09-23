@@ -30,6 +30,26 @@ class Token:
     metadata: TokenMetadata
 
     @classmethod
+    def from_token(cls, token, metadata: TokenMetadata):
+        """Create a Token object from another Token object.
+
+        Parameters
+        ----------
+        token : Token
+            Token object to copy
+
+        Returns
+        -------
+        Token
+            Token object
+        """
+        return cls(
+            token_identifier=token.token_identifier,
+            token_standard=token.token_standard,
+            metadata=metadata,
+        )
+
+    @classmethod
     def from_erc721(
         cls,
         contract_address: str,

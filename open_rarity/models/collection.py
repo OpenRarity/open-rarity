@@ -1,15 +1,35 @@
 from collections import defaultdict
 from dataclasses import dataclass
+from enum import Enum
 from functools import cached_property
 
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import (
+    TokenMetadata,
+    Attribute,
     AttributeName,
     AttributeValue,
     StringAttribute,
 )
 from open_rarity.models.token_standard import TokenStandard
 from open_rarity.models.utils.attribute_utils import normalize_attribute_string
+
+
+def get_trait_count(token: Token) -> int:
+    # TODO [vicky] In opensea and perhaps other sites, we return
+    # none as explicit empty traits. Do we want to explicitly filter
+    # out in this library or do it on opensea side?
+    # Would love people's thoughts! Can see argument to not filter.
+    def get_attributes_count(attributes: list[Attribute]) -> int:
+        return sum(map(lambda a: a.value.lower() != "none", attributes))
+
+    return (
+        get_attributes_count(token.token_metadata.string_attributes.values())
+        + get_attributes_count(
+            token.token_metadata.numeric_attributes.values()
+        )
+        + get_attributes_count(token.token_metadata.date_attributes.values())
+    )
 
 
 @dataclass
@@ -28,6 +48,12 @@ class CollectionAttribute:
 
     attribute: StringAttribute
     total_tokens: int
+
+
+class MetaAttribute(Enum):
+    # Trait count is a meta attribute automatically calculated based on the number
+    # of non-empty non-null traits a token has.
+    TRAIT_COUNT = "trait_count"
 
 
 @dataclass
@@ -74,10 +100,35 @@ class Collection:
         ]
         | None = None,
         name: str | None = "",
+        meta_attributes: set[MetaAttribute] | None = None,
     ):
-        self._tokens = tokens
+        """
+        Parameters
+        ----------
+        meta_attributes : list[MetaAttribute]
+            list of meta attributes to be automatically added to the tokens metadata.
+            Currently supported meta attributes:
+                - MetaAttribute.TRAIT_COUNT
+                    If you pass this in, a new field "trait_count" will be added
+                    to string_attributes with the value as the total number of
+                    traits a token has without a value of 'none'.
+            If this is provided, attribute frequency counts will always be derived.
+
+        Note from authors: In general, we do not recommend using meta attributes
+        for new collections as creators can explicitly add a trait representing trait
+        count explicitly if it should impact rarity rank. However, to allow for
+        backwards compatibility with existing collections who have already added
+        trait count as a meta attribute, we will support as an optional parameter
+        to pre-process meta attributes.
+        """
+        if meta_attributes:
+            self._tokens = self._get_with_meta_attributes(
+                tokens, meta_attributes
+            )
+        else:
+            self._tokens = tokens
         self.name = name or ""
-        if attributes_frequency_counts:
+        if attributes_frequency_counts and not meta_attributes:
             self.attributes_frequency_counts = (
                 self._normalize_attributes_frequency_counts(
                     attributes_frequency_counts
@@ -208,6 +259,46 @@ class Collection:
                 )
 
         return collection_traits
+
+    def _get_with_meta_attributes(
+        self, tokens: list[Token], meta_attributes: set[MetaAttribute]
+    ) -> list[Token]:
+        """Creates a new set of tokens with meta attributes.
+
+        Currently supported meta attributes:
+            - MetaAttribute.TRAIT_COUNT
+
+        Parameters
+        ----------
+        tokens : list[Token]
+            list of tokens to add meta attributes to
+
+        Returns
+        -------
+        list[Token]
+            list of tokens with meta attributes added
+        """
+        if meta_attributes != {MetaAttribute.TRAIT_COUNT}:
+            return tokens
+
+        modified_tokens = []
+        for token in tokens:
+            trait_count = get_trait_count(token)
+            modified_tokens.append(
+                Token.from_token(
+                    token,
+                    metadata=TokenMetadata(
+                        string_attributes={
+                            **token.metadata.string_attribute,
+                            **{"trait_count": str(trait_count)},
+                        },
+                        numeric_attributes=token.metadata.numeric_attributes,
+                        date_attributes=token.metadata.date_attributes,
+                    ),
+                )
+            )
+
+        return modified_tokens
 
     def _normalize_attributes_frequency_counts(
         self,
