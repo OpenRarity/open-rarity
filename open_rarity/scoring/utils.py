@@ -80,10 +80,10 @@ def get_token_attributes_scores_and_weights(
     # OpenRarity supports unique attribute boosting with factor 2.
     if token_count_boosting:
 
-        # Constant boosting factor for unique assets
+        # Constant boosting factor for unique traits
         boosting_factor = 2
 
-        # Count of assets when we apply boosting factor
+        # Count of traits when we apply boosting factor
         unique_count_threshold = 1
 
         boosted_weights = [
