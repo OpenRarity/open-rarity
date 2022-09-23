@@ -131,6 +131,7 @@ class InformationContentScoringHandler:
 
         # Get a single score (via information content) for the token by taking
         # the sum of the logarithms of the attributes' scores.
+        # Apply weights with boosting factors for specific attributes
         ic_token_score = -np.dot(weights, np.log2(np.reciprocal(attr_scores)))
         logger.debug("IC token score %s", ic_token_score)
 
