@@ -318,8 +318,8 @@ def resolve_open_rarity_score(
         try:
             token_features = (
                 TokenFeatureExtractor.extract_unique_attribute_count(
-                    token=token
-                ),
+                    token=token, collection=collection
+                )
             )
 
             harmonic_dict[token_id] = TokenRarity(

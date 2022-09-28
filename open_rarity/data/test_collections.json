@@ -49,7 +49,7 @@
   },
   {
     "collection_name": "Moonbirds",
-    "collection_slug": "moonbird-oddities"
+    "collection_slug": "moonbirds-oddities"
   },
   {
     "collection_name": "Clonex",
@@ -101,7 +101,7 @@
   },
   {
     "collection_name": "Genesis Creepz",
-    "collection_slug": " genesis-creepz"
+    "collection_slug": "genesis-creepz"
   },
   {
     "collection_name": "Kawmi",
@@ -164,10 +164,6 @@
     "collection_slug": "nostalgia-key"
   },
   {
-    "collection_name": "zunkz",
-    "collection_slug": "zunkz"
-  },
-  {
     "collection_name": "y00ts-yacht-club",
     "collection_slug": "y00ts-yacht-club"
   },
@@ -191,5 +187,4 @@
     "collection_name": "cryptotrunks",
     "collection_slug": "cryptotrunks"
   }
-
 ]
