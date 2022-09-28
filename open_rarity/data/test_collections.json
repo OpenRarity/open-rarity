@@ -1,9 +1,5 @@
 [
   {
-    "collection_name": "Crypto Coven",
-    "collection_slug": "cryptocoven"
-  },
-  {
     "collection_name": "Cool Cats",
     "collection_slug": "cool-cats-nft"
   },
@@ -116,20 +112,12 @@
     "collection_slug": "the-doge-pound"
   },
   {
-    "collection_name": "Inbetweeners",
-    "collection_slug": "inbetweeners"
-  },
-  {
     "collection_name": "Everai",
     "collection_slug": "everai-heroes-duo"
   },
   {
     "collection_name": "Los Muertos World",
     "collection_slug": "los-muertos-world"
-  },
-  {
-    "collection_name": "Bonji",
-    "collection_slug": "boonjiproject"
   },
   {
     "collection_name": "Bonji",
@@ -182,9 +170,5 @@
   {
     "collection_name": "fat-rat-mafia",
     "collection_slug": "fat-rat-mafia"
-  },
-  {
-    "collection_name": "cryptotrunks",
-    "collection_slug": "cryptotrunks"
   }
 ]
