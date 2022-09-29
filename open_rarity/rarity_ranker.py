@@ -80,11 +80,9 @@ class RarityRanker:
         token_rarities: list[TokenRarity],
     ) -> list[TokenRarity]:
         """Ranks a set of tokens according to OpenRarity algorithm.
-        To account for unique items in collection OpenRarity implements
-        two-stage sorting ranking based on two factors:
-        Information Content score and unique attributes count. The sorting
-        function takes unique attributes count as a primary factor and
-        the Information Content score as a secondary factor.
+        To account for additional factors like unique items in a collection,
+        OpenRarity implements multi-factor sort. Current sort algorithm uses two
+        factors: unique attributes count and Information Content score, in order.
         Tokens with the same score will be assigned the same rank, e.g. we use RANK
         (vs. DENSE_RANK).
         Example: 1, 2, 2, 2, 5.

@@ -1,6 +1,6 @@
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
-from open_rarity.models.token_features import TokenFeatures
+from open_rarity.models.token_ranking_features import TokenRankingFeatures
 from open_rarity.models.token_identifier import (
     EVMContractTokenIdentifier,
 )
@@ -66,15 +66,6 @@ class TestRarityRanker:
         tokens: list[TokenRarity] = RarityRanker.rank_collection(
             collection=test_collection
         )
-        print(tokens[0].token_features.unique_attribute_count)
-        print(tokens[1].token_features.unique_attribute_count)
-        print(tokens[2].token_features.unique_attribute_count)
-        print(tokens[3].token_features.unique_attribute_count)
-
-        print(tokens[0].score)
-        print(tokens[1].score)
-        print(tokens[2].score)
-        print(tokens[3].score)
 
         assert tokens[0].token.token_identifier.token_id == 3
         assert tokens[0].score == 1.4139176838874645
@@ -170,7 +161,7 @@ class TestRarityRanker:
                     metadata=metadata,
                 ),
                 score=1.5,
-                token_features=TokenFeatures(unique_attribute_count=1),
+                token_features=TokenRankingFeatures(unique_attribute_count=1),
             )
         )
 
@@ -184,7 +175,7 @@ class TestRarityRanker:
                     metadata=metadata,
                 ),
                 score=1.5,
-                token_features=TokenFeatures(unique_attribute_count=2),
+                token_features=TokenRankingFeatures(unique_attribute_count=2),
             )
         )
 
@@ -198,7 +189,7 @@ class TestRarityRanker:
                     metadata=metadata,
                 ),
                 score=0.2,
-                token_features=TokenFeatures(unique_attribute_count=3),
+                token_features=TokenRankingFeatures(unique_attribute_count=3),
             )
         )
 
@@ -212,7 +203,7 @@ class TestRarityRanker:
                     metadata=metadata,
                 ),
                 score=7.0,
-                token_features=TokenFeatures(unique_attribute_count=0),
+                token_features=TokenRankingFeatures(unique_attribute_count=0),
             )
         )
 

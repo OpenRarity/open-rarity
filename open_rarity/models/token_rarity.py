@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from open_rarity.models.token import Token
-from open_rarity.models.token_features import TokenFeatures
+from open_rarity.models.token_ranking_features import TokenRankingFeatures
 
 
 @dataclass
@@ -21,6 +21,6 @@ class TokenRarity:
     """
 
     score: float
-    token_features: TokenFeatures
+    token_features: TokenRankingFeatures
     token: Token
     rank: int | None = None
