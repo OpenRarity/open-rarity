@@ -31,10 +31,21 @@ parser.add_argument(
     help="Determines output file type. Either 'json' or 'csv'.",
 )
 
+parser.add_argument(
+    "--use_cache",
+    dest="use_cache",
+    default=True,
+    type=bool,
+    help="Set to false to turn off cache. Otherwise will check + store into "
+    "a local file the cached token trait data",
+)
 
-def score_collection_and_output_results(slug: str, output_filename: str):
+
+def score_collection_and_output_results(
+    slug: str, output_filename: str, use_cache: bool
+):
     # Get collection
-    collection = get_collection_from_opensea(slug)
+    collection = get_collection_from_opensea(slug, use_cache=use_cache)
     print(
         f"Created collection {slug} with {collection.token_total_supply} tokens"
     )
@@ -98,9 +109,10 @@ if __name__ == "__main__":
         `python -m scripts.score_real_collections boredapeyachtclub proof-moonbirds`
     """
     args = parser.parse_args()
-    print(f"Scoring collections: {args.slugs}")
+    use_cache = args.use_cache
+    print(f"Scoring collections: {args.slugs} with {use_cache=}")
     print(
-        f"Output file prefix: {args.filename_prefix} with type {args.filetype}"
+        f"Output file prefix: {args.filename_prefix} with type .{args.filetype}"
     )
 
     files = []
@@ -110,6 +122,7 @@ if __name__ == "__main__":
         score_collection_and_output_results(
             slug=slug,
             output_filename=output_filename,
+            use_cache=use_cache,
         )
         print(f"Outputted results to: {output_filename}")
         files.append(output_filename)
