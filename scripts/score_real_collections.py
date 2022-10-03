@@ -54,7 +54,6 @@ def score_collection_and_output_results(slug: str, output_filename: str):
         score = rarity_token.score
         json_output[token_id] = {"rank": rank, "score": score}
         csv_rows.append([token_id, rank, score])
-        print(f"\tToken {token_id} has rank {rank} score: {score}")
 
     # Write to json
     if output_filename.endswith(".json"):

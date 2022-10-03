@@ -74,6 +74,9 @@ class DateAttribute:
         self.value = value
 
 
+Attribute = StringAttribute | NumericAttribute | DateAttribute
+
+
 @dataclass
 class TokenMetadata:
     """Class represents EIP-721 or EIP-1115 compatible metadata structure
@@ -176,3 +179,14 @@ class TokenMetadata:
             numeric_attributes=numeric_attributes,
             date_attributes=date_attributes,
         )
+
+    def to_attributes(self) -> dict[AttributeName, Any]:
+        """Returns a dictionary of all attributes in this metadata object."""
+        attributes = {}
+        for attr in self.string_attributes.values():
+            attributes[attr.name] = attr.value
+        for attr in self.numeric_attributes.values():
+            attributes[attr.name] = attr.value
+        for attr in self.date_attributes.values():
+            attributes[attr.name] = datetime.fromtimestamp(attr.value)
+        return attributes

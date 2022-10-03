@@ -186,7 +186,13 @@ def get_all_collection_tokens(
                 expected_supply=total_supply,
                 slug=slug,
             )
+            logger.debug(
+                f"Read {len(tokens)} tokens from cache file: {cached_filename}"
+            )
         except FileNotFoundError:
+            logger.warning(
+                f"No opensea cache file found for {slug}: {cached_filename}"
+            )
             pass
         except Exception:
             logger.exception(
@@ -196,9 +202,8 @@ def get_all_collection_tokens(
                 exc_info=True,
             )
 
-    # This means either cache file didn't exist or had incomplete data
-    # So re-fetch from opensea
-    if len(tokens) != total_supply:
+    # This means either cache file didn't exist or did not have data
+    if len(tokens) == 0:
         tokens = []
         num_batches = math.ceil(total_supply / batch_size)
         initial_token_id = 0
@@ -223,10 +228,31 @@ def get_all_collection_tokens(
 
             tokens.extend(tokens_batch)
 
-        assert len(tokens) == total_supply
+        # It's possible for some collections to start at 1 instead of 0,
+        # so attempt fetch of more tokens if they exist
+        token_id = total_supply
+        while True:
+            try:
+                extra_tokens = get_tokens_from_opensea(
+                    opensea_slug=slug,
+                    token_ids=[token_id],
+                )
+                if len(extra_tokens) == 0:
+                    break
+                tokens.extend(extra_tokens)
+                token_id += 1
+            except Exception:
+                break
+
+        if len(tokens) > total_supply:
+            logger.warning(
+                f"Warning: Found more tokens ({len(tokens)}) than "
+                "token supply ({total_supply})"
+            )
 
         # Write to local disk the fetched data for later caching
         if use_cache:
+            logger.info(f"Writing token data to cache file: {cached_filename}")
             write_collection_data_to_file(
                 filename=cached_filename, slug=slug, tokens=tokens
             )
@@ -386,13 +412,12 @@ def get_collection_from_opensea(
     contracts = collection_obj["primary_asset_contracts"]
     interfaces = set([contract["schema_name"] for contract in contracts])
     stats = collection_obj["stats"]
-    if not interfaces.issubset(set(["ERC721", "ERC1155"])):
+    if not interfaces.issubset(set(["ERC721"])):
         raise ERCStandardError(
-            "We currently do not support non EVM standards at the moment"
+            "We currently do not support non ERC721 standards at the moment"
         )
 
     total_supply = int(stats["total_supply"])
-
     tokens = get_all_collection_tokens(
         slug=slug,
         total_supply=total_supply,
@@ -429,13 +454,13 @@ def read_collection_data_from_file(
         tokens_data = json.load(jsonfile)
         if len(tokens_data) != expected_supply:
             logger.warning(
-                "Not using data cache file for %s collection since file "
-                "data length %s does not match total supply %s",
+                "Warning: Data cache file for %s collection has data for %s tokens "
+                "but total supply fetched from opensea is %s",
                 slug,
                 len(tokens_data),
                 expected_supply,
             )
-        else:
+        if len(tokens_data) > 0:
             for token_data in tokens_data:
                 assert token_data["metadata_dict"]
                 tokens.append(
