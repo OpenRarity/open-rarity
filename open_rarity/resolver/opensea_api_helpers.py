@@ -201,6 +201,10 @@ def get_all_collection_tokens(
                 cached_filename,
                 exc_info=True,
             )
+    else:
+        logger.info(
+            f"Not using cache for fetching collection tokens for: {slug}"
+        )
 
     # This means either cache file didn't exist or did not have data
     if len(tokens) == 0:

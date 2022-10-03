@@ -32,12 +32,12 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--use_cache",
+    "--cache",
+    action=argparse.BooleanOptionalAction,
     dest="use_cache",
     default=True,
-    type=bool,
-    help="Set to false to turn off cache. Otherwise will check + store into "
-    "a local file the cached token trait data",
+    help="Determines whether we force refetch all Token and trait data "
+    "from Opensea or read data from a local cache file",
 )
 
 
