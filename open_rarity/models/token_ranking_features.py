@@ -9,7 +9,7 @@ class TokenRankingFeatures:
     Attributes
     ----------
     unique_attribute_count : int
-        count of unique attributes in the asset ( 1 of 1)
+        count of unique attributes in the token
     """
 
     unique_attribute_count: int
