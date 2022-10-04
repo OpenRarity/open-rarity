@@ -176,37 +176,23 @@ def get_all_collection_tokens(
     """
     cached_filename = f"{cache_file_prefix}-{slug}.json"
     tokens: list[Token] = []
+
     # For performance optimization and re-runs for the same collection,
     # we optionally check if an already cached file for the collection
     # data exists since they tend to be static.
     if use_cache:
-        try:
-            tokens = read_collection_data_from_file(
-                filename=cached_filename,
-                expected_supply=total_supply,
-                slug=slug,
-            )
-            logger.debug(
-                f"Read {len(tokens)} tokens from cache file: {cached_filename}"
-            )
-        except FileNotFoundError:
-            logger.warning(
-                f"No opensea cache file found for {slug}: {cached_filename}"
-            )
-            pass
-        except Exception:
-            logger.exception(
-                "Failed to parse valid cache data for %s from %s",
-                slug,
-                cached_filename,
-                exc_info=True,
-            )
+        tokens = read_collection_data_from_file(
+            filename=cached_filename,
+            expected_supply=total_supply,
+            slug=slug,
+        )
     else:
         logger.info(
             f"Not using cache for fetching collection tokens for: {slug}"
         )
 
-    # This means either cache file didn't exist or did not have data
+    # This means either cache file didn't exist or did not have data.
+    # Fetch all token trait data from opensea.
     if len(tokens) == 0:
         tokens = []
         num_batches = math.ceil(total_supply / batch_size)
@@ -232,7 +218,7 @@ def get_all_collection_tokens(
 
             tokens.extend(tokens_batch)
 
-        # It's possible for some collections to start at 1 instead of 0,
+        # It's possible for some collections to start at token id 1 instead of 0,
         # so attempt fetch of more tokens if they exist
         token_id = total_supply
         while True:
@@ -251,12 +237,11 @@ def get_all_collection_tokens(
         if len(tokens) > total_supply:
             logger.warning(
                 f"Warning: Found more tokens ({len(tokens)}) than "
-                f"token supply ({total_supply})"
+                f"token supply ({total_supply}) fetched from collection stats"
             )
 
         # Write to local disk the fetched data for later caching
         if use_cache:
-            logger.info(f"Writing token data to cache file: {cached_filename}")
             write_collection_data_to_file(
                 filename=cached_filename, slug=slug, tokens=tokens
             )
@@ -452,32 +437,46 @@ def write_collection_data_to_file(
         )
     with open(filename, "w+") as jsonfile:
         json.dump(json_output, jsonfile, indent=4)
+    logger.info(f"Wrote token data to cache file: {filename}")
 
 
 def read_collection_data_from_file(
     filename: str, expected_supply: int, slug: str
 ) -> list[Token]:
     tokens = []
-    with open(filename) as jsonfile:
-        tokens_data = json.load(jsonfile)
-        if len(tokens_data) != expected_supply:
-            logger.warning(
-                "Warning: Data cache file for %s collection has data for %s tokens "
-                "but total supply fetched from opensea is %s",
-                slug,
-                len(tokens_data),
-                expected_supply,
-            )
-        if len(tokens_data) > 0:
-            for token_data in tokens_data:
-                assert token_data["metadata_dict"]
-                tokens.append(
-                    Token.from_erc721(
-                        contract_address=token_data["contract_address"],
-                        token_id=token_data["token_id"],
-                        metadata_dict=token_data["metadata_dict"],
-                    )
+    try:
+        with open(filename) as jsonfile:
+            tokens_data = json.load(jsonfile)
+            if len(tokens_data) != expected_supply:
+                logger.warning(
+                    "Warning: Data cache file for %s collection has data for %s tokens "
+                    "but total supply fetched from opensea is %s",
+                    slug,
+                    len(tokens_data),
+                    expected_supply,
                 )
+            if len(tokens_data) > 0:
+                for token_data in tokens_data:
+                    assert token_data["metadata_dict"]
+                    tokens.append(
+                        Token.from_erc721(
+                            contract_address=token_data["contract_address"],
+                            token_id=token_data["token_id"],
+                            metadata_dict=token_data["metadata_dict"],
+                        )
+                    )
+        logger.debug(f"Read {len(tokens)} tokens from cache file: {filename}")
+    except FileNotFoundError:
+        logger.warning(f"No opensea cache file found for {slug}: {filename}")
+    except Exception:
+        logger.exception(
+            "Failed to parse valid cache data for %s from %s",
+            slug,
+            filename,
+            exc_info=True,
+        )
+        return []
+
     return tokens
 
 
