@@ -32,9 +32,7 @@ class TokenFeatureExtractor:
         unique_attributes_count: int = 0
 
         for string_attribute in token.metadata.string_attributes.values():
-            count = collection.attributes_frequency_counts[
-                string_attribute.name
-            ][string_attribute.value]
+            count = collection.total_tokens_with_attribute(string_attribute)
 
             if count == 1:
                 unique_attributes_count += 1
