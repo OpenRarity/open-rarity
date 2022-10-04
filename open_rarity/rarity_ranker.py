@@ -3,6 +3,7 @@ from open_rarity.models.collection import Collection
 from open_rarity.models.token_rarity import TokenRarity
 
 from open_rarity.scoring.scorer import Scorer
+from open_rarity.scoring.token_feature_extractor import TokenFeatureExtractor
 
 
 class RarityRanker:
@@ -53,9 +54,24 @@ class RarityRanker:
         assert len(tokens) == len(scores)
 
         token_rarities: list[TokenRarity] = []
+
         # augment collection tokens with score information
         for idx, token in enumerate(tokens):
-            token_rarities.append(TokenRarity(token=token, score=scores[idx]))
+
+            # extract features from the token
+            token_features = (
+                TokenFeatureExtractor.extract_unique_attribute_count(
+                    token=token, collection=collection
+                )
+            )
+
+            token_rarities.append(
+                TokenRarity(
+                    token=token,
+                    score=scores[idx],
+                    token_features=token_features,
+                )
+            )
 
         return RarityRanker.set_rarity_ranks(token_rarities)
 
@@ -63,8 +79,10 @@ class RarityRanker:
     def set_rarity_ranks(
         token_rarities: list[TokenRarity],
     ) -> list[TokenRarity]:
-        """Ranks a set of tokens Scores that are higher indicate a higher rarity,
-        and thus a lower rank.
+        """Ranks a set of tokens according to OpenRarity algorithm.
+        To account for additional factors like unique items in a collection,
+        OpenRarity implements multi-factor sort. Current sort algorithm uses two
+        factors: unique attributes count and Information Content score, in order.
         Tokens with the same score will be assigned the same rank, e.g. we use RANK
         (vs. DENSE_RANK).
         Example: 1, 2, 2, 2, 5.
@@ -86,7 +104,10 @@ class RarityRanker:
         """
         sorted_token_rarities: list[TokenRarity] = sorted(
             token_rarities,
-            key=lambda k: k.score,
+            key=lambda k: (
+                k.token_features.unique_attribute_count,
+                k.score,
+            ),
             reverse=True,
         )
 
