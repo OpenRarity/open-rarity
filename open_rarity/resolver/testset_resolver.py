@@ -556,7 +556,8 @@ if __name__ == "__main__":
     """Script to resolve external datasets and compute rarity scores
     on test collections. Data resolved from opensea api
 
-    command to run: python -m  openrarity.resolver.testset_resolver external
+    command to run:
+    python -m  openrarity.resolver.testset_resolver external
     """
     args = parser.parse_args()
     logger = logging.getLogger("open_rarity_logger")

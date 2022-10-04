@@ -79,7 +79,7 @@ def fetch_trait_sniper_rank_for_evm_token(
 
 def fetch_rarity_sniffer_rank_for_collection(
     contract_address: str,
-) -> dict[int, int]:
+) -> dict[str, int]:
     """Fetches all available tokens and ranks
        for a given collection from rarity sniffer.
        Only usable for EVM tokens and collections for a single
@@ -124,7 +124,7 @@ def fetch_rarity_sniffer_rank_for_collection(
         response.raise_for_status()
 
     tokens_to_ranks: dict[int, int] = {
-        int(nft["id"]): int(rank=nft["positionId"])
+        str(nft["id"]): int(rank=nft["positionId"])
         for nft in response.json()["data"]
     }
 
@@ -162,17 +162,17 @@ def fetch_rarity_sniper_rank_for_evm_token(
 
 class ExternalRarityProvider:
     # Cached file will have format:
-    # "external_{provider_name}_cached_ranks-{collection slug}.json"
+    # "cached_{provider_name}_ranks-{collection slug}.json"
     # The data must be a dictionary of <token id as int> to <rank as int>
-    CACHE_FILENAME_FORMAT: str = "external_%s_cached_ranks-%s.json"
+    CACHE_FILENAME_FORMAT: str = "cached_data/cached_%s_ranks-%s.json"
 
     # Cache of rarity sniffer ranking data for given contracts
     # since rarity sniffer API does a bulk reques for an entire collection
     # Key = Contract Address (str)
     # Value = Token ID (str) -> Rank (int)
-    rarity_sniffer_state: dict[str, dict[str, int]] = {}
+    _rarity_sniffer_state: dict[str, dict[str, int]] = {}
 
-    # Slug -> {token_id (str)->rank (int)}
+    # Dictionary of slug -> {token_id (str) -> rank (int)}
     _trait_sniper_external_rank_cache: dict[str, dict[str, int]] = defaultdict(
         dict
     )
@@ -380,13 +380,13 @@ class ExternalRarityProvider:
             try:
                 # Memoize since caller typically calls this function with the same
                 # collection but different batches of tokens
-                if contract_address not in self.rarity_sniffer_state:
+                if contract_address not in self._rarity_sniffer_state:
                     token_ids_to_ranks = (
                         fetch_rarity_sniffer_rank_for_collection(
                             contract_address=contract_address
                         )
                     )
-                    self.rarity_sniffer_state[
+                    self._rarity_sniffer_state[
                         contract_address
                     ] = token_ids_to_ranks
                     # Write to cache
@@ -395,7 +395,7 @@ class ExternalRarityProvider:
                             slug
                         ] = token_ids_to_ranks
                     num_tokens = len(
-                        self.rarity_sniffer_state[contract_address]
+                        self._rarity_sniffer_state[contract_address]
                     )
                     logger.debug(
                         f"Fetched {num_tokens} token ranks from rarity sniffer"
@@ -407,7 +407,7 @@ class ExternalRarityProvider:
                 logger.exception("Failed to resolve token_ids Rarity Sniffer")
                 raise
 
-        token_ids_to_ranks = self.rarity_sniffer_state[contract_address]
+        token_ids_to_ranks = self._rarity_sniffer_state[contract_address]
         for token_with_rarity in tokens_with_rarity:
             token_identifer = token_with_rarity.token.token_identifier
             assert isinstance(token_identifer, EVMContractTokenIdentifier)
@@ -418,7 +418,7 @@ class ExternalRarityProvider:
                 self._get_cached_rank(
                     slug=slug, rank_provider=rank_provider, token_id=token_id
                 )
-                or token_ids_to_ranks[token_id]
+                or token_ids_to_ranks[str(token_id)]
             )
 
             token_with_rarity.rarities.append(

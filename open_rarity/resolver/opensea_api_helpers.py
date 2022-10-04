@@ -33,6 +33,8 @@ HEADERS = {
 # https://docs.opensea.io/docs/metadata-standards
 OS_METADATA_TRAIT_TYPE = "display_type"
 
+DEFAULT_OS_CACHE_FILENAME_PREFIX: str = "cached_data/cached_os_trait_data"
+
 
 # Error is thrown if computatation is requested on a non-ERC721/1155
 # token or collection. This is due to library only working for these
@@ -169,7 +171,7 @@ def get_all_collection_tokens(
     total_supply: int,
     batch_size: int = 30,
     use_cache: bool = True,
-    cache_file_prefix: str | None = "cached_os_collection_data",
+    cache_file_prefix: str | None = DEFAULT_OS_CACHE_FILENAME_PREFIX,
 ) -> list[Token]:
     """Returns a list of Token's with all metadata filled, either populated
     from Opensea API or fetched from a local cache file.
@@ -375,7 +377,7 @@ def get_collection_from_opensea(
     slug: str,
     batch_size: int = 30,
     use_cache: bool = True,
-    cache_file_prefix: str | None = "cached_os_collection_data",
+    cache_file_prefix: str | None = DEFAULT_OS_CACHE_FILENAME_PREFIX,
 ) -> Collection:
     """Fetches collection and token data with OpenSea endpoint and API key
     and stores it in the Collection object. If local cache file is used and
