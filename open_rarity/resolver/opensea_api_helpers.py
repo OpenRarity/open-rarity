@@ -251,7 +251,7 @@ def get_all_collection_tokens(
         if len(tokens) > total_supply:
             logger.warning(
                 f"Warning: Found more tokens ({len(tokens)}) than "
-                "token supply ({total_supply})"
+                f"token supply ({total_supply})"
             )
 
         # Write to local disk the fetched data for later caching
@@ -342,6 +342,10 @@ def get_collection_with_metadata_from_opensea(
     ----------
     opensea_collection_slug : str
         collection slug on opensea's system
+    use_cache: bool
+        If true, reads the token trait data from local cache file if it exists, or
+        fetches from opensea api and stores the data in a local cached file for
+        future reuse.
 
     Returns
     -------
@@ -375,7 +379,7 @@ def get_collection_with_metadata_from_opensea(
     collection_with_metadata = CollectionWithMetadata(
         collection=collection,
         contract_addresses=[contract["address"] for contract in contracts],
-        token_total_supply=total_supply,
+        token_total_supply=max(total_supply, collection.token_total_supply),
         opensea_slug=opensea_collection_slug,
     )
 
@@ -446,7 +450,7 @@ def write_collection_data_to_file(
                 "metadata_dict": token.metadata.to_attributes(),
             }
         )
-    with open(filename, "w") as jsonfile:
+    with open(filename, "w+") as jsonfile:
         json.dump(json_output, jsonfile, indent=4)
 
 
