@@ -3,6 +3,7 @@ from typing import Any
 
 from open_rarity.models.token_identifier import (
     EVMContractTokenIdentifier,
+    get_identifier_class_from_dict,
     TokenIdentifier,
 )
 from open_rarity.models.token_metadata import AttributeName, TokenMetadata
@@ -91,6 +92,27 @@ class Token:
 
     def attributes(self):
         return self.metadata.to_attributes()
+
+    @classmethod
+    def from_dict(cls, data_dict: dict):
+        identifier_class = get_identifier_class_from_dict(
+            data_dict["token_identifier"]
+        )
+
+        return cls(
+            token_identifier=identifier_class.from_dict(
+                data_dict["token_identifier"]
+            ),
+            token_standard=TokenStandard[data_dict["token_standard"]],
+            metadata=TokenMetadata.from_attributes(data_dict["metadata_dict"]),
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "token_identifier": self.token_identifier.to_dict(),
+            "metadata_dict": self.metadata.to_attributes(),
+            "token_standard": self.token_standard.name,
+        }
 
     def __str__(self):
         return f"Token[{self.token_identifier}]"

@@ -5,6 +5,7 @@ import json
 import logging
 import math
 import pkgutil
+import numpy as np
 from dataclasses import dataclass
 from time import process_time, strftime
 
@@ -23,10 +24,10 @@ from open_rarity.resolver.models.token_with_rarity_data import (
 )
 from open_rarity.resolver.opensea_api_helpers import (
     get_collection_with_metadata_from_opensea,
-    get_tokens_from_opensea,
 )
 from open_rarity.resolver.rarity_providers.external_rarity_provider import (
     ExternalRarityProvider,
+    EXTERNAL_RANK_PROVIDERS,
 )
 from open_rarity.scoring.handlers.arithmetic_mean_scoring_handler import (
     ArithmeticMeanScoringHandler,
@@ -41,6 +42,7 @@ from open_rarity.scoring.handlers.information_content_scoring_handler import (
     InformationContentScoringHandler,
 )
 from open_rarity.scoring.handlers.sum_scoring_handler import SumScoringHandler
+from open_rarity.scoring.token_feature_extractor import TokenFeatureExtractor
 
 harmonic_handler = HarmonicMeanScoringHandler()
 arithmetic_handler = ArithmeticMeanScoringHandler()
@@ -71,6 +73,19 @@ parser.add_argument(
     default=False,
     help="Specify 'True' if you want to add a meta attribuet trait count",
 )
+parser.add_argument(
+    "--cache",
+    dest="cache_fetched_data",
+    action=argparse.BooleanOptionalAction,
+    default=True,
+    help="Whether we use local data files to cache external trait + rank data",
+)
+parser.add_argument(
+    "--filename",
+    dest="filename",
+    default="test_collections.json",
+    help="File in /data folder containing collections to resolve.",
+)
 
 
 @dataclass
@@ -84,10 +99,11 @@ class OpenRarityScores:
 
 def get_tokens_with_rarity(
     collection_with_metadata: CollectionWithMetadata,
+    external_rank_providers: list[RankProvider] = EXTERNAL_RANK_PROVIDERS,
     resolve_remote_rarity: bool = True,
-    batch_size: int = 30,
+    batch_size: int = 300,
     max_tokens_to_calculate: int = None,
-    add_trait_count: bool = False,
+    cache_external_ranks: bool = True,
 ) -> list[TokenWithRarityData]:
     """Resolves assets through OpenSea API asset endpoint and turns them
     into token with rarity data, augmented with rankings from Gem, RaritySniper
@@ -102,6 +118,10 @@ def get_tokens_with_rarity(
         external providers , False if not
     max_tokens_to_calculate (int, optional): If specified only gets ranking
         data of first `max_tokens`. Defaults to None.
+    cache_external_ranks : bool
+        If set to true, will cache external ranks into local json file and
+        optionally use cached data if file exists. If cache file already exists,
+        will not refetch or rewrite cache data.
 
     Returns
     -------
@@ -115,46 +135,43 @@ def get_tokens_with_rarity(
         collection_with_metadata.token_total_supply,
     )
     num_batches = math.ceil(total_supply / batch_size)
-    initial_token_id = 0
+    tokens = collection_with_metadata.collection.tokens
+    assert len(tokens) == collection_with_metadata.token_total_supply
     tokens_with_rarity: list[TokenWithRarityData] = []
 
-    # Returns a list of `batch_size` token IDs, such that no token ID
-    # can exceed `max_token_id` (in which case len(return_value) < `batch_size`)
-    def get_token_ids(
-        batch_id: int, max_token_id: int = total_supply - 1
-    ) -> list[int]:
-        token_id_start = initial_token_id + (batch_id * batch_size)
-        token_id_end = int(min(token_id_start + batch_size - 1, max_token_id))
-        return [
-            token_id for token_id in range(token_id_start, token_id_end + 1)
-        ]
-
     t1_start = process_time()
-    for batch_id in range(num_batches):
-        token_ids = get_token_ids(batch_id)
-        logger.debug(
-            f"Starting batch {batch_id} for collection "
-            f"{slug}: Processing {len(token_ids)} tokens"
-        )
 
-        tokens = get_tokens_from_opensea(
-            opensea_slug=collection_with_metadata.opensea_slug,
-            token_ids=token_ids,
-            add_trait_count=add_trait_count,
+    for batch_id, tokens_batch in enumerate(
+        np.array_split(tokens, num_batches)
+    ):
+        message = (
+            f"Starting batch {batch_id} for collection "
+            f"{slug}: Processing {len(tokens_batch)} tokens"
         )
+        logger.debug(message)
+        print(message)
 
         # We will store all rarities calculated across providers in this list
         tokens_rarity_batch = [
-            TokenWithRarityData(token=t, rarities=[]) for t in tokens
+            TokenWithRarityData(token=t, rarities=[]) for t in tokens_batch
         ]
 
         if resolve_remote_rarity:
             external_rarity_provider.fetch_and_update_ranks(
                 collection_with_metadata=collection_with_metadata,
                 tokens_with_rarity=tokens_rarity_batch,
+                rank_providers=external_rank_providers,
+                cache_external_ranks=cache_external_ranks,
             )
         # Add the batch of augmented tokens with rarity into return value
         tokens_with_rarity.extend(tokens_rarity_batch)
+
+    # Cache the data
+    if cache_external_ranks:
+        for rank_provider in external_rank_providers:
+            external_rarity_provider.write_cache_to_file(
+                slug=slug, rank_provider=rank_provider
+            )
 
     t1_stop = process_time()
     logger.debug(
@@ -172,6 +189,7 @@ def resolve_collection_data(
     filename: str = "test_collections.json",
     max_tokens_to_calculate: int = None,
     add_trait_count: bool = False,
+    use_cache: bool = True,
 ) -> None:
     """Resolves collection information through OpenSea API
 
@@ -189,6 +207,10 @@ def resolve_collection_data(
         If specified only gets ranking data of first `max_tokens`, by default None.
         Note: If this is provided, we cannot calculate OpenRarity ranks since
         it must be calculated after calculating scoring for entire collection.
+    use_cache: bool
+        If set to true, will cache fetched data from external API's in order to ensure
+        re-runs for same collections are faster. Only use if collection and token
+        metadata is static - do not work for unrevealed/changing collections.
 
     Raises
     ------
@@ -202,20 +224,25 @@ def resolve_collection_data(
     data = json.load(io.BytesIO(golden_collections))
     for collection_def in data:
         opensea_slug = collection_def["collection_slug"]
+        print(f"Fetching collection and token trait data for: {opensea_slug}")
         # Fetch collection metadata and tokens that belong to this collection
         # from opensea and other external api's.
         collection_with_metadata = get_collection_with_metadata_from_opensea(
-            opensea_collection_slug=opensea_slug
+            opensea_collection_slug=opensea_slug,
+            use_cache=use_cache,
+            add_trait_count=add_trait_count,
         )
+        print(f"Fetching external rarity ranks for: {opensea_slug}")
         tokens_with_rarity: list[TokenWithRarityData] = get_tokens_with_rarity(
             collection_with_metadata=collection_with_metadata,
             resolve_remote_rarity=resolve_remote_rarity,
             max_tokens_to_calculate=max_tokens_to_calculate,
-            add_trait_count=add_trait_count,
+            cache_external_ranks=use_cache,
         )
-        collection_with_metadata.collection = Collection(
-            tokens=[tr.token for tr in tokens_with_rarity],
+        print(
+            f"\t=>Finished fetching external rarity ranks for: {opensea_slug}"
         )
+
         collection = collection_with_metadata.collection
         print("Collection: ", collection)
         print(
@@ -340,32 +367,43 @@ def resolve_open_rarity_score(
         token_id = str(token_identifier.token_id)
 
         try:
+            token_features = (
+                TokenFeatureExtractor.extract_unique_attribute_count(
+                    token=token, collection=collection
+                )
+            )
+
             harmonic_dict[token_id] = TokenRarity(
                 token=token,
+                token_features=token_features,
                 score=harmonic_handler.score_token(
                     collection=collection, token=token
                 ),
             )
             arthimetic_dict[token_id] = TokenRarity(
                 token=token,
+                token_features=token_features,
                 score=arithmetic_handler.score_token(
                     collection=collection, token=token
                 ),
             )
             geometric_dict[token_id] = TokenRarity(
                 token=token,
+                token_features=token_features,
                 score=geometric_handler.score_token(
                     collection=collection, token=token
                 ),
             )
             sum_dict[token_id] = TokenRarity(
                 token=token,
+                token_features=token_features,
                 score=sum_handler.score_token(
                     collection=collection, token=token
                 ),
             )
             ic_dict[token_id] = TokenRarity(
                 token=token,
+                token_features=token_features,
                 score=ic_handler.score_token(
                     collection=collection, token=token
                 ),
@@ -546,13 +584,10 @@ if __name__ == "__main__":
     """Script to resolve external datasets and compute rarity scores
     on test collections. Data resolved from opensea api
 
-    command to run: python -m  openrarity.resolver.testset_resolver external
+    command to run:
+    python -m  openrarity.resolver.testset_resolver external
     """
     args = parser.parse_args()
-
-    resolve_remote_rarity = bool(args.resolve_external_rarity)
-    print(f"Executing main: {resolve_remote_rarity=} {args.add_trait_count=}")
-
     logger = logging.getLogger("open_rarity_logger")
     logger.setLevel(logging.DEBUG)
 
@@ -560,7 +595,12 @@ if __name__ == "__main__":
     fh.setLevel(logging.DEBUG)
 
     logger.addHandler(fh)
+    resolve_remote_rarity = args.resolve_external_rarity
 
+    print(f"Executing main: with {args}")
     resolve_collection_data(
-        resolve_remote_rarity, add_trait_count=args.add_trait_count
+        resolve_remote_rarity,
+        add_trait_count=args.add_trait_count,
+        use_cache=args.cache_fetched_data,
+        filename=args.filename,
     )

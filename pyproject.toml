@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "open-rarity"
-version = "0.4.3-beta"
+version = "0.5.1-beta"
 description = "Open-Rarity library is an open standard that provides an easy, explanable and reproducible computation for NFT rarity"
 authors = ["Dan Meshkov <daniil.meshkov@opensea.io>", "Vicky Gong <vicky.gong@opensea.io>"]
 license = "Apache-2.0"

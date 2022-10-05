@@ -31,10 +31,34 @@ parser.add_argument(
     help="Determines output file type. Either 'json' or 'csv'.",
 )
 
+parser.add_argument(
+    "--cache",
+    action=argparse.BooleanOptionalAction,
+    dest="use_cache",
+    default=True,
+    help="Determines whether we force refetch all Token and trait data "
+    "from Opensea or read data from a local cache file",
+)
 
-def score_collection_and_output_results(slug: str, output_filename: str):
+parser.add_argument(
+    "--trait_count",
+    action=argparse.BooleanOptionalAction,
+    dest="add_trait_count",
+    default=False,
+    help="Determines whether we add TraitCount or not",
+)
+
+
+def score_collection_and_output_results(
+    slug: str,
+    output_filename: str,
+    use_cache: bool,
+    add_trait_count: bool = False,
+):
     # Get collection
-    collection = get_collection_from_opensea(slug, add_trait_count=True)
+    collection = get_collection_from_opensea(
+        slug, add_trait_count=add_trait_count, use_cache=use_cache
+    )
     print(
         f"Created collection {slug} with {collection.token_total_supply} tokens"
     )
@@ -54,7 +78,6 @@ def score_collection_and_output_results(slug: str, output_filename: str):
         score = rarity_token.score
         json_output[token_id] = {"rank": rank, "score": score}
         csv_rows.append([token_id, rank, score])
-        print(f"\tToken {token_id} has rank {rank} score: {score}")
 
     # Write to json
     if output_filename.endswith(".json"):
@@ -99,18 +122,21 @@ if __name__ == "__main__":
         `python -m scripts.score_real_collections boredapeyachtclub proof-moonbirds`
     """
     args = parser.parse_args()
-    print(f"Scoring collections: {args.slugs}")
-    print(
-        f"Output file prefix: {args.filename_prefix} with type {args.filetype}"
-    )
+    use_cache = args.use_cache
+    filename_prefix = args.filename_prefix
+    if args.add_trait_count:
+        filename_prefix = f"{filename_prefix}_trait_count"
+    print(f"Scoring collections: {args=}")
+    print(f"Output file prefix: {filename_prefix} with type .{args.filetype}")
 
     files = []
     for slug in args.slugs:
-        output_filename = f"{args.filename_prefix}_{slug}.{args.filetype}"
+        output_filename = f"{filename_prefix}_{slug}.{args.filetype}"
         print(f"Generating results for: {slug}")
         score_collection_and_output_results(
             slug=slug,
             output_filename=output_filename,
+            use_cache=use_cache,
         )
         print(f"Outputted results to: {output_filename}")
         files.append(output_filename)

@@ -32,3 +32,10 @@ MANIFEST
 
 # Test Coverage report
 .coverage
+
+# Output files from scripts
+testset*.csv
+score_real_collections_results*.json
+
+# Local cache files
+cached_data/*.json
