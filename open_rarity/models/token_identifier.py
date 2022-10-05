@@ -70,6 +70,6 @@ TokenIdentifier = Annotated[
 def get_identifier_class_from_dict(data_dict: dict) -> TokenIdentifier:
     return (
         EVMContractTokenIdentifier
-        if "token_id" in data_dict["token_identifier"]
+        if "token_id" in data_dict
         else SolanaMintAddressTokenIdentifier
     )

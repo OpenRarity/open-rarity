@@ -74,6 +74,12 @@ parser.add_argument(
     default=True,
     help="Whether we use local data files to cache external trait + rank data",
 )
+parser.add_argument(
+    "--filename",
+    dest="filename",
+    default="test_collections.json",
+    help="File in /data folder containing collections to resolve.",
+)
 
 
 @dataclass
@@ -580,5 +586,5 @@ if __name__ == "__main__":
     resolve_collection_data(
         resolve_remote_rarity,
         use_cache=args.cache_fetched_data,
-        filename="test_bayc.json",
+        filename=args.filename,
     )

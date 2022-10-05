@@ -398,7 +398,7 @@ class ExternalRarityProvider:
                         self._rarity_sniffer_state[contract_address]
                     )
                     logger.debug(
-                        f"Fetched {num_tokens} token ranks from rarity sniffer"
+                        f"Fetched {num_tokens} token ranks from rarity sniffer API"
                     )
             except Exception:
                 logger.exception("Failed to resolve token_ids Rarity Sniffer")
@@ -423,9 +423,6 @@ class ExternalRarityProvider:
             token_with_rarity.rarities.append(
                 RarityData(provider=rank_provider, rank=rank)
             )
-            logger.debug(
-                f"Fetched Rarity Sniffer rank for {slug=} {token_id}: {rank}"
-            )
 
         return tokens_with_rarity
 
@@ -440,7 +437,9 @@ class ExternalRarityProvider:
         slug = get_rarity_sniper_slug(opensea_slug=opensea_slug)
         rank_provider = RankProvider.RARITY_SNIPER
         if cache_external_ranks:
-            self._load_cache_from_file(slug=slug, rank_provider=rank_provider)
+            self._load_cache_from_file(
+                slug=opensea_slug, rank_provider=rank_provider
+            )
 
         for token_with_rarity in tokens_with_rarity:
             token = token_with_rarity.token
@@ -451,7 +450,9 @@ class ExternalRarityProvider:
 
             try:
                 rank = self._get_cached_rank(
-                    slug=slug, rank_provider=rank_provider, token_id=token_id
+                    slug=opensea_slug,
+                    rank_provider=rank_provider,
+                    token_id=token_id,
                 ) or fetch_rarity_sniper_rank_for_evm_token(
                     collection_slug=slug, token_id=token_id
                 )
@@ -460,7 +461,8 @@ class ExternalRarityProvider:
                     continue
 
                 logger.debug(
-                    f"Resolved rarity sniper rarity for {slug=} {token_id=}: {rank}"
+                    "Resolved rarity sniper rarity for "
+                    f"{opensea_slug=}/{slug=} {token_id=}: {rank}"
                 )
                 token_with_rarity.rarities.append(
                     RarityData(provider=rank_provider, rank=rank)
@@ -468,7 +470,7 @@ class ExternalRarityProvider:
 
                 # Write to cache
                 if cache_external_ranks:
-                    self._get_provider_rank_cache(slug, rank_provider)[
+                    self._get_provider_rank_cache(opensea_slug, rank_provider)[
                         str(token_id)
                     ] = rank
 
