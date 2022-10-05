@@ -66,7 +66,6 @@ class TestTestsetResolver:
             resolver_output_reader = csv.reader(csvfile)
             for idx, row in enumerate(resolver_output_reader):
                 rows += 1
-                print(", ".join(row))
                 if idx == 0:
                     assert row[0] == "slug"
                     assert row[1] == "token_id"

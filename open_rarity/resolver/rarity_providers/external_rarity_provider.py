@@ -400,9 +400,6 @@ class ExternalRarityProvider:
                     logger.debug(
                         f"Fetched {num_tokens} token ranks from rarity sniffer"
                     )
-                    print(
-                        f"Fetched {num_tokens} token ranks from rarity sniffer"
-                    )
             except Exception:
                 logger.exception("Failed to resolve token_ids Rarity Sniffer")
                 raise

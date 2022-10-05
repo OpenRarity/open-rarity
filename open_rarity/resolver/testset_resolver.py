@@ -27,6 +27,7 @@ from open_rarity.resolver.opensea_api_helpers import (
 )
 from open_rarity.resolver.rarity_providers.external_rarity_provider import (
     ExternalRarityProvider,
+    EXTERNAL_RANK_PROVIDERS,
 )
 from open_rarity.scoring.handlers.arithmetic_mean_scoring_handler import (
     ArithmeticMeanScoringHandler,
@@ -85,7 +86,7 @@ class OpenRarityScores:
 
 def get_tokens_with_rarity(
     collection_with_metadata: CollectionWithMetadata,
-    external_rank_providers: list[RankProvider],
+    external_rank_providers: list[RankProvider] = EXTERNAL_RANK_PROVIDERS,
     resolve_remote_rarity: bool = True,
     batch_size: int = 300,
     max_tokens_to_calculate: int = None,
@@ -130,14 +131,12 @@ def get_tokens_with_rarity(
     for batch_id, tokens_batch in enumerate(
         np.array_split(tokens, num_batches)
     ):
-        logger.debug(
+        message = (
             f"Starting batch {batch_id} for collection "
             f"{slug}: Processing {len(tokens_batch)} tokens"
         )
-        print(
-            f"Starting batch {batch_id} for collection "
-            f"{slug}: Processing {len(tokens_batch)} tokens"
-        )
+        logger.debug(message)
+        print(message)
 
         # We will store all rarities calculated across providers in this list
         tokens_rarity_batch = [
@@ -218,16 +217,12 @@ def resolve_collection_data(
             opensea_collection_slug=opensea_slug,
             use_cache=use_cache,
         )
-        print(
-            f"\t=>Finished fetching collection and token trait data for: {opensea_slug}"
-        )
         print(f"Fetching external rarity ranks for: {opensea_slug}")
         tokens_with_rarity: list[TokenWithRarityData] = get_tokens_with_rarity(
             collection_with_metadata=collection_with_metadata,
             resolve_remote_rarity=resolve_remote_rarity,
             max_tokens_to_calculate=max_tokens_to_calculate,
             cache_external_ranks=use_cache,
-            external_rank_providers=[RankProvider.TRAITS_SNIPER],
         )
         print(
             f"\t=>Finished fetching external rarity ranks for: {opensea_slug}"
