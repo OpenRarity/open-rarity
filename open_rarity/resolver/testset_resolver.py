@@ -42,6 +42,7 @@ from open_rarity.scoring.handlers.information_content_scoring_handler import (
     InformationContentScoringHandler,
 )
 from open_rarity.scoring.handlers.sum_scoring_handler import SumScoringHandler
+from open_rarity.scoring.token_feature_extractor import TokenFeatureExtractor
 
 harmonic_handler = HarmonicMeanScoringHandler()
 arithmetic_handler = ArithmeticMeanScoringHandler()
@@ -345,32 +346,43 @@ def resolve_open_rarity_score(
         token_id = str(token_identifier.token_id)
 
         try:
+            token_features = (
+                TokenFeatureExtractor.extract_unique_attribute_count(
+                    token=token, collection=collection
+                )
+            )
+
             harmonic_dict[token_id] = TokenRarity(
                 token=token,
+                token_features=token_features,
                 score=harmonic_handler.score_token(
                     collection=collection, token=token
                 ),
             )
             arthimetic_dict[token_id] = TokenRarity(
                 token=token,
+                token_features=token_features,
                 score=arithmetic_handler.score_token(
                     collection=collection, token=token
                 ),
             )
             geometric_dict[token_id] = TokenRarity(
                 token=token,
+                token_features=token_features,
                 score=geometric_handler.score_token(
                     collection=collection, token=token
                 ),
             )
             sum_dict[token_id] = TokenRarity(
                 token=token,
+                token_features=token_features,
                 score=sum_handler.score_token(
                     collection=collection, token=token
                 ),
             )
             ic_dict[token_id] = TokenRarity(
                 token=token,
+                token_features=token_features,
                 score=ic_handler.score_token(
                     collection=collection, token=token
                 ),
