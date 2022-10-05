@@ -1,3 +1,4 @@
+import json
 import logging
 import math
 
@@ -31,6 +32,8 @@ HEADERS = {
 
 # https://docs.opensea.io/docs/metadata-standards
 OS_METADATA_TRAIT_TYPE = "display_type"
+
+DEFAULT_OS_CACHE_FILENAME_PREFIX: str = "cached_data/cached_os_trait_data"
 
 
 # Error is thrown if computatation is requested on a non-ERC721/1155
@@ -163,6 +166,91 @@ def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
     )
 
 
+def get_all_collection_tokens(
+    slug: str,
+    total_supply: int,
+    batch_size: int = 30,
+    use_cache: bool = True,
+    cache_file_prefix: str | None = DEFAULT_OS_CACHE_FILENAME_PREFIX,
+) -> list[Token]:
+    """Returns a list of Token's with all metadata filled, either populated
+    from Opensea API or fetched from a local cache file.
+    """
+    cached_filename = f"{cache_file_prefix}-{slug}.json"
+    tokens: list[Token] = []
+
+    # For performance optimization and re-runs for the same collection,
+    # we optionally check if an already cached file for the collection
+    # data exists since they tend to be static.
+    if use_cache:
+        tokens = read_collection_data_from_file(
+            filename=cached_filename,
+            expected_supply=total_supply,
+            slug=slug,
+        )
+    else:
+        logger.info(
+            f"Not using cache for fetching collection tokens for: {slug}"
+        )
+
+    # This means either cache file didn't exist or did not have data.
+    # Fetch all token trait data from opensea.
+    if len(tokens) == 0:
+        tokens = []
+        num_batches = math.ceil(total_supply / batch_size)
+        initial_token_id = 0
+
+        # Returns a list of `batch_size` token IDs, such that no token ID
+        # can exceed `max_token_id` (in which case len(return_value) < `batch_size`)
+        def get_token_ids(
+            batch_id: int, max_token_id: int = total_supply - 1
+        ) -> list[int]:
+            token_id_start = initial_token_id + (batch_id * batch_size)
+            token_id_end = int(
+                min(token_id_start + batch_size - 1, max_token_id)
+            )
+            return list(range(token_id_start, token_id_end + 1))
+
+        for batch_id in range(num_batches):
+            token_ids = get_token_ids(batch_id)
+            tokens_batch = get_tokens_from_opensea(
+                opensea_slug=slug,
+                token_ids=token_ids,
+            )
+
+            tokens.extend(tokens_batch)
+
+        # It's possible for some collections to start at token id 1 instead of 0,
+        # so attempt fetch of more tokens if they exist
+        token_id = total_supply
+        while True:
+            try:
+                extra_tokens = get_tokens_from_opensea(
+                    opensea_slug=slug,
+                    token_ids=[token_id],
+                )
+                if len(extra_tokens) == 0:
+                    break
+                tokens.extend(extra_tokens)
+                token_id += 1
+            except Exception:
+                break
+
+        if len(tokens) > total_supply:
+            logger.warning(
+                f"Warning: Found more tokens ({len(tokens)}) than "
+                f"token supply ({total_supply}) fetched from collection stats"
+            )
+
+        # Write to local disk the fetched data for later caching
+        if use_cache:
+            write_collection_data_to_file(
+                filename=cached_filename, tokens=tokens
+            )
+
+    return tokens
+
+
 def get_tokens_from_opensea(
     opensea_slug: str, token_ids: list[int]
 ) -> list[Token]:
@@ -232,6 +320,7 @@ def get_tokens_from_opensea(
 
 def get_collection_with_metadata_from_opensea(
     opensea_collection_slug: str,
+    use_cache: bool,
 ) -> CollectionWithMetadata:
     """Fetches collection metadata with OpenSea endpoint and API key
     and stores it in the Collection object with 0 tokens.
@@ -240,6 +329,10 @@ def get_collection_with_metadata_from_opensea(
     ----------
     opensea_collection_slug : str
         collection slug on opensea's system
+    use_cache: bool
+        If true, reads the token trait data from local cache file if it exists, or
+        fetches from opensea api and stores the data in a local cached file for
+        future reuse.
 
     Returns
     -------
@@ -257,17 +350,23 @@ def get_collection_with_metadata_from_opensea(
         raise ERCStandardError(
             "We currently do not support non EVM standards at the moment"
         )
+    total_supply = int(stats["total_supply"])
+    tokens = get_all_collection_tokens(
+        slug=opensea_collection_slug,
+        total_supply=total_supply,
+        use_cache=use_cache,
+    )
 
     collection = Collection(
         name=collection_obj["name"],
         attributes_frequency_counts=collection_obj["traits"],
-        tokens=[],
+        tokens=tokens,
     )
 
     collection_with_metadata = CollectionWithMetadata(
         collection=collection,
         contract_addresses=[contract["address"] for contract in contracts],
-        token_total_supply=int(stats["total_supply"]),
+        token_total_supply=max(total_supply, collection.token_total_supply),
         opensea_slug=opensea_collection_slug,
     )
 
@@ -275,19 +374,27 @@ def get_collection_with_metadata_from_opensea(
 
 
 def get_collection_from_opensea(
-    opensea_collection_slug: str, batch_size: int = 30
+    slug: str,
+    batch_size: int = 30,
+    use_cache: bool = True,
+    cache_file_prefix: str | None = DEFAULT_OS_CACHE_FILENAME_PREFIX,
 ) -> Collection:
     """Fetches collection and token data with OpenSea endpoint and API key
-    and stores it in the Collection object
+    and stores it in the Collection object. If local cache file is used and
+    contains all collection token data, that data will be used instead.
 
     Parameters
     ----------
-    opensea_collection_slug : str
+    slug : str
         collection slug on opensea's system
 
     batch_size: int
         batch size for the opensea API requests
         maximum value is 30
+
+    use_cache: bool
+        set to True to look for a local cached version of the collection and token
+        metadata fetched from opensea to prevent re-fetching.
 
     Returns
     -------
@@ -296,48 +403,69 @@ def get_collection_from_opensea(
 
     """
     # Fetch collection metadata
-    collection_obj = fetch_opensea_collection_data(
-        slug=opensea_collection_slug
-    )
+    collection_obj = fetch_opensea_collection_data(slug=slug)
     contracts = collection_obj["primary_asset_contracts"]
     interfaces = set([contract["schema_name"] for contract in contracts])
     stats = collection_obj["stats"]
-    if not interfaces.issubset(set(["ERC721", "ERC1155"])):
+    if not interfaces.issubset(set(["ERC721"])):
         raise ERCStandardError(
-            "We currently do not support non EVM standards at the moment"
+            "We currently do not support non ERC721 standards at the moment"
         )
 
     total_supply = int(stats["total_supply"])
-
-    # Fetch token metadata
-    tokens: list[Token] = []
-    num_batches = math.ceil(total_supply / batch_size)
-    initial_token_id = 0
-
-    # Returns a list of `batch_size` token IDs, such that no token ID
-    # can exceed `max_token_id` (in which case len(return_value) < `batch_size`)
-    def get_token_ids(
-        batch_id: int, max_token_id: int = total_supply - 1
-    ) -> list[int]:
-        token_id_start = initial_token_id + (batch_id * batch_size)
-        token_id_end = int(min(token_id_start + batch_size - 1, max_token_id))
-        return list(range(token_id_start, token_id_end + 1))
-
-    for batch_id in range(num_batches):
-        token_ids = get_token_ids(batch_id)
-        tokens_batch = get_tokens_from_opensea(
-            opensea_slug=opensea_collection_slug, token_ids=token_ids
-        )
-
-        tokens.extend(tokens_batch)
-
-    collection = Collection(
-        name=collection_obj["name"],
-        attributes_frequency_counts=collection_obj["traits"],
-        tokens=tokens,
+    tokens = get_all_collection_tokens(
+        slug=slug,
+        total_supply=total_supply,
+        batch_size=batch_size,
+        use_cache=use_cache,
+        cache_file_prefix=cache_file_prefix,
     )
 
-    return collection
+    return Collection(name=collection_obj["name"], tokens=tokens)
+
+
+def write_collection_data_to_file(filename: str, tokens: list[Token]):
+    json_output = []
+    for token in tokens:
+        # Note: We assume EVM token here
+        json_output.append(token.to_dict())
+    with open(filename, "w+") as jsonfile:
+        json.dump(json_output, jsonfile, indent=4)
+    logger.info(f"Wrote token data to cache file: {filename}")
+
+
+def read_collection_data_from_file(
+    filename: str, expected_supply: int, slug: str
+) -> list[Token]:
+    tokens = []
+    try:
+        with open(filename) as jsonfile:
+            tokens_data = json.load(jsonfile)
+            if len(tokens_data) != expected_supply:
+                logger.warning(
+                    "Warning: Data cache file for %s collection has data for %s tokens "
+                    "but total supply fetched from opensea is %s",
+                    slug,
+                    len(tokens_data),
+                    expected_supply,
+                )
+            if len(tokens_data) > 0:
+                for token_data in tokens_data:
+                    assert token_data["metadata_dict"]
+                    tokens.append(Token.from_dict(token_data))
+        logger.debug(f"Read {len(tokens)} tokens from cache file: {filename}")
+    except FileNotFoundError:
+        logger.warning(f"No opensea cache file found for {slug}: {filename}")
+    except Exception:
+        logger.exception(
+            "Failed to parse valid cache data for %s from %s",
+            slug,
+            filename,
+            exc_info=True,
+        )
+        return []
+
+    return tokens
 
 
 # NFT metadata standard type definitions described here:

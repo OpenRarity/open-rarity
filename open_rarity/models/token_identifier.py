@@ -19,6 +19,19 @@ class EVMContractTokenIdentifier:
     def __str__(self):
         return f"Contract({self.contract_address}) #{self.token_id}"
 
+    @classmethod
+    def from_dict(cls, data_dict: dict):
+        return cls(
+            contract_address=data_dict["contract_address"],
+            token_id=data_dict["token_id"],
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "contract_address": self.contract_address,
+            "token_id": self.token_id,
+        }
+
 
 @dataclass(frozen=True)
 class SolanaMintAddressTokenIdentifier:
@@ -34,6 +47,17 @@ class SolanaMintAddressTokenIdentifier:
     def __str__(self):
         return f"MintAddress({self.mint_address})"
 
+    @classmethod
+    def from_dict(cls, data_dict: dict):
+        return cls(
+            mint_address=data_dict["mint_address"],
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "mint_address": self.mint_address,
+        }
+
 
 # This is used to specifies how the collection is identified and the
 # logic used to group the NFTs together
@@ -41,3 +65,11 @@ TokenIdentifier = Annotated[
     (EVMContractTokenIdentifier | SolanaMintAddressTokenIdentifier),
     Field(discriminator="identifier_type"),
 ]
+
+
+def get_identifier_class_from_dict(data_dict: dict) -> TokenIdentifier:
+    return (
+        EVMContractTokenIdentifier
+        if "token_id" in data_dict
+        else SolanaMintAddressTokenIdentifier
+    )
