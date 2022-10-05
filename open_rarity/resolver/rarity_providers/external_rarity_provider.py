@@ -124,7 +124,7 @@ def fetch_rarity_sniffer_rank_for_collection(
         response.raise_for_status()
 
     tokens_to_ranks: dict[int, int] = {
-        str(nft["id"]): int(rank=nft["positionId"])
+        str(nft["id"]): int(nft["positionId"])
         for nft in response.json()["data"]
     }
 
@@ -407,7 +407,9 @@ class ExternalRarityProvider:
                 logger.exception("Failed to resolve token_ids Rarity Sniffer")
                 raise
 
-        token_ids_to_ranks = self._rarity_sniffer_state[contract_address]
+        token_ids_to_ranks = self._rarity_sniffer_state.get(
+            contract_address, None
+        ) or self._get_provider_rank_cache(slug, rank_provider)
         for token_with_rarity in tokens_with_rarity:
             token_identifer = token_with_rarity.token.token_identifier
             assert isinstance(token_identifer, EVMContractTokenIdentifier)
@@ -466,6 +468,12 @@ class ExternalRarityProvider:
                 token_with_rarity.rarities.append(
                     RarityData(provider=rank_provider, rank=rank)
                 )
+
+                # Write to cache
+                if cache_external_ranks:
+                    self._get_provider_rank_cache(slug, rank_provider)[
+                        str(token_id)
+                    ] = rank
 
             except Exception:
                 logger.exception("Failed to resolve token_ids Rarity Sniper")
