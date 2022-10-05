@@ -245,7 +245,7 @@ def get_all_collection_tokens(
         # Write to local disk the fetched data for later caching
         if use_cache:
             write_collection_data_to_file(
-                filename=cached_filename, slug=slug, tokens=tokens
+                filename=cached_filename, tokens=tokens
             )
 
     return tokens
@@ -424,19 +424,11 @@ def get_collection_from_opensea(
     return Collection(name=collection_obj["name"], tokens=tokens)
 
 
-def write_collection_data_to_file(
-    filename: str, slug: str, tokens: list[Token]
-):
+def write_collection_data_to_file(filename: str, tokens: list[Token]):
     json_output = []
     for token in tokens:
         # Note: We assume EVM token here
-        json_output.append(
-            {
-                "contract_address": token.token_identifier.contract_address,
-                "token_id": token.token_identifier.token_id,
-                "metadata_dict": token.metadata.to_attributes(),
-            }
-        )
+        json_output.append(token.to_dict())
     with open(filename, "w+") as jsonfile:
         json.dump(json_output, jsonfile, indent=4)
     logger.info(f"Wrote token data to cache file: {filename}")
@@ -460,13 +452,7 @@ def read_collection_data_from_file(
             if len(tokens_data) > 0:
                 for token_data in tokens_data:
                     assert token_data["metadata_dict"]
-                    tokens.append(
-                        Token.from_erc721(
-                            contract_address=token_data["contract_address"],
-                            token_id=token_data["token_id"],
-                            metadata_dict=token_data["metadata_dict"],
-                        )
-                    )
+                    tokens.append(Token.from_dict(token_data))
         logger.debug(f"Read {len(tokens)} tokens from cache file: {filename}")
     except FileNotFoundError:
         logger.warning(f"No opensea cache file found for {slug}: {filename}")
