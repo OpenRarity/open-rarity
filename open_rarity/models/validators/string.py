@@ -1,4 +1,4 @@
-def normalize_attribute_string(value: str) -> str:
+def clean_lower_string(value: str) -> str:
     """Normalizes either attribute names or string attribute values.
     This is a helper function to ensure we are consistently normalizing
     by always lower casing and stripping input string.

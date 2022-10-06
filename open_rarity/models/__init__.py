@@ -1,6 +1,6 @@
-from .collection import Collection
+from .collections.collection import Collection
 from .token import Token
-from .token_rarity import TokenRarity
-from .token_metadata import TokenMetadata, StringAttribute
-from .token_standard import TokenStandard
 from .token_identifier import EVMContractTokenIdentifier
+from .tokens.metadata import StringAttribute, TokenMetadata
+from .tokens.standard import TokenStandard
+from .tokens.rarity import TokenRarity

@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
-from open_rarity.models.token import Token
-from open_rarity.models.token_ranking_features import TokenRankingFeatures
+from open_rarity.models.tokens.features import TokenRankingFeatures
+
+from .token import Token
 
 
 @dataclass

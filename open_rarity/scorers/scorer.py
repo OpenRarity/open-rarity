@@ -1,10 +1,7 @@
-from open_rarity.models.collection import Collection
-from open_rarity.models.token import Token
-from open_rarity.models.token_standard import TokenStandard
-from open_rarity.scoring.handlers.information_content_scoring_handler import (
-    InformationContentScoringHandler,
-)
-from open_rarity.scoring.scoring_handler import ScoringHandler
+from open_rarity.models.collections.collection import Collection
+from open_rarity.models.tokens.standard import TokenStandard
+from open_rarity.models.tokens.token import Token
+from open_rarity.scorers.information_content import IC
 
 
 class Scorer:
@@ -13,11 +10,11 @@ class Scorer:
     algorithm.
     """
 
-    handler: ScoringHandler
+    handler: IC
 
     def __init__(self) -> None:
         # OpenRarity uses InformationContent as the scoring algorithm of choice.
-        self.handler = InformationContentScoringHandler()
+        self.handler = IC()
 
     def validate_collection(self, collection: Collection) -> None:
         """Validate collection eligibility for OpenRarity scoring
@@ -33,7 +30,7 @@ class Scorer:
                 "numeric or date traits"
             )
 
-        if collection.token_standards != [TokenStandard.ERC721]:
+        if collection.tokens.standards != [TokenStandard.ERC721]:
             raise ValueError(
                 "OpenRarity currently does not support non-ERC721 collections"
             )
@@ -57,9 +54,7 @@ class Scorer:
         self.validate_collection(collection=collection)
         return self.handler.score_token(collection=collection, token=token)
 
-    def score_tokens(
-        self, collection: Collection, tokens: list[Token]
-    ) -> list[float]:
+    def score_tokens(self, collection: Collection, tokens: list[Token]) -> list[float]:
         """Used if you only want to score a batch of tokens that belong to collection.
         This will typically be more efficient than calling score_token for each
         token in `tokens`.
@@ -98,9 +93,7 @@ class Scorer:
             tokens=collection.tokens,
         )
 
-    def score_collections(
-        self, collections: list[Collection]
-    ) -> list[list[float]]:
+    def score_collections(self, collections: list[Collection]) -> list[list[float]]:
         """Scores all tokens in every collection provided.
 
         Parameters

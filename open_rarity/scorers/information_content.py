@@ -2,15 +2,14 @@ import logging
 
 import numpy as np
 
-from open_rarity.models.collection import Collection, CollectionAttribute
-from open_rarity.models.token import Token
-from open_rarity.models.token_metadata import AttributeName
-from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
+from open_rarity.models.collections.collection import Collection, CollectionAttribute
+from open_rarity.models.tokens.token import Token
+from open_rarity.scorers.utils import get_token_attributes_scores_and_weights
 
 logger = logging.getLogger("open_rarity_logger")
 
 
-class InformationContentScoringHandler:
+class IC:
     """Rarity describes the information-theoretic "rarity" of a Collection.
     The concept of "rarity" can be considered as a measure of "surprise" at the
     occurrence of a particular token's properties, within the context of the
@@ -89,9 +88,7 @@ class InformationContentScoringHandler:
         self,
         collection: Collection,
         token: Token,
-        collection_null_attributes: dict[
-            AttributeName, CollectionAttribute
-        ] = None,
+        collection_null_attributes: dict[str, CollectionAttribute] = None,
         collection_entropy_normalization: float = None,
     ) -> float:
         """Calculates the score of the token using information entropy with a
@@ -157,12 +154,8 @@ class InformationContentScoringHandler:
     def _get_collection_entropy(
         self,
         collection: Collection,
-        collection_attributes: dict[
-            AttributeName, list[CollectionAttribute]
-        ] = None,
-        collection_null_attributes: dict[
-            AttributeName, CollectionAttribute
-        ] = None,
+        collection_attributes: dict[str, list[CollectionAttribute]] = None,
+        collection_null_attributes: dict[str, CollectionAttribute] = None,
     ) -> float:
         """Calculates the entropy of the collection, defined to be the
         sum of the probability of every possible attribute name/value pair that
@@ -212,9 +205,7 @@ class InformationContentScoringHandler:
                 ]
             )
 
-        logger.debug(
-            "Calculated collection probabilties: %s", collection_probabilities
-        )
+        logger.debug("Calculated collection probabilties: %s", collection_probabilities)
         collection_entropy = -np.dot(
             collection_probabilities, np.log2(collection_probabilities)
         )

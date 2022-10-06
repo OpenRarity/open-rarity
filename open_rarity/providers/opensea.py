@@ -5,19 +5,17 @@ import math
 import requests
 from requests.models import HTTPError
 
-from open_rarity.models.collection import Collection
-from open_rarity.models.token import Token
-from open_rarity.models.token_identifier import EVMContractTokenIdentifier
-from open_rarity.models.token_metadata import (
+from open_rarity.models.collections.collection import Collection
+from open_rarity.models.tokens.identifier import EVMContractTokenIdentifier
+from open_rarity.models.tokens.metadata import (
     DateAttribute,
     NumericAttribute,
     StringAttribute,
     TokenMetadata,
 )
-from open_rarity.models.token_standard import TokenStandard
-from open_rarity.resolver.models.collection_with_metadata import (
-    CollectionWithMetadata,
-)
+from open_rarity.models.tokens.standard import TokenStandard
+from open_rarity.models.tokens.token import Token
+from open_rarity.providers.models.collection import CollectionWithMetadata
 
 logger = logging.getLogger("open_rarity_logger")
 
@@ -63,9 +61,7 @@ def fetch_opensea_collection_data(slug: str) -> dict:
     return response.json()["collection"]
 
 
-def fetch_opensea_assets_data(
-    slug: str, token_ids: list[int], limit=30
-) -> list[dict]:
+def fetch_opensea_assets_data(slug: str, token_ids: list[int], limit=30) -> list[dict]:
     """Fetches asset data from Opensea's GET assets endpoint for the given token ids
 
     Parameters
@@ -114,9 +110,7 @@ def fetch_opensea_assets_data(
         response.raise_for_status()
 
     # The API does not sort return value assets by token ID, so sort then return
-    return sorted(
-        response.json()["assets"], key=(lambda a: int(a["token_id"]))
-    )
+    return sorted(response.json()["assets"], key=(lambda a: int(a["token_id"])))
 
 
 def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
@@ -189,9 +183,7 @@ def get_all_collection_tokens(
             slug=slug,
         )
     else:
-        logger.info(
-            f"Not using cache for fetching collection tokens for: {slug}"
-        )
+        logger.info(f"Not using cache for fetching collection tokens for: {slug}")
 
     # This means either cache file didn't exist or did not have data.
     # Fetch all token trait data from opensea.
@@ -206,9 +198,7 @@ def get_all_collection_tokens(
             batch_id: int, max_token_id: int = total_supply - 1
         ) -> list[int]:
             token_id_start = initial_token_id + (batch_id * batch_size)
-            token_id_end = int(
-                min(token_id_start + batch_size - 1, max_token_id)
-            )
+            token_id_end = int(min(token_id_start + batch_size - 1, max_token_id))
             return list(range(token_id_start, token_id_end + 1))
 
         for batch_id in range(num_batches):
@@ -244,16 +234,12 @@ def get_all_collection_tokens(
 
         # Write to local disk the fetched data for later caching
         if use_cache:
-            write_collection_data_to_file(
-                filename=cached_filename, tokens=tokens
-            )
+            write_collection_data_to_file(filename=cached_filename, tokens=tokens)
 
     return tokens
 
 
-def get_tokens_from_opensea(
-    opensea_slug: str, token_ids: list[int]
-) -> list[Token]:
+def get_tokens_from_opensea(opensea_slug: str, token_ids: list[int]) -> list[Token]:
     """Fetches eth nft data from opensea API and stores them into Token objects
 
     Parameters
@@ -276,9 +262,7 @@ def get_tokens_from_opensea(
         if request to opensea fails
     """
     try:
-        assets = fetch_opensea_assets_data(
-            slug=opensea_slug, token_ids=token_ids
-        )
+        assets = fetch_opensea_assets_data(slug=opensea_slug, token_ids=token_ids)
     except HTTPError as e:
         logger.exception(
             "FAILED: get_assets: could not fetch opensea assets for %s: %s",
@@ -290,9 +274,7 @@ def get_tokens_from_opensea(
 
     tokens = []
     for asset in assets:
-        token_metadata = opensea_traits_to_token_metadata(
-            asset_traits=asset["traits"]
-        )
+        token_metadata = opensea_traits_to_token_metadata(asset_traits=asset["traits"])
         asset_contract_address = asset["asset_contract"]["address"]
         asset_contract_type = asset["asset_contract"]["asset_contract_type"]
         if asset_contract_type == "non-fungible":
@@ -300,9 +282,7 @@ def get_tokens_from_opensea(
         elif asset_contract_type == "semi-fungible":
             token_standard = TokenStandard.ERC1155
         else:
-            raise ValueError(
-                f"Unexpected asset contrat type: {asset_contract_type}"
-            )
+            raise ValueError(f"Unexpected asset contrat type: {asset_contract_type}")
         tokens.append(
             Token(
                 token_identifier=EVMContractTokenIdentifier(
@@ -340,9 +320,7 @@ def get_collection_with_metadata_from_opensea(
         collection with metadata, but with no tokens
 
     """
-    collection_obj = fetch_opensea_collection_data(
-        slug=opensea_collection_slug
-    )
+    collection_obj = fetch_opensea_collection_data(slug=opensea_collection_slug)
     contracts = collection_obj["primary_asset_contracts"]
     interfaces = set([contract["schema_name"] for contract in contracts])
     stats = collection_obj["stats"]

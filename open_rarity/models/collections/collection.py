@@ -2,14 +2,10 @@ from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
 
-from open_rarity.models.token import Token
-from open_rarity.models.token_metadata import (
-    AttributeName,
-    AttributeValue,
-    StringAttribute,
-)
-from open_rarity.models.token_standard import TokenStandard
-from open_rarity.models.utils.attribute_utils import normalize_attribute_string
+from open_rarity.models.tokens.metadata import StringAttribute, str
+from open_rarity.models.tokens.standard import TokenStandard
+from open_rarity.models.tokens.token import Token
+from open_rarity.models.validators.string import clean_lower_string
 
 
 @dataclass
@@ -26,11 +22,11 @@ class CollectionAttribute:
         total number of tokens in the collection that have this attribute
     """
 
-    attribute: StringAttribute
-    total_tokens: int
+    name: str
+    value: str | int | float
+    count: int
 
 
-@dataclass
 class Collection:
     """Class represents collection of tokens used to determine token rarity score.
     A token's rarity is influenced by the attribute frequency of all the tokens
@@ -40,7 +36,7 @@ class Collection:
     ----------
     tokens : list[Token]
         list of all Tokens that belong to the collection
-    attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
+    attributes_frequency_counts: dict[str, dict[AttributeValue, int]]
         dictionary of attributes to the number of tokens in this collection that has
         a specific value for every possible value for the given attribute.
 
@@ -63,30 +59,29 @@ class Collection:
         get_token_standards
     """
 
-    attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
+    attributes_frequency_counts: dict[str, dict[AttributeValue, int]]
     name: str
 
     def __init__(
         self,
         tokens: list[Token],
-        attributes_frequency_counts: dict[
-            AttributeName, dict[AttributeValue, int]
-        ]
-        | None = None,
+        attributes_frequency_counts: dict[str, dict[AttributeValue, int]] | None = None,
         name: str | None = "",
     ):
         self._tokens = tokens
         self.name = name or ""
         if attributes_frequency_counts:
             self.attributes_frequency_counts = (
-                self._normalize_attributes_frequency_counts(
-                    attributes_frequency_counts
-                )
+                self._normalize_attributes_frequency_counts(attributes_frequency_counts)
             )
         else:
-            self.attributes_frequency_counts = (
-                self._derive_normalized_attributes_frequency_counts()
-            )
+            self.attributes_frequency_counts = self._count_attribute_frequency()
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return f"Collection({self.name})"
 
     @property
     def tokens(self) -> list[Token]:
@@ -98,16 +93,13 @@ class Collection:
 
     @cached_property
     def has_numeric_attribute(self) -> bool:
-        return (
-            next(
-                filter(
-                    lambda t: len(t.metadata.numeric_attributes)
-                    or len(t.metadata.date_attributes),
-                    self._tokens,
-                ),
-                None,
+        return any(
+            (
+                True
+                if t.metadata.numeric_attributes or t.metadata.date_attributes
+                else False
+                for t in self._tokens
             )
-            is not None
         )
 
     @cached_property
@@ -120,10 +112,7 @@ class Collection:
             the set of unique token standards that any token in this collection
             interfaces or uses.
         """
-        token_standards = set()
-        for token in self._tokens:
-            token_standards.add(token.token_standard)
-        return list(token_standards)
+        return list({token.tokens.standard for token in self.tokens})
 
     def total_tokens_with_attribute(self, attribute: StringAttribute) -> int:
         """Returns the numbers of tokens in this collection with the attribute
@@ -143,14 +132,14 @@ class Collection:
 
     def extract_null_attributes(
         self,
-    ) -> dict[AttributeName, CollectionAttribute]:
+    ) -> dict[str, CollectionAttribute]:
         """Compute probabilities of Null attributes.
 
         Returns
         -------
-        dict[AttributeName(str), CollectionAttribute(str)]
+        dict[str(str), CollectionAttribute(str)]
             dict of attribute name to the number of assets without the attribute
-            (e.g. # of assets where AttributeName=NULL)
+            (e.g. # of assets where str=NULL)
         """
         result = {}
         for (
@@ -180,7 +169,7 @@ class Collection:
 
     def extract_collection_attributes(
         self,
-    ) -> dict[AttributeName, list[CollectionAttribute]]:
+    ) -> dict[str, list[CollectionAttribute]]:
         """Extracts the map of collection traits with it's respective counts
 
         Returns
@@ -189,9 +178,7 @@ class Collection:
             dict of attribute name to count of assets missing the attribute
         """
 
-        collection_traits: dict[str, list[CollectionAttribute]] = defaultdict(
-            list
-        )
+        collection_traits: dict[str, list[CollectionAttribute]] = defaultdict(list)
 
         for (
             trait_name,
@@ -200,9 +187,7 @@ class Collection:
             for trait_value, trait_count in trait_value_dict.items():
                 collection_traits[trait_name].append(
                     CollectionAttribute(
-                        attribute=StringAttribute(
-                            trait_name, str(trait_value)
-                        ),
+                        attribute=StringAttribute(trait_name, str(trait_value)),
                         total_tokens=trait_count,
                     )
                 )
@@ -211,10 +196,8 @@ class Collection:
 
     def _normalize_attributes_frequency_counts(
         self,
-        attributes_frequency_counts: dict[
-            AttributeName, dict[AttributeValue, int]
-        ],
-    ) -> dict[AttributeName, dict[AttributeValue, int]]:
+        attributes_frequency_counts: dict[str, dict[AttributeValue, int]],
+    ) -> dict[str, dict[AttributeValue, int]]:
         """We normalize all collection attributes to ensure that neither casing nor
         leading/trailing spaces produce different attributes:
             (e.g. 'Hat' == 'hat' == 'hat ')
@@ -223,7 +206,7 @@ class Collection:
             ('hat', 'beanie') 10 tokens
         this would produce: ('hat', 'beanie') 15 tokens
         """
-        normalized: dict[AttributeName, dict[AttributeValue, int]] = {}
+        normalized: dict[str, dict[AttributeValue, int]] = {}
         for (
             attr_name,
             attr_value_to_count,
@@ -244,28 +227,32 @@ class Collection:
 
         return normalized
 
-    def _derive_normalized_attributes_frequency_counts(
+    def _count_attribute_frequency(
         self,
-    ) -> dict[AttributeName, dict[AttributeValue, int]]:
+    ) -> dict[str, dict[AttributeValue, int]]:
         """Derives and constructs attributes_frequency_counts based on
         string attributes on tokens. Numeric or date attributes currently not
         supported.
 
         Returns
         -------
-        dict[ AttributeName, dict[AttributeValue, int] ]
+        dict[ str, dict[AttributeValue, int] ]
             dictionary of attributes to the number of tokens in this collection
             that has a specific value for every possible value for the given
             attribute, by default None.
         """
-        attrs_freq_counts: dict[
-            AttributeName, dict[AttributeValue, int]
-        ] = defaultdict(dict)
+        freq_counts: dict[str, dict[AttributeValue, int]] = defaultdict(dict)
 
-        for token in self._tokens:
+        freq_counts.update(self._count_str_attr_frequency(self._tokens))
+
+    @staticmethod
+    def _count_str_attr_frequency(
+        tokens,
+    ) -> dict[str, dict[AttributeValue, int]]:
+        for token in tokens:
             for (
-                attr_name,
-                str_attr,
+                name,
+                value,
             ) in token.metadata.string_attributes.items():
                 normalized_name = normalize_attribute_string(attr_name)
                 if str_attr.value not in attrs_freq_counts[attr_name]:
@@ -275,5 +262,10 @@ class Collection:
 
         return dict(attrs_freq_counts)
 
-    def __str__(self) -> str:
-        return f"Collection[{self.name}]"
+    @staticmethod
+    def _count_numeric_attr_frequency() -> dict[str, dict[AttributeValue, int]]:
+        raise NotImplementedError()
+
+    @staticmethod
+    def _count_date_attr_frequency() -> dict[str, dict[AttributeValue, int]]:
+        raise NotImplementedError()

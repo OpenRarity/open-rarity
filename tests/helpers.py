@@ -1,13 +1,13 @@
 from open_rarity.models.token import Token
 from open_rarity.models.token_identifier import EVMContractTokenIdentifier
-from open_rarity.models.token_metadata import (
+from open_rarity.models.tokens.metadata import (
     NumericAttribute,
     TokenMetadata,
     StringAttribute,
     AttributeName,
 )
-from open_rarity.models.collection import Collection
-from open_rarity.models.token_standard import TokenStandard
+from open_rarity.models.collections.collection import Collection
+from open_rarity.models.tokens.standard import TokenStandard
 from random import shuffle
 
 
@@ -101,9 +101,7 @@ def generate_uniform_rarity_collection(
         for attr_name in range(attribute_count):
             string_attribute_dict[str(attr_name)] = StringAttribute(
                 name=str(attr_name),
-                value=str(
-                    token_id // (token_total_supply // values_per_attribute)
-                ),
+                value=str(token_id // (token_total_supply // values_per_attribute)),
             )
 
         token_list.append(
@@ -112,9 +110,7 @@ def generate_uniform_rarity_collection(
                     contract_address="0x0", token_id=token_id
                 ),
                 token_standard=TokenStandard.ERC721,
-                metadata=TokenMetadata(
-                    string_attributes=string_attribute_dict
-                ),
+                metadata=TokenMetadata(string_attributes=string_attribute_dict),
             )
         )
 
@@ -177,8 +173,7 @@ def generate_onerare_rarity_collection(
             string_attribute_dict[AttributeName(attr_name)] = StringAttribute(
                 name=AttributeName(attr_name),
                 value=str(
-                    token_id
-                    // (token_total_supply - 1 // values_per_attribute - 1)
+                    token_id // (token_total_supply - 1 // values_per_attribute - 1)
                 ),
             )
 
@@ -188,18 +183,14 @@ def generate_onerare_rarity_collection(
                     contract_address="0x0", token_id=token_id
                 ),
                 token_standard=TokenStandard.ERC721,
-                metadata=TokenMetadata(
-                    string_attributes=string_attribute_dict
-                ),
+                metadata=TokenMetadata(string_attributes=string_attribute_dict),
             )
         )
 
     # Create the attributes for the last rare token
     rare_token_string_attribute_dict = {}
     for attr_name in range(attribute_count):
-        rare_token_string_attribute_dict[
-            AttributeName(attr_name)
-        ] = StringAttribute(
+        rare_token_string_attribute_dict[AttributeName(attr_name)] = StringAttribute(
             name=AttributeName(attr_name),
             value=str(values_per_attribute - 1),
         )
@@ -210,9 +201,7 @@ def generate_onerare_rarity_collection(
                 contract_address="0x0", token_id=token_total_supply - 1
             ),
             token_standard=TokenStandard.ERC721,
-            metadata=TokenMetadata(
-                string_attributes=rare_token_string_attribute_dict
-            ),
+            metadata=TokenMetadata(string_attributes=rare_token_string_attribute_dict),
         )
     )
 
@@ -234,9 +223,9 @@ def generate_collection_with_token_traits(
 
         for attribute_name, attribute_value in token_traits.items():
             # Update collection attributes frequency based on tokens' traits
-            attributes_frequency_counts.setdefault(
-                attribute_name, {}
-            ).setdefault(attribute_value, 0)
+            attributes_frequency_counts.setdefault(attribute_name, {}).setdefault(
+                attribute_value, 0
+            )
             attributes_frequency_counts[attribute_name][attribute_value] += 1
 
             # Create the string attributes for token
@@ -326,9 +315,7 @@ def generate_mixed_collection(max_total_supply: int = 10000):
     token_ids_to_traits = {}
     for idx, token_id in enumerate(token_ids):
         traits = {
-            trait_name: get_trait_value(
-                list(trait_value_to_percent.items()), idx
-            )
+            trait_name: get_trait_value(list(trait_value_to_percent.items()), idx)
             for trait_name, trait_value_to_percent in get_mixed_trait_spread().items()
         }
 

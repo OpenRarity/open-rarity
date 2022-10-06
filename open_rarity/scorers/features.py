@@ -1,6 +1,6 @@
-from open_rarity.models import Token
-from open_rarity.models.collection import Collection
-from open_rarity.models.token_ranking_features import TokenRankingFeatures
+from open_rarity.models.collections.collection import Collection
+from open_rarity.models.tokens.features import TokenFeatures
+from open_rarity.models.tokens.token import Token
 
 
 class TokenFeatureExtractor:
@@ -11,7 +11,7 @@ class TokenFeatureExtractor:
     @staticmethod
     def extract_unique_attribute_count(
         token: Token, collection: Collection
-    ) -> TokenRankingFeatures:
+    ) -> TokenFeatures:
         """This method extracts unique attributes count from the token
 
         Parameters
@@ -37,6 +37,4 @@ class TokenFeatureExtractor:
             if count == 1:
                 unique_attributes_count += 1
 
-        return TokenRankingFeatures(
-            unique_attribute_count=unique_attributes_count
-        )
+        return TokenFeatures(unique_attribute_count=unique_attributes_count)

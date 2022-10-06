@@ -1,7 +1,7 @@
 import pytest
 
-from open_rarity.resolver.models.token_with_rarity_data import RankProvider
-from open_rarity.resolver.testset_resolver import resolve_collection_data
+from open_rarity.providers.models.token import RankProvider
+from open_rarity.providers.testset_resolver import resolve_collection_data
 
 
 class TestTestsetResolver:
@@ -82,27 +82,13 @@ class TestTestsetResolver:
                     if token_id in self.bayc_token_ids_to_ranks:
                         assert row[0] == "boredapeyachtclub"
                         expected_ranks = self.bayc_token_ids_to_ranks[token_id]
-                        assert (
-                            row[2]
-                            == expected_ranks[RankProvider.TRAITS_SNIPER]
-                        )
-                        assert (
-                            row[3]
-                            == expected_ranks[RankProvider.RARITY_SNIFFER]
-                        )
-                        assert (
-                            row[4]
-                            == expected_ranks[RankProvider.RARITY_SNIPER]
-                        )
-                        assert (
-                            row[5]
-                            == expected_ranks[RankProvider.OR_ARITHMETIC]
-                        )
+                        assert row[2] == expected_ranks[RankProvider.TRAITS_SNIPER]
+                        assert row[3] == expected_ranks[RankProvider.RARITY_SNIFFER]
+                        assert row[4] == expected_ranks[RankProvider.RARITY_SNIPER]
+                        assert row[5] == expected_ranks[RankProvider.OR_ARITHMETIC]
                         assert (
                             row[9]
-                            == expected_ranks[
-                                RankProvider.OR_INFORMATION_CONTENT
-                            ]
+                            == expected_ranks[RankProvider.OR_INFORMATION_CONTENT]
                         )
 
         assert rows == 10_001

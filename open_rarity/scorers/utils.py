@@ -1,15 +1,12 @@
-from open_rarity.models.collection import Collection, CollectionAttribute
-from open_rarity.models.token import Token
-from open_rarity.models.token_metadata import AttributeName
+from open_rarity.models.collections.collection import Collection, CollectionAttribute
+from open_rarity.models.tokens.token import Token
 
 
 def get_token_attributes_scores_and_weights(
     collection: Collection,
     token: Token,
     normalized: bool,
-    collection_null_attributes: dict[
-        AttributeName, CollectionAttribute
-    ] = None,
+    collection_null_attributes: dict[str, CollectionAttribute] = None,
 ) -> tuple[list[float], list[float]]:
     """Calculates the scores and normalization weights for a token
     based on its attributes. If the token does not have an attribute, the probability
@@ -24,7 +21,7 @@ def get_token_attributes_scores_and_weights(
     normalized : bool
         Set to true to enable individual trait normalizations based on total
         number of possible values for an attribute, by default True.
-    collection_null_attributes : dict[ AttributeName, CollectionAttribute ], optional
+    collection_null_attributes : dict[ str, CollectionAttribute ], optional
         Optional memoization of collection.extract_null_attributes(), by default None.
 
     Returns
@@ -47,14 +44,10 @@ def get_token_attributes_scores_and_weights(
 
     combined_attributes: dict[
         str, CollectionAttribute
-    ] = null_attributes | _convert_to_collection_attributes_dict(
-        collection, token
-    )
+    ] = null_attributes | _convert_to_collection_attributes_dict(collection, token)
 
     sorted_attr_names = sorted(list(combined_attributes.keys()))
-    sorted_attrs = [
-        combined_attributes[attr_name] for attr_name in sorted_attr_names
-    ]
+    sorted_attrs = [combined_attributes[attr_name] for attr_name in sorted_attr_names]
 
     total_supply = collection.token_total_supply
 

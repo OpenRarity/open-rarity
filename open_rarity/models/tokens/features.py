@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class TokenRankingFeatures:
+class TokenFeatures:
     """Class represents all standardized ranking features
     that should be considered by the ranking function.
 

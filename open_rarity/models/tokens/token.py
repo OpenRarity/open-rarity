@@ -1,16 +1,13 @@
-from dataclasses import dataclass
-from typing import Any
-
-from open_rarity.models.token_identifier import (
+from .identifier import (
     EVMContractTokenIdentifier,
-    get_identifier_class_from_dict,
     TokenIdentifier,
+    get_identifier_class_from_dict,
 )
-from open_rarity.models.token_metadata import AttributeName, TokenMetadata
-from open_rarity.models.token_standard import TokenStandard
+from .metadata import TokenMetadata
+from .standard import TokenStandard
+from .types import MetadataAttribute, TokenData
 
 
-@dataclass
 class Token:
     """Class represents a token on the blockchain.
     Examples of these are non-fungible tokens, or semi-fungible tokens.
@@ -35,7 +32,7 @@ class Token:
         cls,
         contract_address: str,
         token_id: int,
-        metadata_dict: dict[AttributeName, Any],
+        metadata: list[MetadataAttribute],
     ):
         """Creates a Token class representing an ERC721 evm token given the following
         parameters.
@@ -46,7 +43,7 @@ class Token:
             Contract address of the token
         token_id : int
             Token ID number of the token
-        metadata_dict : dict
+        metadata : list[MetadataAttribute]
             Dictionary of attribute name to attribute value for the given token.
             The type of the value determines whether the attribute is a string,
             numeric or date attribute.
@@ -67,28 +64,24 @@ class Token:
                 contract_address=contract_address, token_id=token_id
             ),
             token_standard=TokenStandard.ERC721,
-            metadata=TokenMetadata.from_attributes(metadata_dict),
+            metadata=TokenMetadata.parse(metadata),
         )
 
     @classmethod
-    def from_dict(cls, data_dict: dict):
-        identifier_class = get_identifier_class_from_dict(
-            data_dict["token_identifier"]
-        )
+    def from_dict(cls, data_dict: TokenData):
+        identifier_class = get_identifier_class_from_dict(data_dict["token_identifier"])
 
         return cls(
-            token_identifier=identifier_class.from_dict(
-                data_dict["token_identifier"]
-            ),
+            token_identifier=identifier_class.from_dict(data_dict["token_identifier"]),
             token_standard=TokenStandard[data_dict["token_standard"]],
-            metadata=TokenMetadata.from_attributes(data_dict["metadata_dict"]),
+            metadata=TokenMetadata.parse(data_dict["metadata_dict"]),
         )
 
     def to_dict(self) -> dict:
         return {
             "token_identifier": self.token_identifier.to_dict(),
             "metadata_dict": self.metadata.to_attributes(),
-            "token_standard": self.token_standard.name,
+            "token_standard": self.tokens.standard.name,
         }
 
     def __str__(self):

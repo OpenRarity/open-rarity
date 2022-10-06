@@ -1,17 +1,16 @@
-from collections import defaultdict
 import json
 import logging
+from collections import defaultdict
 
 import requests
-from open_rarity.resolver.models.collection_with_metadata import (
-    CollectionWithMetadata,
-)
-from open_rarity.models.token_identifier import EVMContractTokenIdentifier
-from open_rarity.resolver.models.token_with_rarity_data import (
+
+from open_rarity.models.tokens.identifier import EVMContractTokenIdentifier
+from open_rarity.providers.models.collection import CollectionWithMetadata
+from open_rarity.providers.models.token import (
+    EXTERNAL_RANK_PROVIDERS,
     RankProvider,
     RarityData,
     TokenWithRarityData,
-    EXTERNAL_RANK_PROVIDERS,
 )
 
 TRAIT_SNIPER_URL = "https://api.traitsniper.com/api/projects/{slug}/nfts"
@@ -63,9 +62,7 @@ def fetch_trait_sniper_rank_for_evm_token(
         raise ValueError(msg)
 
     url = TRAIT_SNIPER_URL.format(slug=collection_slug)
-    response = requests.request(
-        "GET", url, params=querystring, headers=USER_AGENT
-    )
+    response = requests.request("GET", url, params=querystring, headers=USER_AGENT)
     if response.status_code == 200:
         return int(response.json()["nfts"][0]["rarity_rank"])
     else:
@@ -124,8 +121,7 @@ def fetch_rarity_sniffer_rank_for_collection(
         response.raise_for_status()
 
     tokens_to_ranks: dict[int, int] = {
-        str(nft["id"]): int(nft["positionId"])
-        for nft in response.json()["data"]
+        str(nft["id"]): int(nft["positionId"]) for nft in response.json()["data"]
     }
 
     return tokens_to_ranks
@@ -173,15 +169,9 @@ class ExternalRarityProvider:
     _rarity_sniffer_state: dict[str, dict[str, int]] = {}
 
     # Dictionary of slug -> {token_id (str) -> rank (int)}
-    _trait_sniper_external_rank_cache: dict[str, dict[str, int]] = defaultdict(
-        dict
-    )
-    _rarity_sniffer_external_rank_cache: dict[
-        str, dict[str, int]
-    ] = defaultdict(dict)
-    _rarity_sniper_external_rank_cache: dict[
-        str, dict[str, int]
-    ] = defaultdict(dict)
+    _trait_sniper_external_rank_cache: dict[str, dict[str, int]] = defaultdict(dict)
+    _rarity_sniffer_external_rank_cache: dict[str, dict[str, int]] = defaultdict(dict)
+    _rarity_sniper_external_rank_cache: dict[str, dict[str, int]] = defaultdict(dict)
 
     def cache_filename(self, rank_provider: RankProvider, slug: str) -> str:
         rank_name = rank_provider.name.lower()
@@ -191,9 +181,7 @@ class ExternalRarityProvider:
         cache_data = self._get_provider_rank_cache(
             slug=slug, rank_provider=rank_provider
         )
-        cache_filename = self.cache_filename(
-            rank_provider=rank_provider, slug=slug
-        )
+        cache_filename = self.cache_filename(rank_provider=rank_provider, slug=slug)
         logger.debug(
             f"Writing external rank data ({rank_provider}) to cache for: {slug} "
             f"to file: {cache_filename}. Contains {len(cache_data)} token ranks."
@@ -221,11 +209,7 @@ class ExternalRarityProvider:
 
     def _is_cache_loaded(self, slug: str, rank_provider: RankProvider):
         return (
-            len(
-                self._get_provider_rank_cache(
-                    rank_provider=rank_provider, slug=slug
-                )
-            )
+            len(self._get_provider_rank_cache(rank_provider=rank_provider, slug=slug))
             > 0
         )
 
@@ -239,9 +223,7 @@ class ExternalRarityProvider:
         if not force_reload and self._is_cache_loaded(slug, rank_provider):
             return False
 
-        cache_filename = self.cache_filename(
-            rank_provider=rank_provider, slug=slug
-        )
+        cache_filename = self.cache_filename(rank_provider=rank_provider, slug=slug)
         try:
             with open(cache_filename) as jsonfile:
                 external_rank_data = json.load(jsonfile)
@@ -328,9 +310,7 @@ class ExternalRarityProvider:
                         f"Resolved trait sniper rarity for {slug=} {token_id=}: {rank}"
                     )
                 except Exception:
-                    logger.exception(
-                        "Failed to resolve token_ids Traits Sniper"
-                    )
+                    logger.exception("Failed to resolve token_ids Traits Sniper")
 
             token_rarity_data = RarityData(
                 provider=RankProvider.TRAITS_SNIPER, rank=rank
@@ -381,22 +361,16 @@ class ExternalRarityProvider:
                 # Memoize since caller typically calls this function with the same
                 # collection but different batches of tokens
                 if contract_address not in self._rarity_sniffer_state:
-                    token_ids_to_ranks = (
-                        fetch_rarity_sniffer_rank_for_collection(
-                            contract_address=contract_address
-                        )
+                    token_ids_to_ranks = fetch_rarity_sniffer_rank_for_collection(
+                        contract_address=contract_address
                     )
-                    self._rarity_sniffer_state[
-                        contract_address
-                    ] = token_ids_to_ranks
+                    self._rarity_sniffer_state[contract_address] = token_ids_to_ranks
                     # Write to cache
                     if cache_external_ranks:
                         self._rarity_sniffer_external_rank_cache[
                             slug
                         ] = token_ids_to_ranks
-                    num_tokens = len(
-                        self._rarity_sniffer_state[contract_address]
-                    )
+                    num_tokens = len(self._rarity_sniffer_state[contract_address])
                     logger.debug(
                         f"Fetched {num_tokens} token ranks from rarity sniffer API"
                     )
@@ -437,9 +411,7 @@ class ExternalRarityProvider:
         slug = get_rarity_sniper_slug(opensea_slug=opensea_slug)
         rank_provider = RankProvider.RARITY_SNIPER
         if cache_external_ranks:
-            self._load_cache_from_file(
-                slug=opensea_slug, rank_provider=rank_provider
-            )
+            self._load_cache_from_file(slug=opensea_slug, rank_provider=rank_provider)
 
         for token_with_rarity in tokens_with_rarity:
             token = token_with_rarity.token
@@ -504,9 +476,7 @@ class ExternalRarityProvider:
         list[tokens_with_rarity]
             tokens with fetched external rarity data
         """
-        logger.debug(
-            f"Fetching external rarity for {len(tokens_with_rarity)} tokens"
-        )
+        logger.debug(f"Fetching external rarity for {len(tokens_with_rarity)} tokens")
 
         for rank_provider in rank_providers:
             if rank_provider == RankProvider.RARITY_SNIFFER:
