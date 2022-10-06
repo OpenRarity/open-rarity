@@ -7,7 +7,7 @@ from open_rarity.models.tokens.metadata import (
     AttributeName,
 )
 from open_rarity.models.collections.collection import Collection
-from open_rarity.models.tokens.standard import TokenStandard
+from open_rarity.models.tokens.standards import TokenStandard
 from random import shuffle
 
 

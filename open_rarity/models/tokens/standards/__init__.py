@@ -1,3 +1,7 @@
+def arbitrate_standard():
+    ...
+
+
 from enum import Enum
 
 

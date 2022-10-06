@@ -1,4 +1,4 @@
-def clean_lower_string(value: str) -> str:
+def clean_lower_string(value: str | None) -> str | None:
     """Normalizes either attribute names or string attribute values.
     This is a helper function to ensure we are consistently normalizing
     by always lower casing and stripping input string.
@@ -14,4 +14,6 @@ def clean_lower_string(value: str) -> str:
     str
         normalized string
     """
+    if value is None:
+        return value
     return value.lower().strip()

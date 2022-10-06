@@ -1,5 +1,5 @@
 from open_rarity.models.collections.collection import Collection
-from open_rarity.models.tokens.standard import TokenStandard
+from open_rarity.models.tokens.standards import TokenStandard
 from open_rarity.models.tokens.token import Token
 from open_rarity.scorers.information_content import IC
 

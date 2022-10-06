@@ -17,7 +17,5 @@ We use git-precommit hooks in OpenRarity repo. Install it with the following com
 `poetry run pre-commit install`
 
 
-# IDE 
+# IDE
 We recommend to use VS Ccode with python support enabled.
-
-

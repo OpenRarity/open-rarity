@@ -39,6 +39,7 @@ pre-commit = "^2.19.0"
 pytest = "^7.1"
 pytest-cov = "^3.0"
 types-requests = "^2.28.6"
+jupyterlab = "^3.4.8"
 
 [tool.black]
 line-length = 88

@@ -5,7 +5,7 @@ from open_rarity.models.tokens.metadata import (
     StringAttribute,
     TokenMetadata,
 )
-from open_rarity.models.tokens.standard import TokenStandard
+from open_rarity.models.tokens.standards import TokenStandard
 
 from tests.helpers import create_evm_token
 

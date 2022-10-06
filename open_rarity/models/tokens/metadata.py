@@ -1,7 +1,8 @@
 from datetime import datetime
 from itertools import chain
+from typing import Literal
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, root_validator, validator
 
 from open_rarity.models.validators.string import clean_lower_string
 
@@ -79,51 +80,64 @@ class TokenMetadata(BaseModel):
     normalized in the same way - lowercased and leading/trailing whitespace stripped.
     """
 
-    string_attributes: list[StringAttribute]
-    numeric_attributes: list[NumericAttribute]
-    date_attributes: list[DateAttribute]
+    name: str
+    value: int | float | str
+    display_type: None | Literal["string", "number", "date"] = None
 
-    def parse(cls, metadata: list[MetadataAttribute]):
-        """Constructs TokenMetadata class based on an attributes dictionary
+    name_validator = validator("name", allow_reuse=True)(clean_lower_string)
 
-        Parameters
-        ----------
-        attributes : dict[AttributeName, Any]
-            Dictionary of attribute name to attribute value for the given token.
-            The type of the value determines whether the attribute is a string,
-            numeric or date attribute.
+    @root_validator(pre=True)
+    def clean_attribute_value(cls, values):
+        value = values["value"]
+        if isinstance(value, str):
+            values["value"] = clean_lower_string(value)
+        return values
 
-            class           attribute type
-            ------------    -------------
-            string          string attribute
-            int | float     numeric_attribute
-            datetime        date_attribute (stored as timestamp, seconds from epoch)
+    # string_attributes: list[StringAttribute]
+    # numeric_attributes: list[NumericAttribute]
+    # date_attributes: list[DateAttribute]
 
-        Returns
-        -------
-        TokenMetadata
-            token metadata from input
-        """
-        string_attributes = []
-        numeric_attributes = []
-        date_attributes = []
-        for attr in metadata:
-            match attr.default("display_type", None):
-                case "string":
-                    string_attributes.append(StringAttribute(attr))
-                case "number":
-                    numeric_attributes.append(NumericAttribute(attr))
-                case "date":
-                    date_attributes.append(DateAttribute(attr))
-                case _:
-                    string_attributes.append(StringAttribute(attr))
+    # def parse(cls, metadata: list[MetadataAttribute]):
+    #     """Constructs TokenMetadata class based on an attributes dictionary
 
-        return cls(
-            string_attributes=string_attributes,
-            numeric_attributes=numeric_attributes,
-            date_attributes=date_attributes,
-        )
+    #     Parameters
+    #     ----------
+    #     attributes : dict[AttributeName, Any]
+    #         Dictionary of attribute name to attribute value for the given token.
+    #         The type of the value determines whether the attribute is a string,
+    #         numeric or date attribute.
 
-    def to_metadata(self) -> list[MetadataAttribute]:
-        """Returns a list of dictionaries of all attributes in this metadata object."""
-        return list(chain(*self.dict().values()))
+    #         class           attribute type
+    #         ------------    -------------
+    #         string          string attribute
+    #         int | float     numeric_attribute
+    #         datetime        date_attribute (stored as timestamp, seconds from epoch)
+
+    #     Returns
+    #     -------
+    #     TokenMetadata
+    #         token metadata from input
+    #     """
+    #     string_attributes = []
+    #     numeric_attributes = []
+    #     date_attributes = []
+    #     for attr in metadata:
+    #         match attr.default("display_type", None):
+    #             case "string":
+    #                 string_attributes.append(StringAttribute(attr))
+    #             case "number":
+    #                 numeric_attributes.append(NumericAttribute(attr))
+    #             case "date":
+    #                 date_attributes.append(DateAttribute(attr))
+    #             case _:
+    #                 string_attributes.append(StringAttribute(attr))
+
+    #     return cls(
+    #         string_attributes=string_attributes,
+    #         numeric_attributes=numeric_attributes,
+    #         date_attributes=date_attributes,
+    #     )
+
+    # def to_metadata(self) -> list[MetadataAttribute]:
+    #     """Returns a list of dictionaries of all attributes in this metadata object."""
+    #     return list(chain(*self.dict().values()))
