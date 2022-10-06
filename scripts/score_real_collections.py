@@ -137,6 +137,7 @@ if __name__ == "__main__":
             slug=slug,
             output_filename=output_filename,
             use_cache=use_cache,
+            add_trait_count=args.add_trait_count,
         )
         print(f"Outputted results to: {output_filename}")
         files.append(output_filename)

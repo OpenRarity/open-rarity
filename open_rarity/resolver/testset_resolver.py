@@ -70,8 +70,9 @@ parser.add_argument(
     "--add_trait_count",
     dest="add_trait_count",
     type=bool,
+    action=argparse.BooleanOptionalAction,
     default=False,
-    help="Specify 'True' if you want to add a meta attribuet trait count",
+    help="Specify if you want to add a meta attribuet trait count",
 )
 parser.add_argument(
     "--cache",
@@ -270,6 +271,9 @@ def resolve_collection_data(
         serialize_to_csv(
             collection_with_metadata=collection_with_metadata,
             tokens_with_rarity=tokens_with_rarity,
+            filename_prefix="testset_trait_count"
+            if add_trait_count
+            else "testset",
         )
 
 
@@ -411,6 +415,7 @@ def resolve_open_rarity_score(
 
         except Exception:
             logger.exception(f"Can't score token {token} with OpenRarity")
+            raise
 
     # Calculate ranks of all assets given the scores
     arthimetic_ranked_tokens = extract_rank(arthimetic_dict)
@@ -478,6 +483,7 @@ def _rank_diff(rank1: int | None, rank2: int | None) -> int | None:
 def serialize_to_csv(
     collection_with_metadata: CollectionWithMetadata,
     tokens_with_rarity: list[TokenWithRarityData],
+    filename_prefix: str = "testset",
 ) -> None:
     """Serialize collection and ranking data to CSV
 
@@ -487,7 +493,7 @@ def serialize_to_csv(
         collection
     """
     slug = collection_with_metadata.opensea_slug
-    testset = open(f"testset_{slug}.csv", "w")
+    testset = open(f"{filename_prefix}_{slug}.csv", "w")
     headers = [
         "slug",
         "token_id",

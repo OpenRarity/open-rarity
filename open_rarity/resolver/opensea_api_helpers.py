@@ -188,6 +188,7 @@ def get_all_collection_tokens(
             filename=cached_filename,
             expected_supply=total_supply,
             slug=slug,
+            add_trait_count=add_trait_count,
         )
     else:
         logger.info(
@@ -298,17 +299,9 @@ def get_tokens_from_opensea(
         )
         if add_trait_count:
             # In opensea, we return none as explicit empty traits
-            trait_count = str(
-                sum(
-                    map(
-                        lambda a: a.value.lower() != "none",
-                        token_metadata.string_attributes.values(),
-                    )
-                )
-            )
-            token_metadata.string_attributes["trait_count"] = StringAttribute(
-                name="trait_count", value=trait_count
-            )
+            token_metadata.string_attributes[
+                "trait_count"
+            ] = get_trait_count_attribute(token_metadata)
 
         asset_contract_address = asset["asset_contract"]["address"]
         asset_contract_type = asset["asset_contract"]["asset_contract_type"]
@@ -376,11 +369,7 @@ def get_collection_with_metadata_from_opensea(
         add_trait_count=add_trait_count,
     )
 
-    collection = Collection(
-        name=collection_obj["name"],
-        attributes_frequency_counts=collection_obj["traits"],
-        tokens=tokens,
-    )
+    collection = Collection(name=collection_obj["name"], tokens=tokens)
 
     collection_with_metadata = CollectionWithMetadata(
         collection=collection,
@@ -456,7 +445,10 @@ def write_collection_data_to_file(filename: str, tokens: list[Token]):
 
 
 def read_collection_data_from_file(
-    filename: str, expected_supply: int, slug: str
+    filename: str,
+    expected_supply: int,
+    slug: str,
+    add_trait_count: bool = False,
 ) -> list[Token]:
     tokens = []
     try:
@@ -472,8 +464,19 @@ def read_collection_data_from_file(
                 )
             if len(tokens_data) > 0:
                 for token_data in tokens_data:
-                    assert token_data["metadata_dict"]
+                    metadata_dict = token_data["metadata_dict"]
+                    assert metadata_dict
+                    # TODO vicky - hacky
+                    if add_trait_count:
+                        token_metadata = TokenMetadata.from_attributes(
+                            metadata_dict
+                        )
+                        trait_count_attr = get_trait_count_attribute(
+                            token_metadata
+                        )
+                        metadata_dict["trait_count"] = trait_count_attr.value
                     tokens.append(Token.from_dict(token_data))
+
         logger.debug(f"Read {len(tokens)} tokens from cache file: {filename}")
     except FileNotFoundError:
         logger.warning(f"No opensea cache file found for {slug}: {filename}")
@@ -487,6 +490,21 @@ def read_collection_data_from_file(
         return []
 
     return tokens
+
+
+def get_trait_count_attribute(
+    token_metadata: TokenMetadata,
+) -> StringAttribute:
+    # In opensea, we return none as explicit empty traits
+    trait_count = str(
+        sum(
+            map(
+                lambda a: a.value.lower() != "none",
+                token_metadata.string_attributes.values(),
+            )
+        )
+    )
+    return StringAttribute(name="trait_count", value=trait_count)
 
 
 # NFT metadata standard type definitions described here:
