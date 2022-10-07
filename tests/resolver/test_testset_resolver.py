@@ -1,6 +1,6 @@
 import pytest
 
-from open_rarity.resolver.models.token_with_rarity_data import RankProvider
+from open_rarity.resolver.models import RankProvider
 from open_rarity.resolver.testset_resolver import resolve_collection_data
 
 

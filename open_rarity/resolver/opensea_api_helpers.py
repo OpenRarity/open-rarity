@@ -15,7 +15,7 @@ from open_rarity.models.token import (
     TokenMetadata,
     TokenStandard,
 )
-from open_rarity.resolver.models.collection_with_metadata import CollectionWithMetadata
+from open_rarity.resolver.models import CollectionWithMetadata
 
 logger = logging.getLogger("open_rarity_logger")
 
