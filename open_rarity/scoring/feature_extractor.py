@@ -1,6 +1,6 @@
 from open_rarity.models import Token
 from open_rarity.models.collection import Collection
-from open_rarity.models.token_ranking_features import TokenRankingFeatures
+from open_rarity.models.token.ranking_features import TokenRankingFeatures
 
 
 class TokenFeatureExtractor:

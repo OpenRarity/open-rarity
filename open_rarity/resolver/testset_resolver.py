@@ -12,8 +12,8 @@ import numpy as np
 
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
-from open_rarity.models.token_identifier import EVMContractTokenIdentifier
-from open_rarity.models.token_rarity import TokenRarity
+from open_rarity.models.token.identifier import EVMContractTokenIdentifier
+from open_rarity.models.token.rarity import TokenRarity
 from open_rarity.rarity_ranker import RarityRanker
 from open_rarity.resolver.models.collection_with_metadata import CollectionWithMetadata
 from open_rarity.resolver.models.token_with_rarity_data import (

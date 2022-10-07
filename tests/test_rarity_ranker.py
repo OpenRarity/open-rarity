@@ -1,12 +1,12 @@
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
-from open_rarity.models.token_identifier import (
+from open_rarity.models.token.identifier import (
     EVMContractTokenIdentifier,
     SolanaMintAddressTokenIdentifier,
 )
-from open_rarity.models.token_metadata import TokenMetadata
-from open_rarity.models.token_ranking_features import TokenRankingFeatures
-from open_rarity.models.token_rarity import TokenRarity
+from open_rarity.models.token.metadata import TokenMetadata
+from open_rarity.models.token.ranking_features import TokenRankingFeatures
+from open_rarity.models.token.rarity import TokenRarity
 from open_rarity.rarity_ranker import RarityRanker
 from tests.helpers import generate_collection_with_token_traits
 
