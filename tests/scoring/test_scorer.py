@@ -78,6 +78,7 @@ class TestScorer:
             scorer = OpenRarityScorer()
             scorer.score_collection(collection)
 
-        assert "OpenRarity currently does not support non-ERC721 collections" in str(
-            excinfo.value
+        assert (
+            "OpenRarity currently only supports ERC721/Non-fungible standards"
+            in str(excinfo.value)
         )

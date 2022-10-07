@@ -1,5 +1,8 @@
 from open_rarity.models.token import Token
-from open_rarity.models.token_identifier import EVMContractTokenIdentifier
+from open_rarity.models.token_identifier import (
+    EVMContractTokenIdentifier,
+    SolanaMintAddressTokenIdentifier,
+)
 from open_rarity.models.token_metadata import (
     NumericAttribute,
     StringAttribute,
@@ -10,6 +13,28 @@ from tests.helpers import create_evm_token
 
 
 class TestToken:
+    def test_create_metaplex_non_fungible(self):
+        token = Token(
+            token_identifier=SolanaMintAddressTokenIdentifier(
+                mint_address="AsjdsskDso..."
+            ),
+            token_standard=TokenStandard.METAPLEX_NON_FUNGIBLE,
+            metadata=TokenMetadata.from_attributes({"hat": "cap", "shirt": "blue"}),
+        )
+        token_equal = Token.from_metaplex_non_fungible(
+            mint_address="AsjdsskDso...",
+            attributes={"hat": "cap", "shirt": "blue"},
+        )
+
+        assert token == token_equal
+
+        token_not_equal = Token.from_metaplex_non_fungible(
+            mint_address="DiffMintAddresss...",
+            attributes={"hat": "cap", "shirt": "blue"},
+        )
+
+        assert token != token_not_equal
+
     def test_create_erc721(self):
         token = Token(
             token_identifier=EVMContractTokenIdentifier(

@@ -33,9 +33,14 @@ class Scorer:
                 "numeric or date traits"
             )
 
-        if collection.token_standards != [TokenStandard.ERC721]:
+        allowed_standards = {
+            TokenStandard.ERC721,
+            TokenStandard.METAPLEX_NON_FUNGIBLE,
+        }
+
+        if not set(collection.token_standards).issubset(allowed_standards):
             raise ValueError(
-                "OpenRarity currently does not support non-ERC721 collections"
+                "OpenRarity currently only supports ERC721/Non-fungible standards"
             )
 
     def score_token(self, collection: Collection, token: Token) -> float:

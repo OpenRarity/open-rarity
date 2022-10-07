@@ -1,6 +1,9 @@
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
-from open_rarity.models.token_identifier import EVMContractTokenIdentifier
+from open_rarity.models.token_identifier import (
+    EVMContractTokenIdentifier,
+    SolanaMintAddressTokenIdentifier,
+)
 from open_rarity.models.token_metadata import TokenMetadata
 from open_rarity.models.token_ranking_features import TokenRankingFeatures
 from open_rarity.models.token_rarity import TokenRarity
@@ -24,6 +27,18 @@ class TestRarityRanker:
             [{"trait1": "value1"}]  # Token 0
         )
 
+        tokens: list[TokenRarity] = RarityRanker.rank_collection(
+            collection=test_collection
+        )
+
+        assert tokens[0].score == 0
+        assert tokens[0].rank == 1
+
+    def test_rank_solana_collection(self) -> None:
+        test_collection = generate_collection_with_token_traits(
+            [{"trait1": "value1"}],
+            token_identifier_type=SolanaMintAddressTokenIdentifier.identifier_type,
+        )
         tokens: list[TokenRarity] = RarityRanker.rank_collection(
             collection=test_collection
         )

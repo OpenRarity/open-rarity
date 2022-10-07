@@ -2,7 +2,10 @@ from random import shuffle
 
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
-from open_rarity.models.token_identifier import EVMContractTokenIdentifier
+from open_rarity.models.token_identifier import (
+    EVMContractTokenIdentifier,
+    SolanaMintAddressTokenIdentifier,
+)
 from open_rarity.models.token_metadata import (
     AttributeName,
     NumericAttribute,
@@ -214,7 +217,8 @@ def generate_onerare_rarity_collection(
 
 
 def generate_collection_with_token_traits(
-    tokens_traits: list[dict[str, str | int]]
+    tokens_traits: list[dict[str, str | int]],
+    token_identifier_type: str = "evm_contract",
 ) -> Collection:
     tokens = []
     attributes_frequency_counts = {}
@@ -240,12 +244,26 @@ def generate_collection_with_token_traits(
                 )
 
         # Add the tokens
+        match token_identifier_type:
+            case EVMContractTokenIdentifier.identifier_type:
+                identifier_type = EVMContractTokenIdentifier(
+                    contract_address="0x0", token_id=idx
+                )
+                token_standard = TokenStandard.ERC721
+            case SolanaMintAddressTokenIdentifier.identifier_type:
+                identifier_type = SolanaMintAddressTokenIdentifier(
+                    mint_address=f"Fake-Address-{idx}"
+                )
+                token_standard = TokenStandard.METAPLEX_NON_FUNGIBLE
+            case _:
+                raise ValueError(
+                    f"Unexpected token identifier type: {token_identifier_type}"
+                )
+
         tokens.append(
             Token(
-                token_identifier=EVMContractTokenIdentifier(
-                    contract_address="0x0", token_id=idx
-                ),
-                token_standard=TokenStandard.ERC721,
+                token_identifier=identifier_type,
+                token_standard=token_standard,
                 metadata=TokenMetadata(
                     string_attributes=token_string_attributes,
                     numeric_attributes=token_number_attributes,
