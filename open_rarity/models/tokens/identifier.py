@@ -1,8 +1,6 @@
-from typing import Annotated, Literal
+from typing import Literal
 
-from pydantic import BaseModel, Field
-
-from .types import TokenData
+from pydantic import BaseModel
 
 
 class EVMContractTokenIdentifier(BaseModel):
@@ -26,19 +24,3 @@ class SolanaMintAddressTokenIdentifier(BaseModel):
 
     mint_address: str
     identifier_type: Literal["solana_mint_address"] = "solana_mint_address"
-
-
-# This is used to specifies how the collection is identified and the
-# logic used to group the NFTs together
-TokenIdentifier = Annotated[
-    (EVMContractTokenIdentifier | SolanaMintAddressTokenIdentifier),
-    Field(discriminator="identifier_type"),
-]
-
-
-def get_identifier_class_from_dict(data: TokenData) -> TokenIdentifier:
-    return (
-        EVMContractTokenIdentifier
-        if "token_id" in data
-        else SolanaMintAddressTokenIdentifier
-    )

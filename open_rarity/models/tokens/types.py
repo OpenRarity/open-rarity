@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing_extensions import NotRequired, TypedDict
 
 AttributeName = str
 AttributeValue = str | int | float
@@ -7,7 +7,7 @@ AttributeValue = str | int | float
 class MetadataAttribute(TypedDict):
     name: str
     value: str | int | float
-    display_type: str | None
+    display_type: NotRequired[str | None]
 
 
 class RawToken(TypedDict):
@@ -19,15 +19,29 @@ class TokenIdMetadataAttr(MetadataAttribute):
     token_id: int
 
 
-class TokenData(TypedDict):
-    token_id: int | str
-    attributes: list[MetadataAttribute]
+class TokenAttributeStatistic(TokenIdMetadataAttr):
+    count: int
+    probability: float
+    ic: float
+    entropy: NotRequired[float]
+    unique_trait_count: NotRequired[int]
 
 
 class RankedToken(TypedDict):
     token_id: int | str
     rank: int
-    scores: dict
+    metrics: list[TokenAttributeStatistic]
 
 
 TokenSchema = dict[AttributeName, int]
+
+__all__ = [
+    "AttributeName",
+    "AttributeValue",
+    "MetadataAttribute",
+    "RawToken",
+    "TokenIdMetadataAttr",
+    "TokenAttributeStatistic",
+    "RankedToken",
+    "TokenSchema",
+]

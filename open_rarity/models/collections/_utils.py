@@ -1,20 +1,17 @@
 from collections import defaultdict
 from itertools import chain
-from typing import Literal
 
 from satchel import groupapply
 
 from open_rarity.models.tokens import (
     AttributeName,
-    AttributeValue,
-    Token,
+    RawToken,
     TokenIdMetadataAttr,
     TokenSchema,
 )
-from open_rarity.models.tokens.types import TokenData
 
 
-def flatten_token_data(tokens: list[TokenData]) -> list[TokenIdMetadataAttr]:
+def flatten_token_data(tokens: list[RawToken]) -> list[TokenIdMetadataAttr]:
     """Denormalized and flatten token data. Attributes move to the top level and are
     assign a `token_id: <id>` key.
 

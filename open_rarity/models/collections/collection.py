@@ -1,33 +1,17 @@
-from dataclasses import dataclass
 from os import PathLike
 from typing import Literal, overload
 
 from open_rarity.io import read, write
-from open_rarity.models.tokens import RankedToken, RawToken, TokenIdMetadataAttr
-from open_rarity.models.tokens.token import validate_tokens
-from open_rarity.scorers.information_content import information_content
+from open_rarity.metrics import information_content
+from open_rarity.models.tokens import (
+    RankedToken,
+    RawToken,
+    TokenIdMetadataAttr,
+    validate_tokens,
+)
 
-from .types import AttributeCounts
-from .utils import count_attribute_values, enforce_schema, flatten_token_data
-
-
-@dataclass
-class CollectionAttribute:
-    """Class represents an attribute that at least one token in a Collection has.
-    E.g. "hat" = "cap" would be one attribute, and "hat" = "beanie" would be another
-    unique attribute, even though they may belong to the same attribute type (id=name).
-
-    Attributes
-    ----------
-    attribute : StringAttribute
-        the unique attribute pair
-    total_tokens : int
-        total number of tokens in the collection that have this attribute
-    """
-
-    name: str
-    value: str | int | float
-    count: int
+from . import AttributeCounted
+from ._utils import count_attribute_values, enforce_schema, flatten_token_data
 
 
 class Collection:
@@ -91,7 +75,7 @@ class Collection:
         return self._total_supply
 
     @property
-    def attribute_statistics(self) -> list[AttributeCounts]:
+    def attribute_statistics(self) -> list[AttributeCounted]:
         if not self._attribute_statistics:
             raise AttributeError(
                 f"Please run '{repr(self)}.rank_collection()' to view this property"
