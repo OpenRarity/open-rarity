@@ -137,7 +137,10 @@ def get_tokens_with_rarity(
     )
     num_batches = math.ceil(total_supply / batch_size)
     tokens = collection_with_metadata.collection.tokens
-    assert len(tokens) == collection_with_metadata.token_total_supply
+    if len(tokens) != collection_with_metadata.token_total_supply:
+        msg = f"WARNING: {len(tokens)} != {collection_with_metadata.token_total_supply}"
+        print(msg)
+        logger.warning(msg)
     tokens_with_rarity: list[TokenWithRarityData] = []
 
     t1_start = process_time()

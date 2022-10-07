@@ -179,6 +179,7 @@ def get_all_collection_tokens(
     """
     cached_filename = f"{cache_file_prefix}-{slug}.json"
     tokens: list[Token] = []
+    tokens_with_trait_count: list[Token] = []
 
     # For performance optimization and re-runs for the same collection,
     # we optionally check if an already cached file for the collection
@@ -218,7 +219,6 @@ def get_all_collection_tokens(
             tokens_batch = get_tokens_from_opensea(
                 opensea_slug=slug,
                 token_ids=token_ids,
-                add_trait_count=add_trait_count,
             )
 
             tokens.extend(tokens_batch)
@@ -231,7 +231,6 @@ def get_all_collection_tokens(
                 extra_tokens = get_tokens_from_opensea(
                     opensea_slug=slug,
                     token_ids=[token_id],
-                    add_trait_count=add_trait_count,
                 )
                 if len(extra_tokens) == 0:
                     break
@@ -246,13 +245,29 @@ def get_all_collection_tokens(
                 f"token supply ({total_supply}) fetched from collection stats"
             )
 
+        if add_trait_count:
+            for token in tokens:
+                new_metadata_dict = token.metadata.to_attributes()
+                new_metadata_dict["trait_count"] = get_trait_count_attribute(
+                    token.metadata
+                ).value
+
+                tokens_with_trait_count.append(
+                    Token.from_token(
+                        token,
+                        metadata=TokenMetadata.from_attributes(
+                            new_metadata_dict
+                        ),
+                    )
+                )
+
         # Write to local disk the fetched data for later caching
         if use_cache:
             write_collection_data_to_file(
                 filename=cached_filename, tokens=tokens
             )
 
-    return tokens
+    return tokens_with_trait_count or tokens
 
 
 def get_tokens_from_opensea(
@@ -430,6 +445,8 @@ def get_collection_from_opensea(
         use_cache=use_cache,
         cache_file_prefix=cache_file_prefix,
     )
+    print(f"Token 0, {tokens[0].metadata}")
+    print(f"Token last, {tokens[-1].metadata}")
 
     return Collection(name=collection_obj["name"], tokens=tokens)
 
@@ -467,7 +484,7 @@ def read_collection_data_from_file(
                     metadata_dict = token_data["metadata_dict"]
                     assert metadata_dict
                     # TODO vicky - hacky
-                    if add_trait_count:
+                    if add_trait_count and "trait_count" not in metadata_dict:
                         token_metadata = TokenMetadata.from_attributes(
                             metadata_dict
                         )

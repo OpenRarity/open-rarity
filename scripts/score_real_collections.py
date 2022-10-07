@@ -60,8 +60,11 @@ def score_collection_and_output_results(
         slug, add_trait_count=add_trait_count, use_cache=use_cache
     )
     print(
-        f"Created collection {slug} with {collection.token_total_supply} tokens"
+        f"\nCreated collection {slug} with {collection.token_total_supply} tokens"
     )
+    print(f"\n{collection.attributes_frequency_counts=}")
+    print(f"\n\n{collection.tokens[0]} {collection.tokens[0].metadata=}")
+    print(f"\n\n{collection.tokens[-1]} {collection.tokens[-1].metadata=}")
 
     # Score, rank  and sort ascending by token rarity rank
     sorted_token_rarities: list[TokenRarity] = RarityRanker.rank_collection(
@@ -69,7 +72,7 @@ def score_collection_and_output_results(
     )
 
     # Print out ranks and scores
-    print("Token ID and their ranks and scores, sorted by rank")
+    print("\nToken ID and their ranks and scores, sorted by rank")
     json_output = {}
     csv_rows = []
     for rarity_token in sorted_token_rarities:

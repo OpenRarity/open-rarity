@@ -143,10 +143,12 @@ def get_rarity_sniper_slug(opensea_slug: str) -> str:
     slug = opensea_slug.replace("-nft", "")
     slug = slug.replace("-official", "")
     slug = slug.replace("proof-", "")
+    slug = slug.replace("clonex", "clone-x")
     slug = slug.replace("wtf", "")
     slug = slug.replace("invisiblefriends", "invisible-friends")
     slug = slug.replace("boredapeyachtclub", "bored-ape-yacht-club")
     slug = slug.replace("pudgypenguins", "pudgy-penguins")
+    slug = slug.replace("beanzofficial", "beanz")
     return slug
 
 
@@ -499,23 +501,33 @@ class ExternalRarityProvider:
         )
 
         for rank_provider in rank_providers:
-            if rank_provider == RankProvider.RARITY_SNIFFER:
-                self._add_rarity_sniffer_rarity_data(
-                    collection_with_metadata=collection_with_metadata,
-                    tokens_with_rarity=tokens_with_rarity,
-                    cache_external_ranks=cache_external_ranks,
+            # Not all providers have rankings for all collections, so do best effort
+            # NOTE: Each provider will also skip null ranks per token
+            try:
+                if rank_provider == RankProvider.RARITY_SNIFFER:
+                    self._add_rarity_sniffer_rarity_data(
+                        collection_with_metadata=collection_with_metadata,
+                        tokens_with_rarity=tokens_with_rarity,
+                        cache_external_ranks=cache_external_ranks,
+                    )
+                if rank_provider == RankProvider.TRAITS_SNIPER:
+                    self._add_trait_sniper_rarity_data(
+                        collection_with_metadata=collection_with_metadata,
+                        tokens_with_rarity=tokens_with_rarity,
+                        cache_external_ranks=cache_external_ranks,
+                    )
+                if rank_provider == RankProvider.RARITY_SNIPER:
+                    self._add_rarity_sniper_rarity_data(
+                        collection_with_metadata=collection_with_metadata,
+                        tokens_with_rarity=tokens_with_rarity,
+                        cache_external_ranks=cache_external_ranks,
+                    )
+            except Exception:
+                logger.exception(
+                    f"Exception: Could not get ranks from {rank_provider} for "
+                    f"{collection_with_metadata.opensea_slug}",
+                    exc_info=True,
                 )
-            if rank_provider == RankProvider.TRAITS_SNIPER:
-                self._add_trait_sniper_rarity_data(
-                    collection_with_metadata=collection_with_metadata,
-                    tokens_with_rarity=tokens_with_rarity,
-                    cache_external_ranks=cache_external_ranks,
-                )
-            if rank_provider == RankProvider.RARITY_SNIPER:
-                self._add_rarity_sniper_rarity_data(
-                    collection_with_metadata=collection_with_metadata,
-                    tokens_with_rarity=tokens_with_rarity,
-                    cache_external_ranks=cache_external_ranks,
-                )
+                continue
 
         return tokens_with_rarity
