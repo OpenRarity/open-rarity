@@ -28,6 +28,7 @@ from open_rarity.resolver.rarity_providers.external_rarity_provider import (
     EXTERNAL_RANK_PROVIDERS,
     ExternalRarityProvider,
 )
+from open_rarity.scoring.feature_extractor import TokenFeatureExtractor
 from open_rarity.scoring.handlers.arithmetic_mean_scoring_handler import (
     ArithmeticMeanScoringHandler,
 )
@@ -41,7 +42,6 @@ from open_rarity.scoring.handlers.information_content_scoring_handler import (
     InformationContentScoringHandler,
 )
 from open_rarity.scoring.handlers.sum_scoring_handler import SumScoringHandler
-from open_rarity.scoring.token_feature_extractor import TokenFeatureExtractor
 
 harmonic_handler = HarmonicMeanScoringHandler()
 arithmetic_handler = ArithmeticMeanScoringHandler()
