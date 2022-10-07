@@ -1,9 +1,9 @@
 import math
-from open_rarity.models.collection import Collection
-from open_rarity.models.token_rarity import TokenRarity
 
-from open_rarity.scoring.scorer import Scorer
-from open_rarity.scoring.token_feature_extractor import TokenFeatureExtractor
+from open_rarity.models.collections.collection import Collection
+from open_rarity.models.tokens.rarity import TokenRarity
+from open_rarity.scorers.features import TokenFeatureExtractor
+from open_rarity.scorers.scorer import Scorer
 
 
 class RarityRanker:
@@ -40,11 +40,7 @@ class RarityRanker:
             sorted by rank
         """
 
-        if (
-            collection is None
-            or collection.tokens is None
-            or len(collection.tokens) == 0
-        ):
+        if collection is None or not collection.tokens:
             return []
 
         tokens = collection.tokens
@@ -59,10 +55,8 @@ class RarityRanker:
         for idx, token in enumerate(tokens):
 
             # extract features from the token
-            token_features = (
-                TokenFeatureExtractor.extract_unique_attribute_count(
-                    token=token, collection=collection
-                )
+            token_features = TokenFeatureExtractor.extract_unique_attribute_count(
+                token=token, collection=collection
             )
 
             token_rarities.append(

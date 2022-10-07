@@ -1,12 +1,13 @@
+from random import sample
+
+from open_rarity.scorers.utils import get_token_attributes_scores_and_weights
 from tests.helpers import (
-    generate_uniform_rarity_collection,
-    generate_onerare_rarity_collection,
     generate_collection_with_token_traits,
     generate_mixed_collection,
+    generate_onerare_rarity_collection,
+    generate_uniform_rarity_collection,
     get_mixed_trait_spread,
 )
-from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
-from random import sample
 
 
 class TestScoringUtils:

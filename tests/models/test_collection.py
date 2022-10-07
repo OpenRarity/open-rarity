@@ -1,11 +1,7 @@
-from open_rarity.models.collection import Collection, CollectionAttribute
-from open_rarity.models.token import Token
-from open_rarity.models.token_metadata import (
-    StringAttribute,
-    TokenMetadata,
-)
-from open_rarity.models.token_standard import TokenStandard
-
+from open_rarity.models.collections.collection import Collection, CollectionAttribute
+from open_rarity.models.tokens.metadata import StringAttribute, TokenMetadata
+from open_rarity.models.tokens.standards import TokenStandard
+from open_rarity.models.tokens.token import Token
 from tests.helpers import (
     create_evm_token,
     create_numeric_evm_token,
@@ -161,35 +157,22 @@ class TestCollection:
         }
 
     def test_extract_null_attributes_empty(self):
-        assert (
-            self.test_no_attributes_collection.extract_null_attributes() == {}
-        )
+        assert self.test_no_attributes_collection.extract_null_attributes() == {}
 
     def test_extract_collection_attributes(self):
         assert self.test_collection.extract_collection_attributes() == {
             "attribute1": [
-                CollectionAttribute(
-                    StringAttribute("attribute1", "value1"), 20
-                ),
-                CollectionAttribute(
-                    StringAttribute("attribute1", "value2"), 30
-                ),
+                CollectionAttribute(StringAttribute("attribute1", "value1"), 20),
+                CollectionAttribute(StringAttribute("attribute1", "value2"), 30),
             ],
             "attribute2": [
-                CollectionAttribute(
-                    StringAttribute("attribute2", "value1"), 10
-                ),
-                CollectionAttribute(
-                    StringAttribute("attribute2", "value2"), 50
-                ),
+                CollectionAttribute(StringAttribute("attribute2", "value1"), 10),
+                CollectionAttribute(StringAttribute("attribute2", "value2"), 50),
             ],
         }
 
     def test_extract_empty_collection_attributes(self):
-        assert (
-            self.test_no_attributes_collection.extract_collection_attributes()
-            == {}
-        )
+        assert self.test_no_attributes_collection.extract_collection_attributes() == {}
 
     def test_has_numeric_attributes(self):
         assert self.test_numeric_attributes_collection.has_numeric_attribute
@@ -200,7 +183,7 @@ class TestCollection:
             tokens=[
                 create_evm_token(
                     token_id=1,
-                    metadata=TokenMetadata.from_attributes(
+                    metadata=TokenMetadata.parse(
                         {
                             "hat": "cap",
                             "bottom": "jeans",
@@ -210,7 +193,7 @@ class TestCollection:
                 ),
                 create_evm_token(
                     token_id=2,
-                    metadata=TokenMetadata.from_attributes(
+                    metadata=TokenMetadata.parse(
                         {
                             "hat": "cap",
                             "bottom": "pjs",
@@ -220,7 +203,7 @@ class TestCollection:
                 ),
                 create_evm_token(
                     token_id=2,
-                    metadata=TokenMetadata.from_attributes(
+                    metadata=TokenMetadata.parse(
                         {
                             "hat": "bucket hat",
                             "new": "very special",
@@ -253,16 +236,14 @@ class TestCollection:
         )
 
     def test_token_standards(self):
-        assert self.test_collection.token_standards == [TokenStandard.ERC721]
-        assert self.test_no_attributes_collection.token_standards == [
+        assert self.test_collection.tokens.standards == [TokenStandard.ERC721]
+        assert self.test_no_attributes_collection.tokens.standards == [
             TokenStandard.ERC721
         ]
-        assert self.test_erc1155_collection.token_standards == [
-            TokenStandard.ERC1155
-        ]
+        assert self.test_erc1155_collection.tokens.standards == [TokenStandard.ERC1155]
 
         # Test mixed collection
-        mixed_standards = self.test_mixed_erc_collection.token_standards
+        mixed_standards = self.test_mixed_erc_collection.tokens.standards
         assert len(mixed_standards) == 2
         assert set(mixed_standards) == set(
             [TokenStandard.ERC721, TokenStandard.ERC1155]
