@@ -3,6 +3,7 @@ from typing import Any
 
 from open_rarity.models.token_identifier import (
     EVMContractTokenIdentifier,
+    SolanaMintAddressTokenIdentifier,
     get_identifier_class_from_dict,
     TokenIdentifier,
 )
@@ -68,6 +69,34 @@ class Token:
             ),
             token_standard=TokenStandard.ERC721,
             metadata=TokenMetadata.from_attributes(metadata_dict),
+        )
+
+    @classmethod
+    def from_metaplex_non_fungible(
+        cls, mint_address: str, attributes: dict[AttributeName, Any]
+    ):
+        """Creates a Token class representing a Metaplex non-fungible token
+        given the following parameters.
+
+        Parameters
+        ----------
+        mint_address: str
+            The mint address of the token.
+        attributes : dict
+            Dictionary of attribute name to attribute value for the given token.
+            Same as the attributes in from_erc721.
+
+        Returns
+        -------
+        Token
+            A Token instance with EVMContractTokenIdentifier and ERC721 standard set.
+        """
+        return cls(
+            token_identifier=SolanaMintAddressTokenIdentifier(
+                mint_address=mint_address,
+            ),
+            token_standard=TokenStandard.METAPLEX_NON_FUNGIBLE,
+            metadata=TokenMetadata.from_attributes(attributes),
         )
 
     @classmethod
