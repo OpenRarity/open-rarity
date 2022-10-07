@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+
 from open_rarity.models.collection import Collection
 
 

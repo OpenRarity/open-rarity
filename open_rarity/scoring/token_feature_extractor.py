@@ -37,6 +37,4 @@ class TokenFeatureExtractor:
             if count == 1:
                 unique_attributes_count += 1
 
-        return TokenRankingFeatures(
-            unique_attribute_count=unique_attributes_count
-        )
+        return TokenRankingFeatures(unique_attribute_count=unique_attributes_count)

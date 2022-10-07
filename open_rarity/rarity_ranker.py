@@ -1,7 +1,7 @@
 import math
+
 from open_rarity.models.collection import Collection
 from open_rarity.models.token_rarity import TokenRarity
-
 from open_rarity.scoring.scorer import Scorer
 from open_rarity.scoring.token_feature_extractor import TokenFeatureExtractor
 
@@ -59,10 +59,8 @@ class RarityRanker:
         for idx, token in enumerate(tokens):
 
             # extract features from the token
-            token_features = (
-                TokenFeatureExtractor.extract_unique_attribute_count(
-                    token=token, collection=collection
-                )
+            token_features = TokenFeatureExtractor.extract_unique_attribute_count(
+                token=token, collection=collection
             )
 
             token_rarities.append(
