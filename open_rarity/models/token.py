@@ -84,10 +84,13 @@ class Token:
             metadata=TokenMetadata.from_attributes(data_dict["metadata_dict"]),
         )
 
+    def attributes(self) -> dict[AttributeName, Any]:
+        return self.metadata.to_attributes()
+
     def to_dict(self) -> dict:
         return {
             "token_identifier": self.token_identifier.to_dict(),
-            "metadata_dict": self.metadata.to_attributes(),
+            "metadata_dict": self.attributes(),
             "token_standard": self.token_standard.name,
         }
 
