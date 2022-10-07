@@ -9,7 +9,6 @@ from open_rarity.models.token_metadata import (
     TokenMetadata,
 )
 from open_rarity.models.token_standard import TokenStandard
-
 from tests.helpers import create_evm_token
 
 
@@ -20,9 +19,7 @@ class TestToken:
                 mint_address="AsjdsskDso..."
             ),
             token_standard=TokenStandard.METAPLEX_NON_FUNGIBLE,
-            metadata=TokenMetadata.from_attributes(
-                {"hat": "cap", "shirt": "blue"}
-            ),
+            metadata=TokenMetadata.from_attributes({"hat": "cap", "shirt": "blue"}),
         )
         token_equal = Token.from_metaplex_non_fungible(
             mint_address="AsjdsskDso...",
@@ -44,9 +41,7 @@ class TestToken:
                 contract_address="0xa3049...", token_id=1
             ),
             token_standard=TokenStandard.ERC721,
-            metadata=TokenMetadata.from_attributes(
-                {"hat": "cap", "shirt": "blue"}
-            ),
+            metadata=TokenMetadata.from_attributes({"hat": "cap", "shirt": "blue"}),
         )
         token_equal = Token.from_erc721(
             contract_address="0xa3049...",
@@ -141,9 +136,7 @@ class TestToken:
                 token_id=1,
                 metadata=TokenMetadata(
                     string_attributes={
-                        " big hat ": StringAttribute(
-                            name=" hat ", value="blue"
-                        ),
+                        " big hat ": StringAttribute(name=" hat ", value="blue"),
                         "   shirt": StringAttribute(name="shirt", value="red"),
                     },
                     numeric_attributes={

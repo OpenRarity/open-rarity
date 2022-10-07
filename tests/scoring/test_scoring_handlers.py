@@ -98,9 +98,7 @@ class TestScoringHandlers:
             8,
         ) == np.round(expected_rare_score, 8)
 
-    @pytest.mark.skip(
-        reason="Not including performance testing as required testing"
-    )
+    @pytest.mark.skip(reason="Not including performance testing as required testing")
     def test_arithmetic_mean_score_collection_timing(self) -> None:
         arithmetic_scorer = ArithmeticMeanScoringHandler()
         tic = time.time()
@@ -132,9 +130,7 @@ class TestScoringHandlers:
 
     def test_arithmetic_mean_mixed(self) -> None:
         arithmetic_scorer = ArithmeticMeanScoringHandler()
-        token_idxs_to_test = sample(
-            range(self.mixed_collection.token_total_supply), 20
-        )
+        token_idxs_to_test = sample(range(self.mixed_collection.token_total_supply), 20)
         scores = arithmetic_scorer.score_tokens(
             collection=self.mixed_collection,
             tokens=self.mixed_collection.tokens,
@@ -183,9 +179,7 @@ class TestScoringHandlers:
         ic_scorer = InformationContentScoringHandler()
 
         # First test collection entropy
-        collection_entropy = ic_scorer._get_collection_entropy(
-            self.mixed_collection
-        )
+        collection_entropy = ic_scorer._get_collection_entropy(self.mixed_collection)
         collection_probs = []
         mixed_spread = get_mixed_trait_spread()
         for trait_dict in mixed_spread.values():
@@ -197,9 +191,7 @@ class TestScoringHandlers:
         )
 
         # Test the actual scores
-        token_idxs_to_test = sample(
-            range(self.mixed_collection.token_total_supply), 20
-        )
+        token_idxs_to_test = sample(range(self.mixed_collection.token_total_supply), 20)
         scores = ic_scorer.score_tokens(
             collection=self.mixed_collection,
             tokens=self.mixed_collection.tokens,
@@ -254,9 +246,7 @@ class TestScoringHandlers:
 
         assert scores_with_null == scores_without_null
 
-    @pytest.mark.skip(
-        reason="Not including performance testing as required testing"
-    )
+    @pytest.mark.skip(reason="Not including performance testing as required testing")
     def test_information_content_rarity_timing(self):
         ic_scorer = InformationContentScoringHandler()
         tic = time.time()

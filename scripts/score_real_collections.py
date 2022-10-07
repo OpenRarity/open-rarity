@@ -1,11 +1,10 @@
 import argparse
+import csv
+import json
+
 from open_rarity import RarityRanker
 from open_rarity.models.token_rarity import TokenRarity
-from open_rarity.resolver.opensea_api_helpers import (
-    get_collection_from_opensea,
-)
-import json
-import csv
+from open_rarity.resolver.opensea_api_helpers import get_collection_from_opensea
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -46,9 +45,7 @@ def score_collection_and_output_results(
 ):
     # Get collection
     collection = get_collection_from_opensea(slug, use_cache=use_cache)
-    print(
-        f"Created collection {slug} with {collection.token_total_supply} tokens"
-    )
+    print(f"Created collection {slug} with {collection.token_total_supply} tokens")
 
     # Score, rank  and sort ascending by token rarity rank
     sorted_token_rarities: list[TokenRarity] = RarityRanker.rank_collection(
@@ -111,9 +108,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     use_cache = args.use_cache
     print(f"Scoring collections: {args.slugs} with {use_cache=}")
-    print(
-        f"Output file prefix: {args.filename_prefix} with type .{args.filetype}"
-    )
+    print(f"Output file prefix: {args.filename_prefix} with type .{args.filetype}")
 
     files = []
     for slug in args.slugs:

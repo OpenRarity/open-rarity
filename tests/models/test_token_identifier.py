@@ -7,15 +7,9 @@ from open_rarity.models.token_identifier import (
 class TestTokenIdentifier:
     def test_evm_token_identifier_hashable(self):
         address = "evm_address"
-        tid_1 = EVMContractTokenIdentifier(
-            contract_address=address, token_id=1
-        )
-        tid_2 = EVMContractTokenIdentifier(
-            contract_address=address, token_id=2
-        )
-        dup_tid_1 = EVMContractTokenIdentifier(
-            contract_address=address, token_id=1
-        )
+        tid_1 = EVMContractTokenIdentifier(contract_address=address, token_id=1)
+        tid_2 = EVMContractTokenIdentifier(contract_address=address, token_id=2)
+        dup_tid_1 = EVMContractTokenIdentifier(contract_address=address, token_id=1)
         assert {tid_1, tid_2, dup_tid_1} == {tid_1, tid_2}
 
         tid_dict = {tid_1: "value1", tid_2: "value2"}

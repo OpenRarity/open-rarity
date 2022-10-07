@@ -69,9 +69,7 @@ class Collection:
     def __init__(
         self,
         tokens: list[Token],
-        attributes_frequency_counts: dict[
-            AttributeName, dict[AttributeValue, int]
-        ]
+        attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
         | None = None,
         name: str | None = "",
     ):
@@ -79,9 +77,7 @@ class Collection:
         self.name = name or ""
         if attributes_frequency_counts:
             self.attributes_frequency_counts = (
-                self._normalize_attributes_frequency_counts(
-                    attributes_frequency_counts
-                )
+                self._normalize_attributes_frequency_counts(attributes_frequency_counts)
             )
         else:
             self.attributes_frequency_counts = (
@@ -189,9 +185,7 @@ class Collection:
             dict of attribute name to count of assets missing the attribute
         """
 
-        collection_traits: dict[str, list[CollectionAttribute]] = defaultdict(
-            list
-        )
+        collection_traits: dict[str, list[CollectionAttribute]] = defaultdict(list)
 
         for (
             trait_name,
@@ -200,9 +194,7 @@ class Collection:
             for trait_value, trait_count in trait_value_dict.items():
                 collection_traits[trait_name].append(
                     CollectionAttribute(
-                        attribute=StringAttribute(
-                            trait_name, str(trait_value)
-                        ),
+                        attribute=StringAttribute(trait_name, str(trait_value)),
                         total_tokens=trait_count,
                     )
                 )
@@ -211,9 +203,7 @@ class Collection:
 
     def _normalize_attributes_frequency_counts(
         self,
-        attributes_frequency_counts: dict[
-            AttributeName, dict[AttributeValue, int]
-        ],
+        attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]],
     ) -> dict[AttributeName, dict[AttributeValue, int]]:
         """We normalize all collection attributes to ensure that neither casing nor
         leading/trailing spaces produce different attributes:
@@ -258,9 +248,9 @@ class Collection:
             that has a specific value for every possible value for the given
             attribute, by default None.
         """
-        attrs_freq_counts: dict[
-            AttributeName, dict[AttributeValue, int]
-        ] = defaultdict(dict)
+        attrs_freq_counts: dict[AttributeName, dict[AttributeValue, int]] = defaultdict(
+            dict
+        )
 
         for token in self._tokens:
             for (

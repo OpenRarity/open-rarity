@@ -62,9 +62,7 @@ class Scorer:
         self.validate_collection(collection=collection)
         return self.handler.score_token(collection=collection, token=token)
 
-    def score_tokens(
-        self, collection: Collection, tokens: list[Token]
-    ) -> list[float]:
+    def score_tokens(self, collection: Collection, tokens: list[Token]) -> list[float]:
         """Used if you only want to score a batch of tokens that belong to collection.
         This will typically be more efficient than calling score_token for each
         token in `tokens`.
@@ -103,9 +101,7 @@ class Scorer:
             tokens=collection.tokens,
         )
 
-    def score_collections(
-        self, collections: list[Collection]
-    ) -> list[list[float]]:
+    def score_collections(self, collections: list[Collection]) -> list[list[float]]:
         """Scores all tokens in every collection provided.
 
         Parameters

@@ -1,11 +1,11 @@
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
-from open_rarity.models.token_ranking_features import TokenRankingFeatures
 from open_rarity.models.token_identifier import (
     EVMContractTokenIdentifier,
     SolanaMintAddressTokenIdentifier,
 )
 from open_rarity.models.token_metadata import TokenMetadata
+from open_rarity.models.token_ranking_features import TokenRankingFeatures
 from open_rarity.models.token_rarity import TokenRarity
 from open_rarity.rarity_ranker import RarityRanker
 from tests.helpers import generate_collection_with_token_traits
@@ -16,9 +16,7 @@ class TestRarityRanker:
         assert RarityRanker.rank_collection(collection=None) == []
         assert (
             RarityRanker.rank_collection(
-                collection=Collection(
-                    attributes_frequency_counts={}, tokens=[]
-                )
+                collection=Collection(attributes_frequency_counts={}, tokens=[])
             )
             == []
         )
