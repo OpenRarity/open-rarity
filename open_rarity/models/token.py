@@ -89,7 +89,8 @@ class Token:
         Returns
         -------
         Token
-            A Token instance with EVMContractTokenIdentifier and ERC721 standard set.
+            A Token instance with SolanaMintAddressTokenIdentifier and
+            METAPLEX_NON_FUNGIBLE standard set.
         """
         return cls(
             token_identifier=SolanaMintAddressTokenIdentifier(
