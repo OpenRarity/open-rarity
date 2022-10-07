@@ -1,9 +1,9 @@
 import math
 
 from open_rarity.models.collection import Collection
-from open_rarity.models.token_rarity import TokenRarity
+from open_rarity.models.token import TokenRarity
+from open_rarity.scoring.feature_extractor import TokenFeatureExtractor
 from open_rarity.scoring.scorer import Scorer
-from open_rarity.scoring.token_feature_extractor import TokenFeatureExtractor
 
 
 class RarityRanker:

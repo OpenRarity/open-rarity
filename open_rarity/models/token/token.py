@@ -1,14 +1,14 @@
 from dataclasses import dataclass
 from typing import Any
 
-from open_rarity.models.token_identifier import (
+from .identifier import (
     EVMContractTokenIdentifier,
     SolanaMintAddressTokenIdentifier,
     TokenIdentifier,
     get_identifier_class_from_dict,
 )
-from open_rarity.models.token_metadata import AttributeName, TokenMetadata
-from open_rarity.models.token_standard import TokenStandard
+from .metadata import AttributeName, TokenMetadata
+from .standard import TokenStandard
 
 
 @dataclass

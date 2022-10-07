@@ -2,13 +2,13 @@ from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
 
-from open_rarity.models.token import Token
-from open_rarity.models.token_metadata import (
+from open_rarity.models.token import (
     AttributeName,
     AttributeValue,
     StringAttribute,
+    Token,
+    TokenStandard,
 )
-from open_rarity.models.token_standard import TokenStandard
 from open_rarity.models.utils.attribute_utils import normalize_attribute_string
 
 

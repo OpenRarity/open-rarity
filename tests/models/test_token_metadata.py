@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from open_rarity.models.token_metadata import (
+from open_rarity.models.token import (
     DateAttribute,
     NumericAttribute,
     StringAttribute,

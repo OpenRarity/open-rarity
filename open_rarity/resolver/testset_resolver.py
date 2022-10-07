@@ -11,12 +11,10 @@ from time import process_time, strftime
 import numpy as np
 
 from open_rarity.models.collection import Collection
-from open_rarity.models.token import Token
-from open_rarity.models.token_identifier import EVMContractTokenIdentifier
-from open_rarity.models.token_rarity import TokenRarity
+from open_rarity.models.token import EVMContractTokenIdentifier, Token, TokenRarity
 from open_rarity.rarity_ranker import RarityRanker
-from open_rarity.resolver.models.collection_with_metadata import CollectionWithMetadata
-from open_rarity.resolver.models.token_with_rarity_data import (
+from open_rarity.resolver.models import (
+    CollectionWithMetadata,
     RankProvider,
     RarityData,
     TokenWithRarityData,
@@ -28,6 +26,7 @@ from open_rarity.resolver.rarity_providers.external_rarity_provider import (
     EXTERNAL_RANK_PROVIDERS,
     ExternalRarityProvider,
 )
+from open_rarity.scoring.feature_extractor import TokenFeatureExtractor
 from open_rarity.scoring.handlers.arithmetic_mean_scoring_handler import (
     ArithmeticMeanScoringHandler,
 )
@@ -41,7 +40,6 @@ from open_rarity.scoring.handlers.information_content_scoring_handler import (
     InformationContentScoringHandler,
 )
 from open_rarity.scoring.handlers.sum_scoring_handler import SumScoringHandler
-from open_rarity.scoring.token_feature_extractor import TokenFeatureExtractor
 
 harmonic_handler = HarmonicMeanScoringHandler()
 arithmetic_handler = ArithmeticMeanScoringHandler()

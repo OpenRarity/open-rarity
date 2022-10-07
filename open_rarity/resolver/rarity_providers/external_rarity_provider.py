@@ -4,10 +4,10 @@ from collections import defaultdict
 
 import requests
 
-from open_rarity.models.token_identifier import EVMContractTokenIdentifier
-from open_rarity.resolver.models.collection_with_metadata import CollectionWithMetadata
-from open_rarity.resolver.models.token_with_rarity_data import (
+from open_rarity.models.token import EVMContractTokenIdentifier
+from open_rarity.resolver.models import (
     EXTERNAL_RANK_PROVIDERS,
+    CollectionWithMetadata,
     RankProvider,
     RarityData,
     TokenWithRarityData,
