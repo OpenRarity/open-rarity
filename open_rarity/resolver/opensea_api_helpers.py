@@ -6,15 +6,15 @@ import requests
 from requests.models import HTTPError
 
 from open_rarity.models.collection import Collection
-from open_rarity.models.token import Token
-from open_rarity.models.token.identifier import EVMContractTokenIdentifier
-from open_rarity.models.token.metadata import (
+from open_rarity.models.token import (
     DateAttribute,
+    EVMContractTokenIdentifier,
     NumericAttribute,
     StringAttribute,
+    Token,
     TokenMetadata,
+    TokenStandard,
 )
-from open_rarity.models.token.standard import TokenStandard
 from open_rarity.resolver.models.collection_with_metadata import CollectionWithMetadata
 
 logger = logging.getLogger("open_rarity_logger")

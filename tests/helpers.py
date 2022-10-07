@@ -1,18 +1,16 @@
 from random import shuffle
 
 from open_rarity.models.collection import Collection
-from open_rarity.models.token import Token
-from open_rarity.models.token.identifier import (
-    EVMContractTokenIdentifier,
-    SolanaMintAddressTokenIdentifier,
-)
-from open_rarity.models.token.metadata import (
+from open_rarity.models.token import (
     AttributeName,
+    EVMContractTokenIdentifier,
     NumericAttribute,
+    SolanaMintAddressTokenIdentifier,
     StringAttribute,
+    Token,
     TokenMetadata,
+    TokenStandard,
 )
-from open_rarity.models.token.standard import TokenStandard
 
 
 def create_evm_token(

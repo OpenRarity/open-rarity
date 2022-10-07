@@ -1,6 +1,5 @@
 from open_rarity.models.collection import Collection
-from open_rarity.models.token import Token
-from open_rarity.models.token.standard import TokenStandard
+from open_rarity.models.token import Token, TokenStandard
 from open_rarity.scoring.handlers.information_content_scoring_handler import (
     InformationContentScoringHandler,
 )

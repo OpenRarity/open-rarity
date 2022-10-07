@@ -7,8 +7,8 @@ from open_rarity.models.token import (
     AttributeValue,
     StringAttribute,
     Token,
+    TokenStandard,
 )
-from open_rarity.models.token.standard import TokenStandard
 from open_rarity.models.utils.attribute_utils import normalize_attribute_string
 
 
