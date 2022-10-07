@@ -103,7 +103,7 @@ class RarityRanker:
         sorted_token_rarities: list[TokenRarity] = sorted(
             token_rarities,
             key=lambda k: (
-                k.token.features.unique_attribute_count,
+                k.token_features.unique_attribute_count,
                 k.score,
             ),
             reverse=True,
