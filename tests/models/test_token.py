@@ -51,7 +51,7 @@ class TestToken:
         token_equal = Token.from_erc721(
             contract_address="0xa3049...",
             token_id=1,
-            attributes={"hat": "cap", "shirt": "blue"},
+            metadata_dict={"hat": "cap", "shirt": "blue"},
         )
 
         assert token == token_equal
@@ -59,7 +59,7 @@ class TestToken:
         token_not_equal = Token.from_erc721(
             contract_address="0xmew...",
             token_id=1,
-            attributes={"hat": "cap", "shirt": "blue"},
+            metadata_dict={"hat": "cap", "shirt": "blue"},
         )
 
         assert token != token_not_equal
