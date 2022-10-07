@@ -46,9 +46,7 @@ class HarmonicMeanScoringHandler:
         collection: Collection,
         token: Token,
         normalized: bool = True,
-        collection_null_attributes: dict[
-            AttributeName, CollectionAttribute
-        ] = None,
+        collection_null_attributes: dict[AttributeName, CollectionAttribute] = None,
     ) -> float:
         """Calculates the score of the token by taking the harmonic mean of the
         attribute scores with weights.
@@ -81,6 +79,4 @@ class HarmonicMeanScoringHandler:
             collection_null_attributes=collection_null_attributes,
         )
 
-        return float(
-            np.average(np.reciprocal(attr_scores), weights=attr_weights) ** -1
-        )
+        return float(np.average(np.reciprocal(attr_scores), weights=attr_weights) ** -1)

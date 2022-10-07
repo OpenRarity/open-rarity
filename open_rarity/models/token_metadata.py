@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
 import datetime
+from dataclasses import dataclass, field
 from typing import Any
 
 from open_rarity.models.utils.attribute_utils import normalize_attribute_string
@@ -101,20 +101,14 @@ class TokenMetadata:
     numeric_attributes: dict[AttributeName, NumericAttribute] = field(
         default_factory=dict
     )
-    date_attributes: dict[AttributeName, DateAttribute] = field(
-        default_factory=dict
-    )
+    date_attributes: dict[AttributeName, DateAttribute] = field(default_factory=dict)
 
     def __post_init__(self):
-        self.string_attributes = self._normalize_attributes_dict(
-            self.string_attributes
-        )
+        self.string_attributes = self._normalize_attributes_dict(self.string_attributes)
         self.numeric_attributes = self._normalize_attributes_dict(
             self.numeric_attributes
         )
-        self.date_attributes = self._normalize_attributes_dict(
-            self.date_attributes
-        )
+        self.date_attributes = self._normalize_attributes_dict(self.date_attributes)
 
     def _normalize_attributes_dict(self, attributes_dict: dict) -> dict:
         """Helper function that takes in an attributes dictionary

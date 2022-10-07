@@ -7,9 +7,7 @@ def get_token_attributes_scores_and_weights(
     collection: Collection,
     token: Token,
     normalized: bool,
-    collection_null_attributes: dict[
-        AttributeName, CollectionAttribute
-    ] = None,
+    collection_null_attributes: dict[AttributeName, CollectionAttribute] = None,
 ) -> tuple[list[float], list[float]]:
     """Calculates the scores and normalization weights for a token
     based on its attributes. If the token does not have an attribute, the probability
@@ -47,14 +45,10 @@ def get_token_attributes_scores_and_weights(
 
     combined_attributes: dict[
         str, CollectionAttribute
-    ] = null_attributes | _convert_to_collection_attributes_dict(
-        collection, token
-    )
+    ] = null_attributes | _convert_to_collection_attributes_dict(collection, token)
 
     sorted_attr_names = sorted(list(combined_attributes.keys()))
-    sorted_attrs = [
-        combined_attributes[attr_name] for attr_name in sorted_attr_names
-    ]
+    sorted_attrs = [combined_attributes[attr_name] for attr_name in sorted_attr_names]
 
     total_supply = collection.token_total_supply
 

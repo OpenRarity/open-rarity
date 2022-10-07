@@ -89,9 +89,7 @@ class InformationContentScoringHandler:
         self,
         collection: Collection,
         token: Token,
-        collection_null_attributes: dict[
-            AttributeName, CollectionAttribute
-        ] = None,
+        collection_null_attributes: dict[AttributeName, CollectionAttribute] = None,
         collection_entropy_normalization: float = None,
     ) -> float:
         """Calculates the score of the token using information entropy with a
@@ -157,12 +155,8 @@ class InformationContentScoringHandler:
     def _get_collection_entropy(
         self,
         collection: Collection,
-        collection_attributes: dict[
-            AttributeName, list[CollectionAttribute]
-        ] = None,
-        collection_null_attributes: dict[
-            AttributeName, CollectionAttribute
-        ] = None,
+        collection_attributes: dict[AttributeName, list[CollectionAttribute]] = None,
+        collection_null_attributes: dict[AttributeName, CollectionAttribute] = None,
     ) -> float:
         """Calculates the entropy of the collection, defined to be the
         sum of the probability of every possible attribute name/value pair that
@@ -212,9 +206,7 @@ class InformationContentScoringHandler:
                 ]
             )
 
-        logger.debug(
-            "Calculated collection probabilties: %s", collection_probabilities
-        )
+        logger.debug("Calculated collection probabilties: %s", collection_probabilities)
         collection_entropy = -np.dot(
             collection_probabilities, np.log2(collection_probabilities)
         )

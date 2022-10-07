@@ -7,7 +7,6 @@ from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import AttributeName
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 
-
 logger = logging.getLogger("open_rarity_logger")
 
 
@@ -47,9 +46,7 @@ class SumScoringHandler:
         collection: Collection,
         token: Token,
         normalized: bool = True,
-        collection_null_attributes: dict[
-            AttributeName, CollectionAttribute
-        ] = None,
+        collection_null_attributes: dict[AttributeName, CollectionAttribute] = None,
     ) -> float:
         """Calculates the score of the token by taking the sum of the attribute
         scores with weights.

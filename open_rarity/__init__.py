@@ -4,8 +4,8 @@ from .models import (
     StringAttribute,
     Token,
     TokenMetadata,
-    TokenStandard,
     TokenRarity,
+    TokenStandard,
 )
-from .scoring import Scorer as OpenRarityScorer
 from .rarity_ranker import RarityRanker
+from .scoring import Scorer as OpenRarityScorer
