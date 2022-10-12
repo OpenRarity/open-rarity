@@ -1,12 +1,10 @@
 import pytest
-from open_rarity import OpenRarityScorer, Collection, TokenStandard
+
+from open_rarity import Collection, OpenRarityScorer, TokenStandard
 from open_rarity.scoring.handlers.information_content_scoring_handler import (
     InformationContentScoringHandler,
 )
-from tests.helpers import (
-    generate_collection_with_token_traits,
-    create_evm_token,
-)
+from tests.helpers import create_evm_token, generate_collection_with_token_traits
 
 
 class TestScorer:
@@ -14,9 +12,7 @@ class TestScorer:
     scorer = OpenRarityScorer()
 
     def test_init_settings(self):
-        assert isinstance(
-            self.scorer.handler, InformationContentScoringHandler
-        )
+        assert isinstance(self.scorer.handler, InformationContentScoringHandler)
 
     def test_score_collections_with_string_attributes(self):
         collection = generate_collection_with_token_traits(
@@ -74,9 +70,7 @@ class TestScorer:
             collection = Collection(
                 name="test",
                 tokens=[
-                    create_evm_token(
-                        token_id=i, token_standard=TokenStandard.ERC1155
-                    )
+                    create_evm_token(token_id=i, token_standard=TokenStandard.ERC1155)
                     for i in range(10)
                 ],
                 attributes_frequency_counts={},
@@ -85,6 +79,6 @@ class TestScorer:
             scorer.score_collection(collection)
 
         assert (
-            "OpenRarity currently does not support non-ERC721 collections"
+            "OpenRarity currently only supports ERC721/Non-fungible standards"
             in str(excinfo.value)
         )

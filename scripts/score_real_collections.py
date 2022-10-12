@@ -1,11 +1,10 @@
 import argparse
+import csv
+import json
+
 from open_rarity import RarityRanker
 from open_rarity.models.token_rarity import TokenRarity
-from open_rarity.resolver.opensea_api_helpers import (
-    get_collection_from_opensea,
-)
-import json
-import csv
+from open_rarity.resolver.opensea_api_helpers import get_collection_from_opensea
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -59,9 +58,7 @@ def score_collection_and_output_results(
     collection = get_collection_from_opensea(
         slug, add_trait_count=add_trait_count, use_cache=use_cache
     )
-    print(
-        f"\nCreated collection {slug} with {collection.token_total_supply} tokens"
-    )
+    print(f"\nCreated collection {slug} with {collection.token_total_supply} tokens")
     print(f"\n{collection.attributes_frequency_counts=}")
     print(f"\n\n{collection.tokens[0]} {collection.tokens[0].metadata=}")
     print(f"\n\n{collection.tokens[-1]} {collection.tokens[-1].metadata=}")

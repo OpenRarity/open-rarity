@@ -48,9 +48,7 @@ class GeometricMeanScoringHandler:
         collection: Collection,
         token: Token,
         normalized: bool = True,
-        collection_null_attributes: dict[
-            AttributeName, CollectionAttribute
-        ] = None,
+        collection_null_attributes: dict[AttributeName, CollectionAttribute] = None,
     ) -> float:
         """Calculates the score of the token by taking the geometric mean of the
         attribute scores with weights.
@@ -74,9 +72,7 @@ class GeometricMeanScoringHandler:
         float
             The token score
         """
-        logger.debug(
-            f"Computing geometric mean for {collection} token {token}"
-        )
+        logger.debug(f"Computing geometric mean for {collection} token {token}")
 
         attr_scores, attr_weights = get_token_attributes_scores_and_weights(
             collection=collection,

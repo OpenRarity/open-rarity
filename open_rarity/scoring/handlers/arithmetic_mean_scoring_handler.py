@@ -45,9 +45,7 @@ class ArithmeticMeanScoringHandler:
         collection: Collection,
         token: Token,
         normalized: bool = True,
-        collection_null_attributes: dict[
-            AttributeName, CollectionAttribute
-        ] = None,
+        collection_null_attributes: dict[AttributeName, CollectionAttribute] = None,
     ) -> float:
         """Calculates the score of the token by taking the arithmetic mean of
         the attribute scores with weights.

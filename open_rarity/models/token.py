@@ -3,8 +3,9 @@ from typing import Any
 
 from open_rarity.models.token_identifier import (
     EVMContractTokenIdentifier,
-    get_identifier_class_from_dict,
+    SolanaMintAddressTokenIdentifier,
     TokenIdentifier,
+    get_identifier_class_from_dict,
 )
 from open_rarity.models.token_metadata import AttributeName, TokenMetadata
 from open_rarity.models.token_standard import TokenStandard
@@ -90,27 +91,52 @@ class Token:
             metadata=TokenMetadata.from_attributes(metadata_dict),
         )
 
-    def attributes(self):
-        return self.metadata.to_attributes()
+    @classmethod
+    def from_metaplex_non_fungible(
+        cls, mint_address: str, attributes: dict[AttributeName, Any]
+    ):
+        """Creates a Token class representing a Metaplex non-fungible token
+        given the following parameters.
+
+        Parameters
+        ----------
+        mint_address: str
+            The mint address of the token.
+        attributes : dict
+            Dictionary of attribute name to attribute value for the given token.
+            Same as the attributes in from_erc721.
+
+        Returns
+        -------
+        Token
+            A Token instance with SolanaMintAddressTokenIdentifier and
+            METAPLEX_NON_FUNGIBLE standard set.
+        """
+        return cls(
+            token_identifier=SolanaMintAddressTokenIdentifier(
+                mint_address=mint_address,
+            ),
+            token_standard=TokenStandard.METAPLEX_NON_FUNGIBLE,
+            metadata=TokenMetadata.from_attributes(attributes),
+        )
 
     @classmethod
     def from_dict(cls, data_dict: dict):
-        identifier_class = get_identifier_class_from_dict(
-            data_dict["token_identifier"]
-        )
+        identifier_class = get_identifier_class_from_dict(data_dict["token_identifier"])
 
         return cls(
-            token_identifier=identifier_class.from_dict(
-                data_dict["token_identifier"]
-            ),
+            token_identifier=identifier_class.from_dict(data_dict["token_identifier"]),
             token_standard=TokenStandard[data_dict["token_standard"]],
             metadata=TokenMetadata.from_attributes(data_dict["metadata_dict"]),
         )
 
+    def attributes(self) -> dict[AttributeName, Any]:
+        return self.metadata.to_attributes()
+
     def to_dict(self) -> dict:
         return {
             "token_identifier": self.token_identifier.to_dict(),
-            "metadata_dict": self.metadata.to_attributes(),
+            "metadata_dict": self.attributes(),
             "token_standard": self.token_standard.name,
         }
 

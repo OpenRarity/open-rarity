@@ -5,18 +5,17 @@ import json
 import logging
 import math
 import pkgutil
-import numpy as np
 from dataclasses import dataclass
 from time import process_time, strftime
+
+import numpy as np
 
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
 from open_rarity.models.token_identifier import EVMContractTokenIdentifier
 from open_rarity.models.token_rarity import TokenRarity
 from open_rarity.rarity_ranker import RarityRanker
-from open_rarity.resolver.models.collection_with_metadata import (
-    CollectionWithMetadata,
-)
+from open_rarity.resolver.models.collection_with_metadata import CollectionWithMetadata
 from open_rarity.resolver.models.token_with_rarity_data import (
     RankProvider,
     RarityData,
@@ -26,8 +25,8 @@ from open_rarity.resolver.opensea_api_helpers import (
     get_collection_with_metadata_from_opensea,
 )
 from open_rarity.resolver.rarity_providers.external_rarity_provider import (
-    ExternalRarityProvider,
     EXTERNAL_RANK_PROVIDERS,
+    ExternalRarityProvider,
 )
 from open_rarity.scoring.handlers.arithmetic_mean_scoring_handler import (
     ArithmeticMeanScoringHandler,
@@ -145,9 +144,7 @@ def get_tokens_with_rarity(
 
     t1_start = process_time()
 
-    for batch_id, tokens_batch in enumerate(
-        np.array_split(tokens, num_batches)
-    ):
+    for batch_id, tokens_batch in enumerate(np.array_split(tokens, num_batches)):
         message = (
             f"Starting batch {batch_id} for collection "
             f"{slug}: Processing {len(tokens_batch)} tokens"
@@ -243,15 +240,11 @@ def resolve_collection_data(
             max_tokens_to_calculate=max_tokens_to_calculate,
             cache_external_ranks=use_cache,
         )
-        print(
-            f"\t=>Finished fetching external rarity ranks for: {opensea_slug}"
-        )
+        print(f"\t=>Finished fetching external rarity ranks for: {opensea_slug}")
 
         collection = collection_with_metadata.collection
         print("Collection: ", collection)
-        print(
-            "Collection attributes: ", collection.attributes_frequency_counts
-        )
+        print("Collection attributes: ", collection.attributes_frequency_counts)
 
         print("Token 0: ", collection.tokens[0].metadata.string_attributes)
         print("Token 10: ", collection.tokens[10].metadata.string_attributes)
@@ -274,9 +267,7 @@ def resolve_collection_data(
         serialize_to_csv(
             collection_with_metadata=collection_with_metadata,
             tokens_with_rarity=tokens_with_rarity,
-            filename_prefix="testset_trait_count"
-            if add_trait_count
-            else "testset",
+            filename_prefix="testset_trait_count" if add_trait_count else "testset",
         )
 
 
@@ -374,18 +365,14 @@ def resolve_open_rarity_score(
         token_id = str(token_identifier.token_id)
 
         try:
-            token_features = (
-                TokenFeatureExtractor.extract_unique_attribute_count(
-                    token=token, collection=collection
-                )
+            token_features = TokenFeatureExtractor.extract_unique_attribute_count(
+                token=token, collection=collection
             )
 
             harmonic_dict[token_id] = TokenRarity(
                 token=token,
                 token_features=token_features,
-                score=harmonic_handler.score_token(
-                    collection=collection, token=token
-                ),
+                score=harmonic_handler.score_token(collection=collection, token=token),
             )
             arthimetic_dict[token_id] = TokenRarity(
                 token=token,
@@ -397,23 +384,17 @@ def resolve_open_rarity_score(
             geometric_dict[token_id] = TokenRarity(
                 token=token,
                 token_features=token_features,
-                score=geometric_handler.score_token(
-                    collection=collection, token=token
-                ),
+                score=geometric_handler.score_token(collection=collection, token=token),
             )
             sum_dict[token_id] = TokenRarity(
                 token=token,
                 token_features=token_features,
-                score=sum_handler.score_token(
-                    collection=collection, token=token
-                ),
+                score=sum_handler.score_token(collection=collection, token=token),
             )
             ic_dict[token_id] = TokenRarity(
                 token=token,
                 token_features=token_features,
-                score=ic_handler.score_token(
-                    collection=collection, token=token
-                ),
+                score=ic_handler.score_token(collection=collection, token=token),
             )
 
         except Exception:
@@ -456,9 +437,7 @@ def _get_provider_rank(
         token
     """
     rarities = token_with_rarity.rarities
-    rarity_datas = list(
-        filter(lambda rarity: rarity.provider == provider, rarities)
-    )
+    rarity_datas = list(filter(lambda rarity: rarity.provider == provider, rarities))
     return rarity_datas[0].rank if len(rarity_datas) > 0 else None
 
 
@@ -550,9 +529,7 @@ def serialize_to_csv(
         or_harmonic_rank = _get_provider_rank(
             RankProvider.OR_HARMONIC, token_with_rarity
         )
-        or_sum_rank = _get_provider_rank(
-            RankProvider.OR_SUM, token_with_rarity
-        )
+        or_sum_rank = _get_provider_rank(RankProvider.OR_SUM, token_with_rarity)
         or_ic_rank = _get_provider_rank(
             RankProvider.OR_INFORMATION_CONTENT, token_with_rarity
         )

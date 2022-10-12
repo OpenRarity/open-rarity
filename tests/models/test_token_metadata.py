@@ -1,11 +1,13 @@
+from datetime import datetime
+
 import pytest
+
 from open_rarity.models.token_metadata import (
     DateAttribute,
     NumericAttribute,
     StringAttribute,
     TokenMetadata,
 )
-from datetime import datetime
 
 
 class TestTokenMetadata:
@@ -30,9 +32,7 @@ class TestTokenMetadata:
             "float trait": NumericAttribute(name="float trait", value=203.5),
         }
         assert token_metadata.date_attributes == {
-            "created": DateAttribute(
-                name="created", value=int(created.timestamp())
-            ),
+            "created": DateAttribute(name="created", value=int(created.timestamp())),
         }
 
     def test_from_attributes_invalid_type(self):
@@ -46,6 +46,4 @@ class TestTokenMetadata:
                 }
             )
 
-        assert "Provided attribute value has invalid type" in str(
-            excinfo.value
-        )
+        assert "Provided attribute value has invalid type" in str(excinfo.value)
