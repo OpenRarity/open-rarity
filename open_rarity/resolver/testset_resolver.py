@@ -79,6 +79,8 @@ parser.add_argument(
     default="test_collections.json",
     help="File in /data folder containing collections to resolve.",
 )
+
+# The fastest external rarity provider, taking <15 seconds to resolve all rank data.
 parser.add_argument(
     "--rarity_sniffer",
     dest="fetch_rarity_sniffer",
@@ -87,7 +89,8 @@ parser.add_argument(
     help="If external is specified, fetches rarity sniffer ranking data",
 )
 
-# NOTE: Default disabled due to API key requirements
+# Default disabled due to API key requirements. Without caching, this can take
+# ~10 minutes for a 10k collection due to rate limits.
 parser.add_argument(
     "--trait_sniper",
     dest="fetch_trait_sniper",
@@ -99,8 +102,8 @@ parser.add_argument(
     ),
 )
 
-# NOTE: Default disabled because no public bulk fetcher function and therefore
-# takes too long to fetch data for.
+# Default disabled because no public bulk fetcher function and therefore
+# takes a long to fetch data for.
 parser.add_argument(
     "--rarity_sniper",
     dest="fetch_rarity_sniper",
