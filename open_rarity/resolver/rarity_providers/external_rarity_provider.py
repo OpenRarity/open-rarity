@@ -11,9 +11,9 @@ from open_rarity.resolver.models.token_with_rarity_data import (
     TokenWithRarityData,
 )
 
-from .rarity_sniffer import RaritySnifferProvider
-from .rarity_sniper import RaritySniperProvider
-from .trait_sniper import TraitSniperProvider
+from .rarity_sniffer import RaritySnifferResolver
+from .rarity_sniper import RaritySniperResolver
+from .trait_sniper import TraitSniperResolver
 
 logger = logging.getLogger("open_rarity_logger")
 
@@ -142,7 +142,7 @@ class ExternalRarityProvider:
             contract_addresses = collection_with_metadata.contract_addresses
             assert (len(contract_addresses)) == 1
             try:
-                trait_sniper_rank_data = TraitSniperProvider.get_all_ranks(
+                trait_sniper_rank_data = TraitSniperResolver.get_all_ranks(
                     contract_address=contract_addresses[0]
                 )
                 logger.debug(
@@ -225,7 +225,7 @@ class ExternalRarityProvider:
         # If there was no cache data available, make API request to fetch data
         if not self._is_cache_loaded(slug, rank_provider):
             try:
-                token_ids_to_ranks = RaritySnifferProvider.get_ranks(
+                token_ids_to_ranks = RaritySnifferResolver.get_ranks(
                     contract_address=contract_address
                 )
 
@@ -264,7 +264,7 @@ class ExternalRarityProvider:
     ) -> list[TokenWithRarityData]:
         # We're currently using opensea slug to calculate trait sniper slug
         opensea_slug = collection_with_metadata.opensea_slug
-        slug = RaritySniperProvider.get_slug(opensea_slug=opensea_slug)
+        slug = RaritySniperResolver.get_slug(opensea_slug=opensea_slug)
         rank_provider = RankProvider.RARITY_SNIPER
         if cache_external_ranks:
             self._load_cache_from_file(slug=opensea_slug, rank_provider=rank_provider)
@@ -283,7 +283,7 @@ class ExternalRarityProvider:
 
             if rank is None:
                 try:
-                    rank = RaritySniperProvider.get_rank(
+                    rank = RaritySniperResolver.get_rank(
                         collection_slug=slug, token_id=token_id
                     )
                     logger.debug(

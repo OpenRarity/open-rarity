@@ -18,7 +18,7 @@ USER_AGENT = {
 API_KEY = os.environ.get("TRAIT_SNIPER_API_KEY") or ""
 
 
-class TraitSniperProvider:
+class TraitSniperResolver:
     @classmethod
     def get_all_ranks(cls, contract_address: str) -> list[dict]:
         rank_data = cls.get_ranks(contract_address, page=1)

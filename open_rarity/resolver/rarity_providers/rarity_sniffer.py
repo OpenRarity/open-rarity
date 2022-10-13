@@ -15,7 +15,7 @@ USER_AGENT = {
 }
 
 
-class RaritySnifferProvider:
+class RaritySnifferResolver:
     @staticmethod
     def get_ranks(contract_address: str) -> dict[str, int]:
         """Fetches all available tokens and ranks

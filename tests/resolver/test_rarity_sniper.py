@@ -1,11 +1,11 @@
-from open_rarity.resolver.rarity_providers.rarity_sniper import RaritySniperProvider
+from open_rarity.resolver.rarity_providers.rarity_sniper import RaritySniperResolver
 
 
-class TestRaritySniperProvider:
+class TestRaritySniperResolver:
     BORED_APE_SLUG = "bored-ape-yacht-club"
 
     def test_get_rank(self):
-        rank = RaritySniperProvider.get_rank(
+        rank = RaritySniperResolver.get_rank(
             collection_slug=self.BORED_APE_SLUG,
             token_id=1020,
         )
@@ -13,7 +13,7 @@ class TestRaritySniperProvider:
         assert rank
 
     def test_get_rank_no_contract(self):
-        rank = RaritySniperProvider.get_rank(
+        rank = RaritySniperResolver.get_rank(
             collection_slug="non_existent_slug", token_id=1
         )
         assert rank is None

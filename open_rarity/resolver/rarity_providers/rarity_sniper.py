@@ -11,7 +11,7 @@ USER_AGENT = {
 }
 
 
-class RaritySniperProvider:
+class RaritySniperResolver:
     @staticmethod
     def get_slug(opensea_slug: str) -> str:
         # custom fixes to normalize slug name
