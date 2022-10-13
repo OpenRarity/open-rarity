@@ -2,8 +2,6 @@ import json
 import logging
 from collections import defaultdict
 
-import requests
-
 from open_rarity.models.token_identifier import EVMContractTokenIdentifier
 from open_rarity.resolver.models.collection_with_metadata import CollectionWithMetadata
 from open_rarity.resolver.models.token_with_rarity_data import (
@@ -13,147 +11,11 @@ from open_rarity.resolver.models.token_with_rarity_data import (
     TokenWithRarityData,
 )
 
-TRAIT_SNIPER_URL = "https://api.traitsniper.com/api/projects/{slug}/nfts"
-RARITY_SNIFFER_API_URL = "https://raritysniffer.com/api/index.php"
-RARITY_SNIPER_API_URL = (
-    "https://api.raritysniper.com/public/collection/{slug}/id/{token_id}"
-)
-USER_AGENT = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"  # noqa: E501
-}
+from .rarity_sniffer import RaritySnifferProvider
+from .rarity_sniper import RaritySniperProvider
+from .trait_sniper import TraitSniperProvider
+
 logger = logging.getLogger("open_rarity_logger")
-
-
-def fetch_trait_sniper_rank_for_evm_token(
-    collection_slug: str, token_id: int
-) -> int | None:
-    """Sends a GET request to Trait Sniper API to fetch ranking
-    data for a given EVM token. Trait Sniper uses opensea slug as a param.
-
-    Parameters
-    ----------
-    collection_slug : str
-        collection slug of collection you're attempting to fetch. This must be
-        the slug on trait sniper's slug system.
-    token_id : int
-        the token number.
-
-    Returns
-    -------
-    int | None
-        Rarity rank for given token ID if request was successful, otherwise None.
-
-    Raises
-    ------
-    ValueError
-        If slug is invalid.
-    """
-    # TODO [vicky]: In future, we can add retry mechanisms if needed
-
-    querystring = {
-        "trait_norm": "true",
-        "trait_count": "true",
-        "token_id": token_id,
-    }
-
-    if not collection_slug:
-        msg = f"Failed to fetch traitsniper rank as slug is invalid. {collection_slug=}"
-        logger.exception(msg)
-        raise ValueError(msg)
-
-    url = TRAIT_SNIPER_URL.format(slug=collection_slug)
-    response = requests.request("GET", url, params=querystring, headers=USER_AGENT)
-    if response.status_code == 200:
-        return int(response.json()["nfts"][0]["rarity_rank"])
-    else:
-        logger.debug(
-            "[TraitSniper] Failed to resolve TraitSniper rank for "
-            f"{collection_slug} {token_id}. Received {response.status_code} "
-            f"for {url}: {response.reason}. {response.json()}"
-        )
-        return None
-
-
-def fetch_rarity_sniffer_rank_for_collection(
-    contract_address: str,
-) -> dict[str, int]:
-    """Fetches all available tokens and ranks
-       for a given collection from rarity sniffer.
-       Only usable for EVM tokens and collections for a single
-       contract address.
-
-    Parameters
-    ----------
-    contract_address : The contract address of the collection
-
-    Returns
-    -------
-    dict[int, int]: Dictionary of token ID # to the rank
-
-    Raises
-    ------
-    Exception
-        If call to the rarity sniffer failed the method throws exception
-    """
-
-    querystring = {
-        "query": "fetch",
-        "collection": contract_address,
-        "taskId": "any",
-        "norm": "true",
-        "partial": "false",
-        "traitCount": "true",
-    }
-
-    response = requests.request(
-        "GET",
-        RARITY_SNIFFER_API_URL,
-        params=querystring,
-        headers=USER_AGENT,
-    )
-
-    if response.status_code != 200:
-        logger.debug(
-            "[RaritySniffer] Failed to resolve Rarity Sniffer ranks for "
-            f"{contract_address}. Received: {response.status_code}: "
-            f"{response.reason} {response.json()}"
-        )
-        response.raise_for_status()
-
-    tokens_to_ranks: dict[int, int] = {
-        str(nft["id"]): int(nft["positionId"]) for nft in response.json()["data"]
-    }
-
-    return tokens_to_ranks
-
-
-def get_rarity_sniper_slug(opensea_slug: str) -> str:
-    # custom fixes to normalize slug name
-    # used in rarity sniper
-    slug = opensea_slug.replace("-nft", "")
-    slug = slug.replace("-official", "")
-    slug = slug.replace("proof-", "")
-    slug = slug.replace("wtf", "")
-    slug = slug.replace("invisiblefriends", "invisible-friends")
-    slug = slug.replace("boredapeyachtclub", "bored-ape-yacht-club")
-    return slug
-
-
-def fetch_rarity_sniper_rank_for_evm_token(
-    collection_slug: str, token_id: int
-) -> int | None:
-    url = RARITY_SNIPER_API_URL.format(slug=collection_slug, token_id=token_id)
-    logger.debug("{url}".format(url=url))
-    response = requests.request("GET", url, headers=USER_AGENT)
-    if response.status_code == 200:
-        return response.json()["rank"]
-    else:
-        logger.debug(
-            f"[RaritySniper] Failed to resolve Rarity Sniper rank for "
-            f"{collection_slug} {token_id}. Received {response.status_code} for "
-            f"{url}: {response.reason}. {response.json()}"
-        )
-        return None
 
 
 class ExternalRarityProvider:
@@ -294,7 +156,7 @@ class ExternalRarityProvider:
 
             if rank is None:
                 try:
-                    rank = fetch_trait_sniper_rank_for_evm_token(
+                    rank = TraitSniperProvider.get_rank(
                         collection_slug=slug, token_id=token_id
                     )
 
@@ -361,7 +223,7 @@ class ExternalRarityProvider:
                 # Memoize since caller typically calls this function with the same
                 # collection but different batches of tokens
                 if contract_address not in self._rarity_sniffer_state:
-                    token_ids_to_ranks = fetch_rarity_sniffer_rank_for_collection(
+                    token_ids_to_ranks = RaritySnifferProvider.get_ranks(
                         contract_address=contract_address
                     )
                     self._rarity_sniffer_state[contract_address] = token_ids_to_ranks
@@ -408,7 +270,7 @@ class ExternalRarityProvider:
     ) -> list[TokenWithRarityData]:
         # We're currently using opensea slug to calculate trait sniper slug
         opensea_slug = collection_with_metadata.opensea_slug
-        slug = get_rarity_sniper_slug(opensea_slug=opensea_slug)
+        slug = RaritySniperProvider.get_slug(opensea_slug=opensea_slug)
         rank_provider = RankProvider.RARITY_SNIPER
         if cache_external_ranks:
             self._load_cache_from_file(slug=opensea_slug, rank_provider=rank_provider)
@@ -425,7 +287,7 @@ class ExternalRarityProvider:
                     slug=opensea_slug,
                     rank_provider=rank_provider,
                     token_id=token_id,
-                ) or fetch_rarity_sniper_rank_for_evm_token(
+                ) or RaritySniperProvider.get_rank(
                     collection_slug=slug, token_id=token_id
                 )
 
