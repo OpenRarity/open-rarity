@@ -4,9 +4,10 @@ import io
 import json
 import logging
 import math
+import os
 import pkgutil
 from dataclasses import dataclass
-from time import process_time, strftime
+from time import strftime, time
 
 import numpy as np
 
@@ -62,10 +63,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "resolve_external_rarity",
     type=str,
-    default=None,
+    default="external",
     help="Specify 'external' if you want to resolve rarity from external providers",
 )
-
 parser.add_argument(
     "--cache",
     dest="cache_fetched_data",
@@ -78,6 +78,35 @@ parser.add_argument(
     dest="filename",
     default="test_collections.json",
     help="File in /data folder containing collections to resolve.",
+)
+parser.add_argument(
+    "--rarity_sniffer",
+    dest="fetch_rarity_sniffer",
+    action=argparse.BooleanOptionalAction,
+    default=True,
+    help="If external is specified, fetches rarity sniffer ranking data",
+)
+
+# NOTE: Default disabled due to API key requirements
+parser.add_argument(
+    "--trait_sniper",
+    dest="fetch_trait_sniper",
+    action=argparse.BooleanOptionalAction,
+    default=False,
+    help=(
+        "If external is specified, fetches trait sniper ranking data. "
+        "If True, must set TRAIT_SNIPER_API_KEY env var."
+    ),
+)
+
+# NOTE: Default disabled because no public bulk fetcher function and therefore
+# takes too long to fetch data for.
+parser.add_argument(
+    "--rarity_sniper",
+    dest="fetch_rarity_sniper",
+    action=argparse.BooleanOptionalAction,
+    default=False,
+    help="If external is specified, fetches rarity sniper ranking data",
 )
 
 
@@ -129,15 +158,24 @@ def get_tokens_with_rarity(
     )
     num_batches = math.ceil(total_supply / batch_size)
     tokens = collection_with_metadata.collection.tokens
-    assert len(tokens) == collection_with_metadata.token_total_supply
+    if len(tokens) != collection_with_metadata.token_total_supply:
+        # TODO [open-rarity] - Add support for collections with skipped token ids
+        msg = (
+            f"Warning: Collection {slug} has {len(tokens)} tokens, but total supply "
+            f"is {collection_with_metadata.token_total_supply}. This can happen if "
+            f"the collection skips token IDs. "
+        )
+        logger.warning(msg)
+        print(msg)
     tokens_with_rarity: list[TokenWithRarityData] = []
 
-    t1_start = process_time()
+    t1_start = time()
 
     for batch_id, tokens_batch in enumerate(np.array_split(tokens, num_batches)):
         message = (
-            f"Starting batch {batch_id} for collection "
-            f"{slug}: Processing {len(tokens_batch)} tokens"
+            f"\tStarting batch {batch_id} for collection "
+            f"{slug}: Processing {len(tokens_batch)} tokens. "
+            f"Last token: {tokens_batch[-1]}"
         )
         logger.debug(message)
         print(message)
@@ -164,7 +202,7 @@ def get_tokens_with_rarity(
                 slug=slug, rank_provider=rank_provider
             )
 
-    t1_stop = process_time()
+    t1_stop = time()
     logger.debug(
         "Elapsed time during the asset resolution in seconds {seconds}".format(
             seconds=t1_stop - t1_start
@@ -176,6 +214,7 @@ def get_tokens_with_rarity(
 
 def resolve_collection_data(
     resolve_remote_rarity: bool,
+    external_rank_providers: list[RankProvider],
     package_path: str = "open_rarity.data",
     filename: str = "test_collections.json",
     max_tokens_to_calculate: int = None,
@@ -212,23 +251,29 @@ def resolve_collection_data(
         raise ValueError("Can't resolve golden collections data file.")
 
     data = json.load(io.BytesIO(golden_collections))
+    print("------------------------------")
     for collection_def in data:
+        start_time = time()
         opensea_slug = collection_def["collection_slug"]
-        print(f"Fetching collection and token trait data for: {opensea_slug}")
+        print(f"\nBEGIN: Resolving collection {opensea_slug}")
+        print(
+            f"1. Fetching collection & token traits for: {opensea_slug} from opensea."
+        )
         # Fetch collection metadata and tokens that belong to this collection
         # from opensea and other external api's.
         collection_with_metadata = get_collection_with_metadata_from_opensea(
             opensea_collection_slug=opensea_slug,
             use_cache=use_cache,
         )
-        print(f"Fetching external rarity ranks for: {opensea_slug}")
+        print(f"2. Fetching external rarity ranks for: {opensea_slug}")
         tokens_with_rarity: list[TokenWithRarityData] = get_tokens_with_rarity(
             collection_with_metadata=collection_with_metadata,
             resolve_remote_rarity=resolve_remote_rarity,
             max_tokens_to_calculate=max_tokens_to_calculate,
             cache_external_ranks=use_cache,
+            external_rank_providers=external_rank_providers,
         )
-        print(f"\t=>Finished fetching external rarity ranks for: {opensea_slug}")
+        print(f"3. Calculating OpenRarity ranks for: {opensea_slug}")
 
         collection = collection_with_metadata.collection
 
@@ -247,10 +292,14 @@ def resolve_collection_data(
                 scores=open_rarity_scores,
             )
 
+        print(f"4. Wrote to CSV: {opensea_slug}")
+
         serialize_to_csv(
             collection_with_metadata=collection_with_metadata,
             tokens_with_rarity=tokens_with_rarity,
         )
+        time_elapsed = round(time() - start_time)
+        print(f"FINISHED: Resolved collection: {opensea_slug} in {time_elapsed} secs")
 
 
 def augment_with_open_rarity_scores(
@@ -330,7 +379,7 @@ def resolve_open_rarity_score(
     tokens: Subset of tokens belonging to Collection to resolve open rarity scores for
 
     """
-    t1_start = process_time()
+    t1_start = time()
 
     # Dictionaries of token IDs to their respective TokenRarity for each strategy
     arthimetic_dict: dict[str, TokenRarity] = {}
@@ -389,7 +438,7 @@ def resolve_open_rarity_score(
     sum_ranked_tokens = extract_rank(sum_dict)
     ic_ranked_tokens = extract_rank(ic_dict)
 
-    t1_stop = process_time()
+    t1_stop = time()
     logger.debug(
         "OpenRarity scores resolution in seconds {seconds}".format(
             seconds=t1_stop - t1_start
@@ -550,8 +599,14 @@ if __name__ == "__main__":
     """Script to resolve external datasets and compute rarity scores
     on test collections. Data resolved from opensea api
 
-    command to run:
-    python -m  openrarity.resolver.testset_resolver external
+    Command to run:
+    `python -m openrarity.resolver.testset_resolver external`
+
+        This will only produce ranks from OpenRarity and RaritySniffer by default.
+
+    To run for all external providers:
+    `TRAIT_SNIPER_API_KEY=<your key> python -m openrarity.resolver.testset_resolver \
+        external --trait_sniper --rarity_sniper`
     """
     args = parser.parse_args()
     logger = logging.getLogger("open_rarity_logger")
@@ -561,11 +616,42 @@ if __name__ == "__main__":
     fh.setLevel(logging.DEBUG)
 
     logger.addHandler(fh)
-    resolve_remote_rarity = args.resolve_external_rarity
+    resolve_remote_rarity = args.resolve_external_rarity == "external"
 
-    print(f"Executing main: with {args}")
+    external_resolvers = []
+    if args.fetch_trait_sniper:
+        external_resolvers.append(RankProvider.TRAITS_SNIPER)
+        if os.environ.get("TRAIT_SNIPER_API_KEY") is None:
+            raise ValueError(
+                "TRAIT_SNIPER_API_KEY not set. Required to fetch Traits Sniper data"
+            )
+    if args.fetch_rarity_sniffer:
+        external_resolvers.append(RankProvider.RARITY_SNIFFER)
+    if args.fetch_rarity_sniper:
+        external_resolvers.append(RankProvider.RARITY_SNIPER)
+
+    print(
+        "Welcome to OpenRarity resolver! This is a tool to view OpenRarity rankings \n"
+        "for given collection(s) and to compare them with existing ranking \n"
+        "providers. If you just want to output OpenRarity rankings, you can use "
+        "the script scripts/score_real_collections.py. \n For full options, "
+        "run `python3 -m open_rarity.resolver.testset_resolver --help`"
+    )
+    print(f"\nExecuting args: {args}")
+    if resolve_remote_rarity:
+        print(f"Resolvers: {[rp.value for rp in external_resolvers]}")
+
+    print(
+        "\nNOTE: Resolving external data can take awhile due to external API rate"
+        "\nlimits. Local caching will occur automatically so that future runs of "
+        "\nthe same collection can be efficient. Expect a 10k collection to take >5 min"
+        "\nwithout local cached data (timing based on exact external resolver(s) set). "
+        "With caching, expect ~15 seconds for processing."
+    )
+
     resolve_collection_data(
         resolve_remote_rarity,
+        external_rank_providers=external_resolvers,
         use_cache=args.cache_fetched_data,
         filename=args.filename,
     )

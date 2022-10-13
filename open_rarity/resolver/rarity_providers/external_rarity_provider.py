@@ -166,6 +166,8 @@ class ExternalRarityProvider:
                 token_id = str(ts_rank_data["token_id"])
                 rank_cache[token_id] = int(ts_rank_data["rarity_rank"])
 
+            self.write_cache_to_file(slug, rank_provider)
+
         for token_with_rarity in tokens_with_rarity:
             token = token_with_rarity.token
             token_identifer = token.token_identifier
@@ -232,6 +234,7 @@ class ExternalRarityProvider:
                 logger.debug(
                     f"Fetched {num_tokens} token ranks from rarity sniffer API"
                 )
+                self.write_cache_to_file(slug, rank_provider)
             except Exception:
                 logger.exception("Failed to resolve token_ids Rarity Sniffer")
                 raise
@@ -336,6 +339,7 @@ class ExternalRarityProvider:
         for rank_provider in rank_providers:
             # Note: Not all providers have rankings for all collections,
             # so do a best effort.
+            print("\t\tProcessing provider: ", rank_provider)
             try:
                 if rank_provider == RankProvider.RARITY_SNIFFER:
                     self._add_rarity_sniffer_rarity_data(
