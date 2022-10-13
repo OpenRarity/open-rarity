@@ -24,12 +24,6 @@ class ExternalRarityProvider:
     # The data must be a dictionary of <token id as int> to <rank as int>
     CACHE_FILENAME_FORMAT: str = "cached_data/cached_%s_ranks-%s.json"
 
-    # Cache of rarity sniffer ranking data for given contracts
-    # since rarity sniffer API does a bulk reques for an entire collection
-    # Key = Contract Address (str)
-    # Value = Token ID (str) -> Rank (int)
-    _rarity_sniffer_state: dict[str, dict[str, int]] = {}
-
     # Dictionary of slug -> {token_id (str) -> rank (int)}
     _trait_sniper_external_rank_cache: dict[str, dict[str, int]] = defaultdict(dict)
     _rarity_sniffer_external_rank_cache: dict[str, dict[str, int]] = defaultdict(dict)
@@ -139,7 +133,38 @@ class ExternalRarityProvider:
         # We're currently using opensea slug to calculate trait sniper slug
         slug = collection_with_metadata.opensea_slug
         if cache_external_ranks:
+            # Try to load cache with a local cache file
             self._load_cache_from_file(slug=slug, rank_provider=rank_provider)
+
+        # If we didn't want to load cache or cache is empty, pull data from API
+        # in bulk and store it in cache
+        if not self._is_cache_loaded(slug=slug, rank_provider=rank_provider):
+            contract_addresses = collection_with_metadata.contract_addresses
+            assert (len(contract_addresses)) == 1
+            try:
+                trait_sniper_rank_data = TraitSniperProvider.get_all_ranks(
+                    contract_address=contract_addresses[0]
+                )
+                logger.debug(
+                    f"Resolved trait sniper rarity for {slug=} {contract_addresses[0]}"
+                )
+            except Exception:
+                logger.exception(
+                    "Failed to resolve Traits Sniper ranking data",
+                    exc_info=True,
+                )
+                return tokens_with_rarity
+            if not trait_sniper_rank_data:
+                logger.warning(f"[TraitSniper] Did not get any data for {slug}")
+                return tokens_with_rarity
+
+            # Load cache with fetched data
+            rank_cache = self._get_provider_rank_cache(
+                slug=slug, rank_provider=rank_provider
+            )
+            for ts_rank_data in trait_sniper_rank_data:
+                token_id = str(ts_rank_data["token_id"])
+                rank_cache[token_id] = int(ts_rank_data["rarity_rank"])
 
         for token_with_rarity in tokens_with_rarity:
             token = token_with_rarity.token
@@ -149,36 +174,14 @@ class ExternalRarityProvider:
             token_id = token_identifer.token_id
             rank = None
 
-            if cache_external_ranks:
-                rank = self._get_cached_rank(
-                    slug=slug, rank_provider=rank_provider, token_id=token_id
-                )
-
-            if rank is None:
-                try:
-                    rank = TraitSniperProvider.get_rank(
-                        collection_slug=slug, token_id=token_id
-                    )
-
-                    if rank is None:
-                        continue
-                    if cache_external_ranks:
-                        # Cache
-                        self._get_provider_rank_cache(
-                            slug=slug, rank_provider=rank_provider
-                        )[str(token_id)] = rank
-
-                    logger.debug(
-                        f"Resolved trait sniper rarity for {slug=} {token_id=}: {rank}"
-                    )
-                except Exception:
-                    logger.exception("Failed to resolve token_ids Traits Sniper")
-
-            token_rarity_data = RarityData(
-                provider=RankProvider.TRAITS_SNIPER, rank=rank
+            rank = self._get_cached_rank(
+                slug=slug, rank_provider=rank_provider, token_id=token_id
             )
 
-            token_with_rarity.rarities.append(token_rarity_data)
+            if rank:
+                token_with_rarity.rarities.append(
+                    RarityData(provider=RankProvider.TRAITS_SNIPER, rank=rank)
+                )
 
         return tokens_with_rarity
 
@@ -220,45 +223,33 @@ class ExternalRarityProvider:
         # If there was no cache data available, make API request to fetch data
         if not self._is_cache_loaded(slug, rank_provider):
             try:
-                # Memoize since caller typically calls this function with the same
-                # collection but different batches of tokens
-                if contract_address not in self._rarity_sniffer_state:
-                    token_ids_to_ranks = RaritySnifferProvider.get_ranks(
-                        contract_address=contract_address
-                    )
-                    self._rarity_sniffer_state[contract_address] = token_ids_to_ranks
-                    # Write to cache
-                    if cache_external_ranks:
-                        self._rarity_sniffer_external_rank_cache[
-                            slug
-                        ] = token_ids_to_ranks
-                    num_tokens = len(self._rarity_sniffer_state[contract_address])
-                    logger.debug(
-                        f"Fetched {num_tokens} token ranks from rarity sniffer API"
-                    )
+                token_ids_to_ranks = RaritySnifferProvider.get_ranks(
+                    contract_address=contract_address
+                )
+
+                self._rarity_sniffer_external_rank_cache[slug] = token_ids_to_ranks
+                num_tokens = len(token_ids_to_ranks)
+                logger.debug(
+                    f"Fetched {num_tokens} token ranks from rarity sniffer API"
+                )
             except Exception:
                 logger.exception("Failed to resolve token_ids Rarity Sniffer")
                 raise
 
-        token_ids_to_ranks = self._rarity_sniffer_state.get(
-            contract_address, None
-        ) or self._get_provider_rank_cache(slug, rank_provider)
         for token_with_rarity in tokens_with_rarity:
             token_identifer = token_with_rarity.token.token_identifier
             assert isinstance(token_identifer, EVMContractTokenIdentifier)
             token_id: int = token_identifer.token_id
 
             # Get rank either from cache or from API memoization dict
-            rank = (
-                self._get_cached_rank(
-                    slug=slug, rank_provider=rank_provider, token_id=token_id
-                )
-                or token_ids_to_ranks[str(token_id)]
+            rank = self._get_cached_rank(
+                slug=slug, rank_provider=rank_provider, token_id=token_id
             )
 
-            token_with_rarity.rarities.append(
-                RarityData(provider=rank_provider, rank=rank)
-            )
+            if rank:
+                token_with_rarity.rarities.append(
+                    RarityData(provider=rank_provider, rank=rank)
+                )
 
         return tokens_with_rarity
 
@@ -281,35 +272,37 @@ class ExternalRarityProvider:
             # Needed for type-checking
             assert isinstance(token_identifer, EVMContractTokenIdentifier)
             token_id = token_identifer.token_id
+            rank = self._get_cached_rank(
+                slug=opensea_slug,
+                rank_provider=rank_provider,
+                token_id=token_id,
+            )
 
-            try:
-                rank = self._get_cached_rank(
-                    slug=opensea_slug,
-                    rank_provider=rank_provider,
-                    token_id=token_id,
-                ) or RaritySniperProvider.get_rank(
-                    collection_slug=slug, token_id=token_id
-                )
+            if rank is None:
+                try:
+                    rank = RaritySniperProvider.get_rank(
+                        collection_slug=slug, token_id=token_id
+                    )
+                    logger.debug(
+                        "Resolved rarity sniper rarity for "
+                        f"{opensea_slug=}/{slug=} {token_id=}: {rank}"
+                    )
+                except Exception:
+                    logger.exception(
+                        "[Rarity Sniper] Failed to resolve from API:"
+                        f"{opensea_slug=}/{slug=} {token_id=}: {rank}",
+                        exc_info=True,
+                    )
 
-                if rank is None:
-                    continue
+                # Write to cache
+                self._get_provider_rank_cache(opensea_slug, rank_provider)[
+                    str(token_id)
+                ] = rank
 
-                logger.debug(
-                    "Resolved rarity sniper rarity for "
-                    f"{opensea_slug=}/{slug=} {token_id=}: {rank}"
-                )
+            if rank:
                 token_with_rarity.rarities.append(
                     RarityData(provider=rank_provider, rank=rank)
                 )
-
-                # Write to cache
-                if cache_external_ranks:
-                    self._get_provider_rank_cache(opensea_slug, rank_provider)[
-                        str(token_id)
-                    ] = rank
-
-            except Exception:
-                logger.exception("Failed to resolve token_ids Rarity Sniper")
 
         return tokens_with_rarity
 
@@ -341,23 +334,32 @@ class ExternalRarityProvider:
         logger.debug(f"Fetching external rarity for {len(tokens_with_rarity)} tokens")
 
         for rank_provider in rank_providers:
-            if rank_provider == RankProvider.RARITY_SNIFFER:
-                self._add_rarity_sniffer_rarity_data(
-                    collection_with_metadata=collection_with_metadata,
-                    tokens_with_rarity=tokens_with_rarity,
-                    cache_external_ranks=cache_external_ranks,
+            # Note: Not all providers have rankings for all collections,
+            # so do a best effort.
+            try:
+                if rank_provider == RankProvider.RARITY_SNIFFER:
+                    self._add_rarity_sniffer_rarity_data(
+                        collection_with_metadata=collection_with_metadata,
+                        tokens_with_rarity=tokens_with_rarity,
+                        cache_external_ranks=cache_external_ranks,
+                    )
+                if rank_provider == RankProvider.TRAITS_SNIPER:
+                    self._add_trait_sniper_rarity_data(
+                        collection_with_metadata=collection_with_metadata,
+                        tokens_with_rarity=tokens_with_rarity,
+                        cache_external_ranks=cache_external_ranks,
+                    )
+                if rank_provider == RankProvider.RARITY_SNIPER:
+                    self._add_rarity_sniper_rarity_data(
+                        collection_with_metadata=collection_with_metadata,
+                        tokens_with_rarity=tokens_with_rarity,
+                        cache_external_ranks=cache_external_ranks,
+                    )
+            except Exception:
+                logger.exception(
+                    f"Exception: Could not get ranks from {rank_provider} for "
+                    f"{collection_with_metadata.opensea_slug}",
+                    exc_info=True,
                 )
-            if rank_provider == RankProvider.TRAITS_SNIPER:
-                self._add_trait_sniper_rarity_data(
-                    collection_with_metadata=collection_with_metadata,
-                    tokens_with_rarity=tokens_with_rarity,
-                    cache_external_ranks=cache_external_ranks,
-                )
-            if rank_provider == RankProvider.RARITY_SNIPER:
-                self._add_rarity_sniper_rarity_data(
-                    collection_with_metadata=collection_with_metadata,
-                    tokens_with_rarity=tokens_with_rarity,
-                    cache_external_ranks=cache_external_ranks,
-                )
-
+                continue
         return tokens_with_rarity

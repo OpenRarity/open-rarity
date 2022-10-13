@@ -2,6 +2,8 @@ import pytest
 
 from open_rarity.resolver.rarity_providers.trait_sniper import TraitSniperProvider
 
+# NOTE: API_KEY is needed for these tests (TRAIT_SNIPER_API_KEY must be set)
+
 
 class TestTraitSniperProvider:
     BORED_APE_COLLECTION_ADDRESS = "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"
@@ -9,7 +11,7 @@ class TestTraitSniperProvider:
     @pytest.mark.skipif(
         "not config.getoption('--run-resolvers')",
         reason="This tests runs too long due to rate limits to have as part of CI/CD "
-        "but should be run whenver someone changes resolvers",
+        "but should be run whenver someone changes resolvers. Also needs API key",
     )
     def test_get_all_ranks(self):
         token_ranks = TraitSniperProvider.get_all_ranks(
@@ -17,11 +19,21 @@ class TestTraitSniperProvider:
         )
         assert len(token_ranks) == 10000
 
-    def test_get_ranks(self):
+    @pytest.mark.skipif(
+        "not config.getoption('--run-resolvers')",
+        reason="This requires API key",
+    )
+    def test_get_ranks_first_page(self):
         token_ranks = TraitSniperProvider.get_ranks(
             contract_address=self.BORED_APE_COLLECTION_ADDRESS, page=1
         )
         assert len(token_ranks) == 200
+
+    @pytest.mark.skipif(
+        "not config.getoption('--run-resolvers')",
+        reason="This requires API key",
+    )
+    def test_get_ranks_max_page(self):
         token_ranks = TraitSniperProvider.get_ranks(
             contract_address=self.BORED_APE_COLLECTION_ADDRESS, page=50
         )
