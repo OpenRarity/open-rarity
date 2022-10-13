@@ -198,12 +198,12 @@ def get_tokens_with_rarity(
         # Add the batch of augmented tokens with rarity into return value
         tokens_with_rarity.extend(tokens_rarity_batch)
 
-    # Cache the data
-    if cache_external_ranks:
-        for rank_provider in external_rank_providers:
-            external_rarity_provider.write_cache_to_file(
-                slug=slug, rank_provider=rank_provider
-            )
+    # Just write Rarity Sniper cache to file since the rest are bulk fetches
+    # and are already are auto cached post-fetch.
+    if cache_external_ranks and RankProvider.RARITY_SNIPER in external_rank_providers:
+        external_rarity_provider.write_cache_to_file(
+            slug=slug, rank_provider=RankProvider.RARITY_SNIPER
+        )
 
     t1_stop = time()
     logger.debug(
