@@ -2,6 +2,8 @@ import logging
 
 import requests
 
+from .rank_resolver import RankResolver
+
 logger = logging.getLogger("open_rarity_logger")
 RARITY_SNIPER_API_URL = (
     "https://api.raritysniper.com/public/collection/{slug}/id/{token_id}"
@@ -11,7 +13,11 @@ USER_AGENT = {
 }
 
 
-class RaritySniperResolver:
+class RaritySniperResolver(RankResolver):
+    @staticmethod
+    def get_all_ranks(slug: str) -> dict[str, int]:
+        raise NotImplementedError
+
     @staticmethod
     def get_slug(opensea_slug: str) -> str:
         # custom fixes to normalize slug name

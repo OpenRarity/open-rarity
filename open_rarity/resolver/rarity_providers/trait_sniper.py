@@ -4,6 +4,8 @@ import time
 
 import requests
 
+from .rank_resolver import RankResolver
+
 logger = logging.getLogger("open_rarity_logger")
 # For fetching rank fetches for an entire contract
 TRAIT_SNIPER_RANKS_URL = (
@@ -18,22 +20,34 @@ USER_AGENT = {
 API_KEY = os.environ.get("TRAIT_SNIPER_API_KEY") or ""
 
 
-class TraitSniperResolver:
-    @classmethod
-    def get_all_ranks(cls, contract_address: str) -> list[dict]:
-        rank_data = cls.get_ranks(contract_address, page=1)
-        all_rank_data = rank_data
+class TraitSniperResolver(RankResolver):
+    @staticmethod
+    def get_all_ranks(contract_address: str) -> dict[str, int]:
+        """Get all ranks for a contract address
+
+        Returns
+        -------
+        dict[str, int]
+            A dictionary of token_id to ranks
+        """
+        if contract_address is None:
+            raise ValueError("Contract address is required for Trait Sniper")
+        rank_data_page = TraitSniperResolver.get_ranks(contract_address, page=1)
+        all_rank_data = rank_data_page
         page = 2
 
-        while rank_data:
-            rank_data = cls.get_ranks(contract_address, page=page)
-            all_rank_data.extend(rank_data)
+        while rank_data_page:
+            rank_data_page = TraitSniperResolver.get_ranks(contract_address, page=page)
+            all_rank_data.extend(rank_data_page)
             page += 1
             # Due to rate limits we need to slow things down a bit...
             # Free tier is 5 request per second
             time.sleep(12)
 
-        return all_rank_data
+        return {
+            str(rank_data["token_id"]): int(rank_data["rank"])
+            for rank_data in all_rank_data
+        }
 
     @staticmethod
     def get_ranks(contract_address: str, page: int, limit: int = 200) -> list[dict]:

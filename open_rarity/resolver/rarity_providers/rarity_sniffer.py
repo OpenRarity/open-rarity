@@ -2,6 +2,8 @@ import logging
 
 import requests
 
+from .rank_resolver import RankResolver
+
 logger = logging.getLogger("open_rarity_logger")
 RARITY_SNIFFER_API_URL = "https://raritysniffer.com/api/index.php"
 RARITY_SNIPER_API_URL = (
@@ -15,9 +17,9 @@ USER_AGENT = {
 }
 
 
-class RaritySnifferResolver:
+class RaritySnifferResolver(RankResolver):
     @staticmethod
-    def get_ranks(contract_address: str) -> dict[str, int]:
+    def get_all_ranks(contract_address: str | None = None) -> dict[str, int]:
         """Fetches all available tokens and ranks
         for a given collection from rarity sniffer.
         Only usable for EVM tokens and collections for a single
@@ -36,6 +38,8 @@ class RaritySnifferResolver:
         Exception
             If call to the rarity sniffer failed the method throws exception
         """
+        if contract_address is None:
+            raise ValueError("Contract address is required for Rarity Sniffer")
 
         querystring = {
             "query": "fetch",
