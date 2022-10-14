@@ -1,5 +1,6 @@
 from random import sample
 
+from open_rarity.models.collection import TRAIT_COUNT_ATTRIBUTE_NAME
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 from tests.helpers import (
     generate_collection_with_token_traits,
@@ -26,7 +27,7 @@ class TestScoringUtils:
         end_time = time.time()
         time_taken = end_time - start_time
         print(f"This is single time in seconds: {time_taken}")
-        assert time_taken < 0.001
+        assert time_taken < 0.003
 
     def test_get_token_attributes_scores_and_weights_timing_avg(self):
         import time
@@ -43,7 +44,7 @@ class TestScoringUtils:
         end_time = time.time()
         avg_time = (end_time - start_time) / 20
         print(f"This is avg time in seconds: {avg_time}")
-        assert avg_time < 0.001
+        assert avg_time < 0.003
 
     def test_get_token_attributes_scores_and_weights_uniform(self):
         uniform_collection = generate_uniform_rarity_collection(
@@ -56,28 +57,29 @@ class TestScoringUtils:
             uniform_collection.tokens[1405],
             uniform_collection.tokens[9999],
         ]
+        # Note: Since trait count is automatically added, attributes are actually 6
         for token_to_test in uniform_tokens_to_test:
             scores, weights = get_token_attributes_scores_and_weights(
                 collection=uniform_collection,
                 token=token_to_test,
                 normalized=True,
             )
-            assert scores == [10] * 5
-            assert weights == [0.10] * 5
+            assert scores == [10] * 5 + [1.0]
+            assert weights == [0.10] * 5 + [1.0]
 
             scores, weights = get_token_attributes_scores_and_weights(
                 collection=uniform_collection,
                 token=token_to_test,
                 normalized=False,
             )
-            assert scores == [10] * 5
-            assert weights == [1] * 5
+            assert scores == [10] * 5 + [1.0]
+            assert weights == [1] * 6
 
     def test_get_token_attributes_scores_and_weights_one_rare(self):
         # The last token (#9999) has a unique attribute value for all
         # 5 different attribute types
         onerare_collection = generate_onerare_rarity_collection(
-            attribute_count=5,
+            attribute_count=3,
             values_per_attribute=10,
             token_total_supply=10000,
         )
@@ -94,16 +96,16 @@ class TestScoringUtils:
                 token=token_to_test,
                 normalized=True,
             )
-            assert scores == [10000 / 1111] * 5
-            assert weights == [0.10] * 5
+            assert scores == [10000 / 1111] * 3 + [1.0]
+            assert weights == [0.10] * 3 + [1.0]
 
             scores, weights = get_token_attributes_scores_and_weights(
                 collection=onerare_collection,
                 token=token_to_test,
                 normalized=False,
             )
-            assert scores == [10000 / 1111] * 5
-            assert weights == [1] * 5
+            assert scores == [10000 / 1111] * 3 + [1.0]
+            assert weights == [1] * 4
 
         # Verify the one rare token score
         rare_token = onerare_collection.tokens[9999]
@@ -112,8 +114,8 @@ class TestScoringUtils:
             token=rare_token,
             normalized=True,
         )
-        assert scores == [10000 / 1] * 5
-        assert weights == [0.10] * 5
+        assert scores == [10000 / 1] * 3 + [1.0]
+        assert weights == [0.10] * 3 + [1.0]
 
     def test_get_token_attributes_scores_and_weights_scores_vary(self):
         collection = generate_collection_with_token_traits(
@@ -123,7 +125,11 @@ class TestScoringUtils:
                 {"bottom": "1", "hat": "2"},
             ]
         )
-        expected_scores = [[3 / 3, 3 / 2], [3 / 3, 3 / 2], [3 / 3, 3 / 1]]
+        expected_scores = [
+            [3 / 3, 3 / 2, 1.0],
+            [3 / 3, 3 / 2, 1.0],
+            [3 / 3, 3 / 1, 1.0],
+        ]
 
         for i in range(collection.token_total_supply):
             scores, weights = get_token_attributes_scores_and_weights(
@@ -132,12 +138,15 @@ class TestScoringUtils:
                 normalized=True,
             )
             assert scores == expected_scores[i]
-            assert weights == [1, 0.5]
+            assert weights == [1, 0.5, 1]
 
     def test_get_token_attributes_scores_and_weights_score_mix(self):
         mixed_collection = self.mixed_collection
         tokens_to_test = sample(mixed_collection.tokens, 20)
-        trait_spread = get_mixed_trait_spread()
+        trait_spread = {
+            **get_mixed_trait_spread(),
+            TRAIT_COUNT_ATTRIBUTE_NAME: {"3": 10_000},
+        }
         for token in tokens_to_test:
             scores, weights = get_token_attributes_scores_and_weights(
                 collection=mixed_collection,
@@ -158,7 +167,7 @@ class TestScoringUtils:
             assert scores == expected_scores
             assert weights == expected_weights
 
-    def test_get_token_attributes_scores_and_weights_null_attributes(self):
+    def test_get_token_attributes_scores_and_weights_empty_attributes(self):
         collection_with_null = generate_collection_with_token_traits(
             [
                 {"bottom": "1", "hat": "1", "special": "true"},
@@ -168,24 +177,24 @@ class TestScoringUtils:
                 {"bottom": "3", "hat": "2"},
             ]
         )
-        expected_weights_with_null = [1 / 3, 1 / 2, 1]
+        expected_weights_with_null = [1 / 3, 1 / 2, 1 / 2, 1]
 
         collection_without_null = generate_collection_with_token_traits(
             [
                 {"bottom": "1", "hat": "1", "special": "true"},
-                {"bottom": "1", "hat": "1", "special": "false"},
-                {"bottom": "2", "hat": "2", "special": "false"},
-                {"bottom": "2", "hat": "2", "special": "false"},
-                {"bottom": "3", "hat": "2", "special": "false"},
+                {"bottom": "1", "hat": "1", "special": "none"},
+                {"bottom": "2", "hat": "2", "special": "none"},
+                {"bottom": "2", "hat": "2", "special": "none"},
+                {"bottom": "3", "hat": "2", "special": "none"},
             ]
         )
-        expected_weights_without_null = [1 / 3, 1 / 2, 1 / 2]
+        expected_weights_without_null = [1 / 3, 1 / 2, 1 / 2, 1 / 2]
         expected_scores = [
-            [5 / 2, 5 / 2, 5 / 1],
-            [5 / 2, 5 / 2, 5 / 4],
-            [5 / 2, 5 / 3, 5 / 4],
-            [5 / 2, 5 / 3, 5 / 4],
-            [5 / 1, 5 / 3, 5 / 4],
+            [5 / 2, 5 / 2, 5 / 1, 5 / 1],
+            [5 / 2, 5 / 2, 5 / 4, 5 / 4],
+            [5 / 2, 5 / 3, 5 / 4, 5 / 4],
+            [5 / 2, 5 / 3, 5 / 4, 5 / 4],
+            [5 / 1, 5 / 3, 5 / 4, 5 / 4],
         ]
 
         for collection, expected_weights in [
@@ -201,3 +210,31 @@ class TestScoringUtils:
                 )
                 assert scores == expected_scores[i]
                 assert weights == expected_weights
+
+    def test_get_token_attributes_scores_and_weights_null_attributes(self):
+        collection_with_null_value = generate_collection_with_token_traits(
+            [
+                {"bottom": "1", "hat": "1", "special": "true"},
+                {"bottom": "1", "hat": "1", "special": "null"},
+                {"bottom": "2", "hat": "2", "special": "null"},
+                {"bottom": "2", "hat": "2", "special": "null"},
+                {"bottom": "3", "hat": "2", "special": "null"},
+            ]
+        )
+        expected_weights = [1 / 3, 1 / 2, 1, 1 / 2]
+        expected_scores = [
+            [5 / 2, 5 / 2, 1, 5 / 1],
+            [5 / 2, 5 / 2, 1, 5 / 4],
+            [5 / 2, 5 / 3, 1, 5 / 4],
+            [5 / 2, 5 / 3, 1, 5 / 4],
+            [5 / 1, 5 / 3, 1, 5 / 4],
+        ]
+
+        for i in range(collection_with_null_value.token_total_supply):
+            scores, weights = get_token_attributes_scores_and_weights(
+                collection=collection_with_null_value,
+                token=collection_with_null_value.tokens[i],
+                normalized=True,
+            )
+            assert scores == expected_scores[i]
+            assert weights == expected_weights

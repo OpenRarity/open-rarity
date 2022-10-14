@@ -141,48 +141,35 @@ def generate_uniform_rarity_collection(
     )
 
 
-def generate_onerare_attributes_count(
-    attribute_count: int = 5,
-    values_per_attribute: int = 10,
-    token_total_supply: int = 10000,
-) -> dict[str, dict[str, int]]:
-    """Generate a Collection with every token except a single token has uniformly
-    distributed attributes. The single rare token will be the only token that
-    exhibits a unique attribute name/value combo for all attributes.
-    """
-
-    if (token_total_supply - 1) % (values_per_attribute - 1) > 0:
-        raise Exception(
-            """token_total_supply-1 must be divisible by values_per_attribute-1
-            for onerare count metadata"""
-        )
-
-    # Start with a uniform distribution for the entire token supply minus one token.
-    collection_attributes_count = generate_uniform_attributes_count(
-        attribute_count, values_per_attribute - 1, token_total_supply - 1
-    )
-
-    # Make it such that this last token is a rare token with a unique value for
-    # all attributes.
-    for attr_name in range(attribute_count):
-        attr_value = str(values_per_attribute - 1)
-        collection_attributes_count[str(attr_name)][attr_value] = 1
-
-    return collection_attributes_count
-
-
 def generate_onerare_rarity_collection(
-    attribute_count: int = 5,
+    attribute_count: int = 3,
     values_per_attribute: int = 10,
     token_total_supply: int = 10000,
 ) -> Collection:
     """generate a Collection with a single token with one rare attribute;
-    otherwise uniformly distributed attributes"""
+    otherwise uniformly distributed attributes.
 
-    collection_attributes_count = generate_onerare_attributes_count(
-        attribute_count, values_per_attribute, token_total_supply
-    )
-
+    For default params:
+        - every bundle of 1111 tokens have exactly the same attributes
+        - the first 9,999 tokens all have attributes with the same probabilities
+        - the last token has all unique attributes
+    Collection attributes frequency:
+    {
+        '0': {
+            '-1': 1111, '0': 1111, '1': 1111, '2': 1111, '3': 1111,
+            '4': 1111, '5': 1111, '6': 1111, '7': 1111, '9': 1
+        },
+        '1': {
+            '-1': 1111, '0': 1111, '1': 1111, '2': 1111, '3': 1111,
+            '4': 1111, '5': 1111, '6': 1111, '7': 1111, '9': 1
+        },
+        '2': {
+            '-1': 1111, '0': 1111, '1': 1111, '2': 1111, '3': 1111,
+            '4': 1111, '5': 1111, '6': 1111, '7': 1111, '9': 1
+        },
+        'meta trait: trait_count': {'3': 10000}
+    }
+    """
     token_list = []
 
     # Create attributes for all the uniform tokens
@@ -193,7 +180,7 @@ def generate_onerare_rarity_collection(
             string_attribute_dict[AttributeName(attr_name)] = StringAttribute(
                 name=AttributeName(attr_name),
                 value=str(
-                    token_id // (token_total_supply - 1 // values_per_attribute - 1)
+                    token_id // (token_total_supply // (values_per_attribute - 1)) - 1
                 ),
             )
 
@@ -212,7 +199,7 @@ def generate_onerare_rarity_collection(
     for attr_name in range(attribute_count):
         rare_token_string_attribute_dict[AttributeName(attr_name)] = StringAttribute(
             name=AttributeName(attr_name),
-            value=str(values_per_attribute - 1),
+            value=str(values_per_attribute),
         )
 
     token_list.append(
@@ -225,11 +212,7 @@ def generate_onerare_rarity_collection(
         )
     )
 
-    return Collection(
-        name="One Rare Rarity Collection",
-        tokens=token_list,
-        attributes_frequency_counts=collection_attributes_count,
-    )
+    return Collection(name="One Rare Rarity Collection", tokens=token_list)
 
 
 def generate_collection_with_token_traits(
@@ -237,29 +220,7 @@ def generate_collection_with_token_traits(
     token_identifier_type: str = "evm_contract",
 ) -> Collection:
     tokens = []
-    attributes_frequency_counts = {}
     for idx, token_traits in enumerate(tokens_traits):
-        token_string_attributes: dict[str, StringAttribute] = {}
-        token_number_attributes: dict[str, NumericAttribute] = {}
-
-        for attribute_name, attribute_value in token_traits.items():
-            # Update collection attributes frequency based on tokens' traits
-            attributes_frequency_counts.setdefault(attribute_name, {}).setdefault(
-                attribute_value, 0
-            )
-            attributes_frequency_counts[attribute_name][attribute_value] += 1
-
-            # Create the string attributes for token
-            if isinstance(attribute_value, str):
-                token_string_attributes[attribute_name] = StringAttribute(
-                    name=attribute_name, value=attribute_value
-                )
-            else:
-                token_number_attributes[attribute_name] = NumericAttribute(
-                    name=attribute_name, value=attribute_value
-                )
-
-        # Add the tokens
         match token_identifier_type:
             case EVMContractTokenIdentifier.identifier_type:
                 identifier_type = EVMContractTokenIdentifier(
@@ -280,18 +241,11 @@ def generate_collection_with_token_traits(
             Token(
                 token_identifier=identifier_type,
                 token_standard=token_standard,
-                metadata=TokenMetadata(
-                    string_attributes=token_string_attributes,
-                    numeric_attributes=token_number_attributes,
-                ),
+                metadata=TokenMetadata.from_attributes(token_traits),
             )
         )
 
-    return Collection(
-        name="My collection",
-        tokens=tokens,
-        attributes_frequency_counts=attributes_frequency_counts,
-    )
+    return Collection(name="My collection", tokens=tokens)
 
 
 def get_mixed_trait_spread(
@@ -329,7 +283,7 @@ def generate_mixed_collection(max_total_supply: int = 10000):
        20% have "vest"
      "special":
        1% have "special"
-       others none
+       others "null"
     Note: The token ids are shuffled and it is random order in terms of
     which trait/value combo they get.
     """
