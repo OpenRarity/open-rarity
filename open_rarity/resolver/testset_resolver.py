@@ -103,7 +103,7 @@ parser.add_argument(
 )
 
 # Default disabled because no public bulk fetcher function and therefore
-# takes a long to fetch data for.
+# takes a long to fetch data for (~25 min for 10k collection).
 parser.add_argument(
     "--rarity_sniper",
     dest="fetch_rarity_sniper",
@@ -197,13 +197,6 @@ def get_tokens_with_rarity(
             )
         # Add the batch of augmented tokens with rarity into return value
         tokens_with_rarity.extend(tokens_rarity_batch)
-
-    # Just write Rarity Sniper cache to file since the rest are bulk fetches
-    # and are already are auto cached post-fetch.
-    if cache_external_ranks and RankProvider.RARITY_SNIPER in external_rank_providers:
-        external_rarity_provider.write_cache_to_file(
-            slug=slug, rank_provider=RankProvider.RARITY_SNIPER
-        )
 
     t1_stop = time()
     logger.debug(

@@ -31,9 +31,9 @@ def get_external_resolver(rank_provider: RankProvider) -> RankResolver:
 
 class ExternalRarityProvider:
     # Cached file will have format:
-    # "cached_{provider_name}_ranks-{collection slug}.json"
+    # "{collection_slug}_{provider_name}_cached_ranks.json"
     # The data must be a dictionary of <token id as int> to <rank as int>
-    CACHE_FILENAME_FORMAT: str = "cached_data/cached_%s_ranks-%s.json"
+    CACHE_FILENAME_FORMAT: str = "cached_data/%s_%s_cached_ranks.json"
 
     # Dictionary of slug -> {token_id (str) -> rank (int)}
     _trait_sniper_cache: dict[str, dict[str, int]] = defaultdict(dict)
@@ -42,7 +42,7 @@ class ExternalRarityProvider:
 
     def cache_filename(self, rank_provider: RankProvider, slug: str) -> str:
         rank_name = rank_provider.name.lower()
-        return self.CACHE_FILENAME_FORMAT % (rank_name, slug)
+        return self.CACHE_FILENAME_FORMAT % (slug, rank_name)
 
     def write_cache_to_file(self, slug: str, rank_provider: RankProvider):
         cache_data = self._get_cache_for_collection(
@@ -241,7 +241,7 @@ class ExternalRarityProvider:
                         exc_info=True,
                     )
 
-                # Write to cache
+                # Store in cache
                 self._get_cache_for_collection(opensea_slug, rank_provider)[
                     str(token_id)
                 ] = rank
@@ -250,6 +250,9 @@ class ExternalRarityProvider:
                 token_with_rarity.rarities.append(
                     RarityData(provider=rank_provider, rank=rank)
                 )
+
+        if cache_external_ranks:
+            self.write_cache_to_file(opensea_slug, rank_provider)
 
         return tokens_with_rarity
 
@@ -271,7 +274,8 @@ class ExternalRarityProvider:
             List of tokens with rarity data. Will modify the objects.rarities
             field and add the fetched ranking data directly to object.
         cache_external_ranks: bool
-            If set to true, will use local cache file instead of fetching rank data
+            If set to true, will use local cache file instead of fetching rank data.
+            If cache is empty, will fetch data from API and write to local cache.
 
         Returns
         -------
@@ -309,3 +313,5 @@ class ExternalRarityProvider:
                 )
                 continue
         return tokens_with_rarity
+
+    # Private methods
