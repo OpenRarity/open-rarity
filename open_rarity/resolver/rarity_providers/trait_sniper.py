@@ -45,7 +45,7 @@ class TraitSniperResolver(RankResolver):
             time.sleep(12)
 
         return {
-            str(rank_data["token_id"]): int(rank_data["rank"])
+            str(rank_data["token_id"]): int(rank_data["rarity_rank"])
             for rank_data in all_rank_data
         }
 
