@@ -31,6 +31,22 @@ def create_evm_token(
     )
 
 
+def create_string_evm_token(
+    token_id: int,
+    contract_address: str = "0xaaa",
+    token_standard: TokenStandard = TokenStandard.ERC721,
+) -> Token:
+    string_metadata = TokenMetadata(
+        string_attributes={"test name": StringAttribute("test name", "test value")}
+    )
+    return create_evm_token(
+        token_id=token_id,
+        contract_address=contract_address,
+        token_standard=token_standard,
+        metadata=string_metadata,
+    )
+
+
 def create_numeric_evm_token(
     token_id: int,
     contract_address: str = "0xaaa",
