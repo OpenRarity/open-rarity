@@ -110,19 +110,6 @@ class TokenMetadata:
         )
         self.date_attributes = self._normalize_attributes_dict(self.date_attributes)
 
-    def _normalize_attributes_dict(self, attributes_dict: dict) -> dict:
-        """Helper function that takes in an attributes dictionary
-        and normalizes attribute name in the dictionary to ensure all
-        letters are lower cases and whitespace is stripped.
-        """
-        normalized_attributes_dict = {}
-        for attribute_name, attr in attributes_dict.items():
-            normalized_attr_name = normalize_attribute_string(attribute_name)
-            normalized_attributes_dict[normalized_attr_name] = attr
-            if normalized_attr_name != attr.name:
-                attr.name = normalized_attr_name
-        return normalized_attributes_dict
-
     @classmethod
     def from_attributes(cls, attributes: dict[AttributeName, Any]):
         """Constructs TokenMetadata class based on an attributes dictionary
@@ -184,3 +171,40 @@ class TokenMetadata:
         for attr in self.date_attributes.values():
             attributes[attr.name] = datetime.fromtimestamp(attr.value)
         return attributes
+
+    def add_attribute(self, attribute: Attribute):
+        """Adds an attribute to this metadata object, overriding existing
+        attribute if the normalized attribute name already exists."""
+        if isinstance(attribute, StringAttribute):
+            self.string_attributes[attribute.name] = attribute
+        elif isinstance(attribute, NumericAttribute):
+            self.numeric_attributes[attribute.name] = attribute
+        elif isinstance(attribute, DateAttribute):
+            self.date_attributes[attribute.name] = attribute
+        else:
+            raise TypeError(
+                f"Provided attribute has invalid type: {type(attribute)}. "
+                "Must be either StringAttribute, NumericAttribute or DateAttribute."
+            )
+
+    def attribute_exists(self, attribute_name: str) -> bool:
+        """Returns True if this metadata object has an attribute with the given name."""
+        attr_name = normalize_attribute_string(attribute_name)
+        return (
+            attr_name in self.string_attributes
+            or attr_name in self.numeric_attributes
+            or attr_name in self.date_attributes
+        )
+
+    def _normalize_attributes_dict(self, attributes_dict: dict) -> dict:
+        """Helper function that takes in an attributes dictionary
+        and normalizes attribute name in the dictionary to ensure all
+        letters are lower cases and whitespace is stripped.
+        """
+        normalized_attributes_dict = {}
+        for attribute_name, attr in attributes_dict.items():
+            normalized_attr_name = normalize_attribute_string(attribute_name)
+            normalized_attributes_dict[normalized_attr_name] = attr
+            if normalized_attr_name != attr.name:
+                attr.name = normalized_attr_name
+        return normalized_attributes_dict
