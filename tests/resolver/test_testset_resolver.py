@@ -1,3 +1,5 @@
+import csv
+
 import pytest
 
 from open_rarity.resolver.models.token_with_rarity_data import RankProvider
@@ -42,24 +44,41 @@ class TestTestsetResolver:
         },
     }
 
+    EXPECTED_COLUMNS = [
+        "slug",
+        "token_id",
+        "traits_sniper",
+        "rarity_sniffer",
+        "rarity_sniper",
+        "arithmetic",
+        "geometric",
+        "harmonic",
+        "sum",
+        "information_content",
+    ]
+
     @pytest.mark.skipif(
         "not config.getoption('--run-resolvers')",
         reason="This tests runs too long to have as part of CI/CD but should be "
         "run whenver someone changes resolver",
     )
-    def test_resolve_collection_data(self):
+    def test_resolve_collection_data_two_providers(self):
         # Have the resolver pull in BAYC rarity rankings from various sources
         # Just do a check to ensure the ranks from different providers are
         # as expected
         resolve_collection_data(
             resolve_remote_rarity=True,
             package_path="tests",
+            # We exclude trait sniper due to API key requirements
+            external_rank_providers=[
+                RankProvider.RARITY_SNIFFER,
+                RankProvider.RARITY_SNIPER,
+            ],
             filename="resolver/sample_files/bayc.json",
             # max_tokens_to_calculate=100,
         )
         # Read the file and verify columns values are as expected for the given tokens
         output_filename = "testset_boredapeyachtclub.csv"
-        import csv
 
         rows = 0
         with open(output_filename) as csvfile:
@@ -67,24 +86,120 @@ class TestTestsetResolver:
             for idx, row in enumerate(resolver_output_reader):
                 rows += 1
                 if idx == 0:
-                    assert row[0] == "slug"
-                    assert row[1] == "token_id"
-                    assert row[2] == "traits_sniper"
-                    assert row[3] == "rarity_sniffer"
-                    assert row[4] == "rarity_sniper"
-                    assert row[5] == "arithmetic"
-                    assert row[6] == "geometric"
-                    assert row[7] == "harmonic"
-                    assert row[8] == "sum"
-                    assert row[9] == "information_content"
+                    assert row[0:10] == self.EXPECTED_COLUMNS
+                else:
+                    token_id = int(row[1])
+                    if token_id in self.bayc_token_ids_to_ranks:
+                        assert row[0] == "boredapeyachtclub"
+                        expected_ranks = self.bayc_token_ids_to_ranks[token_id]
+                        assert row[3] == expected_ranks[RankProvider.RARITY_SNIFFER]
+                        assert row[4] == expected_ranks[RankProvider.RARITY_SNIPER]
+                        assert row[5] == expected_ranks[RankProvider.OR_ARITHMETIC]
+                        assert (
+                            row[9]
+                            == expected_ranks[RankProvider.OR_INFORMATION_CONTENT]
+                        )
+
+        assert rows == 10_001
+
+    @pytest.mark.skipif(
+        "not config.getoption('--run-resolvers')",
+        reason="This tests runs too long to have as part of CI/CD but should be "
+        "run whenver someone changes resolver and requires TRAIT_SNIPER_API_KEY",
+    )
+    def test_resolve_collection_data_traits_sniper(self):
+        # Have the resolver pull in BAYC rarity rankings from various sources
+        # Just do a check to ensure the ranks from different providers are
+        # as expected
+        resolve_collection_data(
+            resolve_remote_rarity=True,
+            package_path="tests",
+            external_rank_providers=[RankProvider.TRAITS_SNIPER],
+            filename="resolver/sample_files/bayc.json",
+        )
+        # Read the file and verify columns values are as expected for the given tokens
+        output_filename = "testset_boredapeyachtclub.csv"
+
+        rows = 0
+        with open(output_filename) as csvfile:
+            resolver_output_reader = csv.reader(csvfile)
+            for idx, row in enumerate(resolver_output_reader):
+                rows += 1
+                if idx == 0:
+                    assert row[0:10] == self.EXPECTED_COLUMNS
                 else:
                     token_id = int(row[1])
                     if token_id in self.bayc_token_ids_to_ranks:
                         assert row[0] == "boredapeyachtclub"
                         expected_ranks = self.bayc_token_ids_to_ranks[token_id]
                         assert row[2] == expected_ranks[RankProvider.TRAITS_SNIPER]
+                        assert row[5] == expected_ranks[RankProvider.OR_ARITHMETIC]
+                        assert (
+                            row[9]
+                            == expected_ranks[RankProvider.OR_INFORMATION_CONTENT]
+                        )
+
+        assert rows == 10_001
+
+    def test_resolve_collection_data_rarity_sniffer(self):
+        # Have the resolver pull in BAYC rarity rankings from various sources
+        # Just do a check to ensure the ranks from different providers are
+        # as expected
+        resolve_collection_data(
+            resolve_remote_rarity=True,
+            package_path="tests",
+            external_rank_providers=[RankProvider.RARITY_SNIFFER],
+            filename="resolver/sample_files/bayc.json",
+        )
+        # Read the file and verify columns values are as expected for the given tokens
+        output_filename = "testset_boredapeyachtclub.csv"
+
+        rows = 0
+        with open(output_filename) as csvfile:
+            resolver_output_reader = csv.reader(csvfile)
+            for idx, row in enumerate(resolver_output_reader):
+                rows += 1
+                if idx == 0:
+                    assert row[0:10] == self.EXPECTED_COLUMNS
+                else:
+                    token_id = int(row[1])
+                    if token_id in self.bayc_token_ids_to_ranks:
+                        assert row[0] == "boredapeyachtclub"
+                        expected_ranks = self.bayc_token_ids_to_ranks[token_id]
                         assert row[3] == expected_ranks[RankProvider.RARITY_SNIFFER]
-                        assert row[4] == expected_ranks[RankProvider.RARITY_SNIPER]
+                        assert row[5] == expected_ranks[RankProvider.OR_ARITHMETIC]
+                        assert (
+                            row[9]
+                            == expected_ranks[RankProvider.OR_INFORMATION_CONTENT]
+                        )
+
+        assert rows == 10_001
+
+    def test_resolve_collection_data_no_external(self):
+        # Have the resolver pull in BAYC rarity rankings from various sources
+        # Just do a check to ensure the ranks from different providers are
+        # as expected
+        resolve_collection_data(
+            resolve_remote_rarity=True,
+            package_path="tests",
+            external_rank_providers=[],
+            filename="resolver/sample_files/bayc.json",
+        )
+        # Read the file and verify columns values are as expected for the given tokens
+        output_filename = "testset_boredapeyachtclub.csv"
+
+        rows = 0
+        with open(output_filename) as csvfile:
+            resolver_output_reader = csv.reader(csvfile)
+            for idx, row in enumerate(resolver_output_reader):
+                rows += 1
+                if idx == 0:
+                    assert row[0:10] == self.EXPECTED_COLUMNS
+                else:
+                    token_id = int(row[1])
+                    if token_id in self.bayc_token_ids_to_ranks:
+                        assert row[0] == "boredapeyachtclub"
+                        expected_ranks = self.bayc_token_ids_to_ranks[token_id]
                         assert row[5] == expected_ranks[RankProvider.OR_ARITHMETIC]
                         assert (
                             row[9]
