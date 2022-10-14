@@ -45,6 +45,7 @@ class TraitSniperResolver(RankResolver):
         return {
             str(rank_data["token_id"]): int(rank_data["rarity_rank"])
             for rank_data in all_rank_data
+            if rank_data["rarity_rank"]
         }
 
     @staticmethod

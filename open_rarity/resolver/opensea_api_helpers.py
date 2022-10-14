@@ -1,6 +1,7 @@
 import json
 import logging
 import math
+import os
 
 import requests
 from requests.models import HTTPError
@@ -25,7 +26,8 @@ OS_ASSETS_URL = "https://api.opensea.io/api/v1/assets"
 
 HEADERS = {
     "Accept": "application/json",
-    "X-API-KEY": "",
+    # Note: API key not required but will help rate limiting
+    "X-API-KEY": os.environ.get("OS_API_KEY") or "",
 }
 
 # https://docs.opensea.io/docs/metadata-standards
