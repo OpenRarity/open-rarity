@@ -44,82 +44,65 @@ class ExternalRarityProvider:
         rank_name = rank_provider.name.lower()
         return self.CACHE_FILENAME_FORMAT % (slug, rank_name)
 
-    def write_cache_to_file(self, slug: str, rank_provider: RankProvider):
-        cache_data = self._get_cache_for_collection(
-            slug=slug, rank_provider=rank_provider
-        )
-        cache_filename = self.cache_filename(rank_provider=rank_provider, slug=slug)
-        logger.debug(
-            f"Writing external rank data ({rank_provider}) to cache for: {slug} "
-            f"to file: {cache_filename}. Contains {len(cache_data)} token ranks."
-        )
-        with open(cache_filename, "w+") as jsonfile:
-            json.dump(cache_data, jsonfile, indent=4)
-
-    def _get_cache(self, rank_provider: RankProvider) -> dict[str, dict[str, int]]:
-        if rank_provider == RankProvider.TRAITS_SNIPER:
-            return self._trait_sniper_cache
-        if rank_provider == RankProvider.RARITY_SNIFFER:
-            return self._rarity_sniffer_cache
-        if rank_provider == RankProvider.RARITY_SNIPER:
-            return self._rarity_sniper_cache
-        raise Exception(f"Unknown external rank provider: {rank_provider}")
-
-    def _set_cache(
-        self, slug: str, rank_provider: RankProvider, rank_data: dict[str, int]
-    ) -> None:
-        self._get_cache(rank_provider)[slug] = rank_data
-
-    def _get_cache_for_collection(
-        self, slug: str, rank_provider: RankProvider
-    ) -> dict[str, int]:
-        return self._get_cache(rank_provider)[slug]
-
-    def _get_cached_rank(
-        self, slug: str, rank_provider: RankProvider, token_id: int
-    ) -> int | None:
-        return self._get_cache_for_collection(slug, rank_provider).get(
-            str(token_id), None
-        )
-
-    def _is_cache_loaded(self, slug: str, rank_provider: RankProvider):
-        return (
-            len(self._get_cache_for_collection(rank_provider=rank_provider, slug=slug))
-            > 0
-        )
-
-    def _load_cache_from_file(
+    def fetch_and_update_ranks(
         self,
-        slug: str,
-        rank_provider: RankProvider,
-        force_reload: bool = False,
-    ) -> bool:
-        # Short-circuit if cache is already loaded, unless we want to force a reload
-        if not force_reload and self._is_cache_loaded(slug, rank_provider):
-            return False
+        collection_with_metadata: CollectionWithMetadata,
+        tokens_with_rarity: list[TokenWithRarityData],
+        rank_providers: list[RankProvider] = EXTERNAL_RANK_PROVIDERS,
+        cache_external_ranks: bool = True,
+    ) -> list[TokenWithRarityData]:
+        """Fetches ranks from available providers gem, rarity sniper and/or trait sniper
+        and adds them to the rarities field in `tokens_with_rarity`
 
-        cache_filename = self.cache_filename(rank_provider=rank_provider, slug=slug)
-        try:
-            with open(cache_filename) as jsonfile:
-                external_rank_data = json.load(jsonfile)
-            logger.debug(
-                f"Successfully loaded cached external ranks from: {cache_filename}: "
-                f"Found {len(external_rank_data)} token ranks"
-            )
-        except FileNotFoundError:
-            logger.warning(f"Cache file does not exist: {cache_filename}.")
-            return False
-        except Exception:
-            logger.exception(
-                f"Could not parse cache file: {cache_filename}.", exc_info=True
-            )
-            return False
+        Parameters
+        ----------
+        collection : Collection
+            collection
+        tokens_with_rarity: list[TokenWithRaritydata]
+            List of tokens with rarity data. Will modify the objects.rarities
+            field and add the fetched ranking data directly to object.
+        cache_external_ranks: bool
+            If set to true, will use local cache file instead of fetching rank data.
+            If cache is empty, will fetch data from API and write to local cache.
 
-        self._set_cache(
-            slug=slug, rank_provider=rank_provider, rank_data=external_rank_data
-        )
-        return True
+        Returns
+        -------
+        list[tokens_with_rarity]
+            tokens with fetched external rarity data
+        """
+        logger.debug(f"Fetching external rarity for {len(tokens_with_rarity)} tokens")
 
+        for rank_provider in rank_providers:
+            # Note: Not all providers have rankings for all collections,
+            # so do a best effort.
+            print("\t\tProcessing provider: ", rank_provider)
+            try:
+                if rank_provider in {
+                    RankProvider.RARITY_SNIFFER,
+                    RankProvider.TRAITS_SNIPER,
+                }:
+                    self._add_rarity_data(
+                        rank_provider=rank_provider,
+                        collection_with_metadata=collection_with_metadata,
+                        tokens_with_rarity=tokens_with_rarity,
+                        cache_external_ranks=cache_external_ranks,
+                    )
+                elif rank_provider == RankProvider.RARITY_SNIPER:
+                    self._add_rarity_sniper_rarity_data(
+                        collection_with_metadata=collection_with_metadata,
+                        tokens_with_rarity=tokens_with_rarity,
+                        cache_external_ranks=cache_external_ranks,
+                    )
+            except Exception:
+                logger.exception(
+                    f"Exception: Could not get ranks from {rank_provider} for "
+                    f"{collection_with_metadata.opensea_slug}",
+                    exc_info=True,
+                )
+                continue
+        return tokens_with_rarity
+
+    # Private methods
     def _add_rarity_data(
         self,
         rank_provider: RankProvider,
@@ -230,6 +213,9 @@ class ExternalRarityProvider:
                     rank = RaritySniperResolver.get_rank(
                         collection_slug=slug, token_id=token_id
                     )
+                    print(
+                        f"[RaritySniper] Fetched from api: {rank=} {token_id=} {slug=}"
+                    )
                     logger.debug(
                         "Resolved rarity sniper rarity for "
                         f"{opensea_slug=}/{slug=} {token_id=}: {rank}"
@@ -256,62 +242,79 @@ class ExternalRarityProvider:
 
         return tokens_with_rarity
 
-    def fetch_and_update_ranks(
+    # Cache methods
+    def _load_cache_from_file(
         self,
-        collection_with_metadata: CollectionWithMetadata,
-        tokens_with_rarity: list[TokenWithRarityData],
-        rank_providers: list[RankProvider] = EXTERNAL_RANK_PROVIDERS,
-        cache_external_ranks: bool = True,
-    ) -> list[TokenWithRarityData]:
-        """Fetches ranks from available providers gem, rarity sniper and/or trait sniper
-        and adds them to the rarities field in `tokens_with_rarity`
+        slug: str,
+        rank_provider: RankProvider,
+        force_reload: bool = False,
+    ) -> bool:
+        # Short-circuit if cache is already loaded, unless we want to force a reload
+        if not force_reload and self._is_cache_loaded(slug, rank_provider):
+            return False
 
-        Parameters
-        ----------
-        collection : Collection
-            collection
-        tokens_with_rarity: list[TokenWithRaritydata]
-            List of tokens with rarity data. Will modify the objects.rarities
-            field and add the fetched ranking data directly to object.
-        cache_external_ranks: bool
-            If set to true, will use local cache file instead of fetching rank data.
-            If cache is empty, will fetch data from API and write to local cache.
+        cache_filename = self.cache_filename(rank_provider=rank_provider, slug=slug)
+        try:
+            with open(cache_filename) as jsonfile:
+                external_rank_data = json.load(jsonfile)
+            logger.debug(
+                f"Successfully loaded cached external ranks from: {cache_filename}: "
+                f"Found {len(external_rank_data)} token ranks"
+            )
+        except FileNotFoundError:
+            logger.warning(f"Cache file does not exist: {cache_filename}.")
+            return False
+        except Exception:
+            logger.exception(
+                f"Could not parse cache file: {cache_filename}.", exc_info=True
+            )
+            return False
 
-        Returns
-        -------
-        list[tokens_with_rarity]
-            tokens with fetched external rarity data
-        """
-        logger.debug(f"Fetching external rarity for {len(tokens_with_rarity)} tokens")
+        self._set_cache(
+            slug=slug, rank_provider=rank_provider, rank_data=external_rank_data
+        )
+        return True
 
-        for rank_provider in rank_providers:
-            # Note: Not all providers have rankings for all collections,
-            # so do a best effort.
-            print("\t\tProcessing provider: ", rank_provider)
-            try:
-                if rank_provider in {
-                    RankProvider.RARITY_SNIFFER,
-                    RankProvider.TRAITS_SNIPER,
-                }:
-                    self._add_rarity_data(
-                        rank_provider=rank_provider,
-                        collection_with_metadata=collection_with_metadata,
-                        tokens_with_rarity=tokens_with_rarity,
-                        cache_external_ranks=cache_external_ranks,
-                    )
-                elif rank_provider == RankProvider.RARITY_SNIPER:
-                    self._add_rarity_sniper_rarity_data(
-                        collection_with_metadata=collection_with_metadata,
-                        tokens_with_rarity=tokens_with_rarity,
-                        cache_external_ranks=cache_external_ranks,
-                    )
-            except Exception:
-                logger.exception(
-                    f"Exception: Could not get ranks from {rank_provider} for "
-                    f"{collection_with_metadata.opensea_slug}",
-                    exc_info=True,
-                )
-                continue
-        return tokens_with_rarity
+    def write_cache_to_file(self, slug: str, rank_provider: RankProvider):
+        cache_data = self._get_cache_for_collection(
+            slug=slug, rank_provider=rank_provider
+        )
+        cache_filename = self.cache_filename(rank_provider=rank_provider, slug=slug)
+        logger.debug(
+            f"Writing external rank data ({rank_provider}) to cache for: {slug} "
+            f"to file: {cache_filename}. Contains {len(cache_data)} token ranks."
+        )
+        with open(cache_filename, "w+") as jsonfile:
+            json.dump(cache_data, jsonfile, indent=4)
 
-    # Private methods
+    def _set_cache(
+        self, slug: str, rank_provider: RankProvider, rank_data: dict[str, int]
+    ) -> None:
+        self._get_cache(rank_provider)[slug] = rank_data
+
+    def _get_cache(self, rank_provider: RankProvider) -> dict[str, dict[str, int]]:
+        if rank_provider == RankProvider.TRAITS_SNIPER:
+            return self._trait_sniper_cache
+        if rank_provider == RankProvider.RARITY_SNIFFER:
+            return self._rarity_sniffer_cache
+        if rank_provider == RankProvider.RARITY_SNIPER:
+            return self._rarity_sniper_cache
+        raise Exception(f"Unknown external rank provider: {rank_provider}")
+
+    def _get_cache_for_collection(
+        self, slug: str, rank_provider: RankProvider
+    ) -> dict[str, int]:
+        return self._get_cache(rank_provider)[slug]
+
+    def _get_cached_rank(
+        self, slug: str, rank_provider: RankProvider, token_id: int
+    ) -> int | None:
+        return self._get_cache_for_collection(slug, rank_provider).get(
+            str(token_id), None
+        )
+
+    def _is_cache_loaded(self, slug: str, rank_provider: RankProvider):
+        return (
+            len(self._get_cache_for_collection(rank_provider=rank_provider, slug=slug))
+            > 0
+        )
