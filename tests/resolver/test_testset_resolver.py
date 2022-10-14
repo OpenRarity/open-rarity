@@ -23,7 +23,7 @@ class TestTestsetResolver:
         # Middle token, official rank=3503
         509: {
             # https://app.traitsniper.com/boredapeyachtclub?view=509
-            RankProvider.TRAITS_SNIPER: "3370",
+            RankProvider.TRAITS_SNIPER: "2730",
             # https://raritysniffer.com/viewcollection/boredapeyachtclub?nft=509
             RankProvider.RARITY_SNIFFER: "3257",
             # https://raritysniper.com/bored-ape-yacht-club/509
@@ -34,7 +34,7 @@ class TestTestsetResolver:
         # Common token, official rank=7623
         8002: {
             # https://app.traitsniper.com/boredapeyachtclub?view=8002
-            RankProvider.TRAITS_SNIPER: "6810",
+            RankProvider.TRAITS_SNIPER: "6271",
             # https://raritysniffer.com/viewcollection/boredapeyachtclub?nft=8002
             RankProvider.RARITY_SNIFFER: "7709",
             # https://raritysniper.com/bored-ape-yacht-club/8002
@@ -75,7 +75,6 @@ class TestTestsetResolver:
                 RankProvider.RARITY_SNIPER,
             ],
             filename="resolver/sample_files/bayc.json",
-            # max_tokens_to_calculate=100,
         )
         # Read the file and verify columns values are as expected for the given tokens
         output_filename = "testset_boredapeyachtclub.csv"
@@ -105,8 +104,10 @@ class TestTestsetResolver:
     @pytest.mark.skipif(
         "not config.getoption('--run-resolvers')",
         reason="This tests runs too long to have as part of CI/CD but should be "
-        "run whenver someone changes resolver and requires TRAIT_SNIPER_API_KEY",
+        "run whenever someone changes resolver and requires TRAIT_SNIPER_API_KEY",
     )
+    # Warning: Trait Sniper ranks are not stable, so this test may fail.
+    # If it does, just update the expected values to be what's on the site.
     def test_resolve_collection_data_traits_sniper(self):
         # Have the resolver pull in BAYC rarity rankings from various sources
         # Just do a check to ensure the ranks from different providers are
