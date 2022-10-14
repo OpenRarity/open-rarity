@@ -31,7 +31,11 @@ HEADERS = {
 # https://docs.opensea.io/docs/metadata-standards
 OS_METADATA_TRAIT_TYPE = "display_type"
 
-DEFAULT_OS_CACHE_FILENAME_PREFIX: str = "cached_data/cached_os_trait_data"
+# Reads from a local cache of format:
+# "cached_data/{slug}_cached_os_trait_data.json"
+# which must contain a list of tokens in Token.to_dict() format.
+# See cached_data/boredapeyachtclub_cached_os_trait_data.json for example.
+OS_CACHE_FILENAME_FORMAT: str = "cached_data/%s_cached_os_trait_data.json"
 
 
 # Error is thrown if computatation is requested on a non-ERC721/1155
@@ -165,23 +169,17 @@ def get_all_collection_tokens(
     total_supply: int,
     batch_size: int = 30,
     use_cache: bool = True,
-    cache_file_prefix: str | None = DEFAULT_OS_CACHE_FILENAME_PREFIX,
 ) -> list[Token]:
     """Returns a list of Token's with all metadata filled, either populated
     from Opensea API or fetched from a local cache file.
     """
-    cached_filename = f"{cache_file_prefix}-{slug}.json"
     tokens: list[Token] = []
 
     # For performance optimization and re-runs for the same collection,
     # we optionally check if an already cached file for the collection
     # data exists since they tend to be static.
     if use_cache:
-        tokens = read_collection_data_from_file(
-            filename=cached_filename,
-            expected_supply=total_supply,
-            slug=slug,
-        )
+        tokens = read_collection_data_from_file(expected_supply=total_supply, slug=slug)
     else:
         logger.info(f"Not using cache for fetching collection tokens for: {slug}")
 
@@ -234,7 +232,7 @@ def get_all_collection_tokens(
 
         # Write to local disk the fetched data for later caching
         if use_cache:
-            write_collection_data_to_file(filename=cached_filename, tokens=tokens)
+            write_collection_data_to_file(slug=slug, tokens=tokens)
 
     return tokens
 
@@ -352,10 +350,7 @@ def get_collection_with_metadata_from_opensea(
 
 
 def get_collection_from_opensea(
-    slug: str,
-    batch_size: int = 30,
-    use_cache: bool = True,
-    cache_file_prefix: str | None = DEFAULT_OS_CACHE_FILENAME_PREFIX,
+    slug: str, batch_size: int = 30, use_cache: bool = True
 ) -> Collection:
     """Fetches collection and token data with OpenSea endpoint and API key
     and stores it in the Collection object. If local cache file is used and
@@ -396,28 +391,31 @@ def get_collection_from_opensea(
         total_supply=total_supply,
         batch_size=batch_size,
         use_cache=use_cache,
-        cache_file_prefix=cache_file_prefix,
     )
 
     return Collection(name=collection_obj["name"], tokens=tokens)
 
 
-def write_collection_data_to_file(filename: str, tokens: list[Token]):
+def get_cache_filename(slug: str) -> str:
+    return OS_CACHE_FILENAME_FORMAT % slug
+
+
+def write_collection_data_to_file(slug: str, tokens: list[Token]):
+    cache_filename = get_cache_filename(slug)
     json_output = []
     for token in tokens:
         # Note: We assume EVM token here
         json_output.append(token.to_dict())
-    with open(filename, "w+") as jsonfile:
+    with open(cache_filename, "w+") as jsonfile:
         json.dump(json_output, jsonfile, indent=4)
-    logger.info(f"Wrote token data to cache file: {filename}")
+    logger.debug(f"Wrote token data to cache file: {cache_filename}")
 
 
-def read_collection_data_from_file(
-    filename: str, expected_supply: int, slug: str
-) -> list[Token]:
+def read_collection_data_from_file(expected_supply: int, slug: str) -> list[Token]:
+    cache_filename = get_cache_filename(slug)
     tokens = []
     try:
-        with open(filename) as jsonfile:
+        with open(cache_filename) as jsonfile:
             tokens_data = json.load(jsonfile)
             if len(tokens_data) != expected_supply:
                 logger.warning(
@@ -431,14 +429,14 @@ def read_collection_data_from_file(
                 for token_data in tokens_data:
                     assert token_data["metadata_dict"]
                     tokens.append(Token.from_dict(token_data))
-        logger.debug(f"Read {len(tokens)} tokens from cache file: {filename}")
+        logger.debug(f"Read {len(tokens)} tokens from cache file: {cache_filename}")
     except FileNotFoundError:
-        logger.warning(f"No opensea cache file found for {slug}: {filename}")
+        logger.warning(f"No opensea cache file found for {slug}: {cache_filename}")
     except Exception:
         logger.exception(
             "Failed to parse valid cache data for %s from %s",
             slug,
-            filename,
+            cache_filename,
             exc_info=True,
         )
         return []
