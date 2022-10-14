@@ -124,11 +124,7 @@ class Token:
 
     def trait_count(self) -> int:
         """Returns the count of non-null, non-"none" value traits this token has."""
-        # TODO [vicky] In opensea and perhaps other sites, we return
-        # none as explicit empty traits. Do we want to explicitly filter
-        # out in this library or do it on opensea/provider side?
-        # Would love people's thoughts! Can see argument to not filter, and
-        # leaning towards that direction.
+
         def get_attributes_count(attributes: list[Attribute]) -> int:
             return sum(
                 map(
