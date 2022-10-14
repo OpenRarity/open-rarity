@@ -30,8 +30,6 @@ class TraitSniperResolver(RankResolver):
         dict[str, int]
             A dictionary of token_id to ranks
         """
-        if contract_address is None:
-            raise ValueError("Contract address is required for Trait Sniper")
         rank_data_page = TraitSniperResolver.get_ranks(contract_address, page=1)
         all_rank_data = rank_data_page
         page = 2

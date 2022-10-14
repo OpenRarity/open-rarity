@@ -1,3 +1,4 @@
+from open_rarity.resolver.rarity_providers.rank_resolver import RankResolver
 from open_rarity.resolver.rarity_providers.rarity_sniffer import RaritySnifferResolver
 
 
@@ -15,3 +16,6 @@ class TestRaritySnifferResolver:
             contract_address="0x123"
         )
         assert len(token_id_to_ranks) == 0
+
+    def test_rank_resolver_parent(self):
+        assert isinstance(RaritySnifferResolver, RankResolver)

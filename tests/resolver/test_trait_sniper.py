@@ -1,5 +1,6 @@
 import pytest
 
+from open_rarity.resolver.rarity_providers.rank_resolver import RankResolver
 from open_rarity.resolver.rarity_providers.trait_sniper import TraitSniperResolver
 
 # NOTE: API_KEY is needed for these tests (TRAIT_SNIPER_API_KEY must be set)
@@ -55,3 +56,6 @@ class TestTraitSniperResolver:
             token_id=1000,
         )
         assert rank
+
+    def test_rank_resolver_parent(self):
+        assert isinstance(TraitSniperResolver, RankResolver)

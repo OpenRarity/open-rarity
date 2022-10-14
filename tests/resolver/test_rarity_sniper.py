@@ -1,3 +1,4 @@
+from open_rarity.resolver.rarity_providers.rank_resolver import RankResolver
 from open_rarity.resolver.rarity_providers.rarity_sniper import RaritySniperResolver
 
 
@@ -17,3 +18,6 @@ class TestRaritySniperResolver:
             collection_slug="non_existent_slug", token_id=1
         )
         assert rank is None
+
+    def test_rank_resolver_parent(self):
+        assert isinstance(RaritySniperResolver, RankResolver)
