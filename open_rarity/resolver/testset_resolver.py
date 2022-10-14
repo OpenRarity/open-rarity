@@ -603,12 +603,12 @@ if __name__ == "__main__":
     on test collections. Data resolved from opensea api
 
     Command to run:
-    `python -m openrarity.resolver.testset_resolver external`
+    `python -m open_rarity.resolver.testset_resolver external`
 
         This will only produce ranks from OpenRarity and RaritySniffer by default.
 
     To run for all external providers:
-    `TRAIT_SNIPER_API_KEY=<your key> python -m openrarity.resolver.testset_resolver \
+    `TRAIT_SNIPER_API_KEY=<your key> python -m open_rarity.resolver.testset_resolver \
         external --trait_sniper --rarity_sniper`
     """
     args = parser.parse_args()
@@ -637,19 +637,21 @@ if __name__ == "__main__":
         "Welcome to OpenRarity resolver! This is a tool to view OpenRarity rankings \n"
         "for given collection(s) and to compare them with existing ranking \n"
         "providers. If you just want to output OpenRarity rankings, you can use "
-        "the script scripts/score_real_collections.py. \n For full options, "
+        "the script scripts/score_real_collections.py. \nFor full options, "
         "run `python3 -m open_rarity.resolver.testset_resolver --help`"
     )
     print(f"\nExecuting args: {args}")
     if resolve_remote_rarity:
-        print(f"Resolvers: {[rp.value for rp in external_resolvers]}")
+        print(
+            f"Fetching external ranks from: {[rp.value for rp in external_resolvers]}"
+        )
 
     print(
         "\nNOTE: Resolving external data can take awhile due to external API rate"
         "\nlimits. Local caching will occur automatically so that future runs of "
         "\nthe same collection can be efficient. Expect a 10k collection to take >5 min"
         "\nwithout local cached data (timing based on exact external resolver(s) set). "
-        "With caching, expect ~15 seconds for processing."
+        "\nWith caching, expect ~15 seconds for processing."
     )
 
     resolve_collection_data(
