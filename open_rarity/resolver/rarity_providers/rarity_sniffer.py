@@ -6,9 +6,6 @@ from .rank_resolver import RankResolver
 
 logger = logging.getLogger("open_rarity_logger")
 RARITY_SNIFFER_API_URL = "https://raritysniffer.com/api/index.php"
-RARITY_SNIPER_API_URL = (
-    "https://api.raritysniper.com/public/collection/{slug}/id/{token_id}"
-)
 USER_AGENT = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
