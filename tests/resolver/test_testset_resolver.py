@@ -17,7 +17,6 @@ class TestTestsetResolver:
             RankProvider.RARITY_SNIFFER: "3",
             # https://raritysniper.com/bored-ape-yacht-club/7495
             RankProvider.RARITY_SNIPER: "1",
-            RankProvider.OR_ARITHMETIC: "1",
             RankProvider.OR_INFORMATION_CONTENT: "1",
         },
         # Middle token, official rank=3503
@@ -28,8 +27,7 @@ class TestTestsetResolver:
             RankProvider.RARITY_SNIFFER: "3257",
             # https://raritysniper.com/bored-ape-yacht-club/509
             RankProvider.RARITY_SNIPER: "3402",
-            RankProvider.OR_ARITHMETIC: "2988",
-            RankProvider.OR_INFORMATION_CONTENT: "3748",
+            RankProvider.OR_INFORMATION_CONTENT: "4091",
         },
         # Common token, official rank=7623
         8002: {
@@ -39,9 +37,21 @@ class TestTestsetResolver:
             RankProvider.RARITY_SNIFFER: "7709",
             # https://raritysniper.com/bored-ape-yacht-club/8002
             RankProvider.RARITY_SNIPER: "6924",
-            RankProvider.OR_ARITHMETIC: "6003",
-            RankProvider.OR_INFORMATION_CONTENT: "6818",
+            RankProvider.OR_INFORMATION_CONTENT: "7347",
         },
+    }
+    ic_bayc_token_ids_to_ranks = {
+        "2100": 10,
+        "5757": 11,
+        "7754": 12,
+        "5020": 3101,
+        "1730": 3102,
+        "6784": 7344,
+        "5949": 7345,
+        "2103": 5414,
+        "980": 5415,
+        "5525": 9999,
+        "5777": 10000,
     }
 
     EXPECTED_COLUMNS = [
@@ -142,39 +152,31 @@ class TestTestsetResolver:
 
         assert rows == 10_001
 
+    @pytest.mark.skipif(
+        "not config.getoption('--run-resolvers')",
+        reason="This tests depends on external API",
+    )
     def test_resolve_collection_data_rarity_sniffer(self):
         # Have the resolver pull in BAYC rarity rankings from various sources
         # Just do a check to ensure the ranks from different providers are
         # as expected
-        resolve_collection_data(
+        slug_to_rows = resolve_collection_data(
             resolve_remote_rarity=True,
             package_path="tests",
             external_rank_providers=[RankProvider.RARITY_SNIFFER],
             filename="resolver/sample_files/bayc.json",
+            output_file_to_disk=False,
         )
-        # Read the file and verify columns values are as expected for the given tokens
-        output_filename = "testset_boredapeyachtclub.csv"
+        rows = slug_to_rows["boredapeyachtclub"]
 
-        rows = 0
-        with open(output_filename) as csvfile:
-            resolver_output_reader = csv.reader(csvfile)
-            for idx, row in enumerate(resolver_output_reader):
-                rows += 1
-                if idx == 0:
-                    assert row[0:10] == self.EXPECTED_COLUMNS
-                else:
-                    token_id = int(row[1])
-                    if token_id in self.bayc_token_ids_to_ranks:
-                        assert row[0] == "boredapeyachtclub"
-                        expected_ranks = self.bayc_token_ids_to_ranks[token_id]
-                        assert row[3] == expected_ranks[RankProvider.RARITY_SNIFFER]
-                        assert row[5] == expected_ranks[RankProvider.OR_ARITHMETIC]
-                        assert (
-                            row[9]
-                            == expected_ranks[RankProvider.OR_INFORMATION_CONTENT]
-                        )
+        for row in rows:
+            token_id = int(row[1])
+            if token_id in self.bayc_token_ids_to_ranks:
+                assert row[0] == "boredapeyachtclub"
+                expected_ranks = self.bayc_token_ids_to_ranks[token_id]
+                assert str(row[3]) == expected_ranks[RankProvider.RARITY_SNIFFER]
 
-        assert rows == 10_001
+        assert len(rows) == 10_000
 
     def test_resolve_collection_data_no_external(self):
         # Have the resolver pull in BAYC rarity rankings from various sources
@@ -201,10 +203,11 @@ class TestTestsetResolver:
                     if token_id in self.bayc_token_ids_to_ranks:
                         assert row[0] == "boredapeyachtclub"
                         expected_ranks = self.bayc_token_ids_to_ranks[token_id]
-                        assert row[5] == expected_ranks[RankProvider.OR_ARITHMETIC]
                         assert (
                             row[9]
                             == expected_ranks[RankProvider.OR_INFORMATION_CONTENT]
                         )
+                    if token_id in self.ic_bayc_token_ids_to_ranks:
+                        assert row[9] == self.ic_bayc_token_ids_to_ranks[token_id]
 
         assert rows == 10_001

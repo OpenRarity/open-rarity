@@ -215,7 +215,8 @@ def resolve_collection_data(
     filename: str = "test_collections.json",
     max_tokens_to_calculate: int = None,
     use_cache: bool = True,
-) -> None:
+    output_file_to_disk: bool = True,
+) -> list | None:
     """Resolves collection information through OpenSea API
 
     Parameters
@@ -236,6 +237,16 @@ def resolve_collection_data(
         If set to true, will cache fetched data from external API's in order to ensure
         re-runs for same collections are faster. Only use if collection and token
         metadata is static - do not work for unrevealed/changing collections.
+    output_file_to_disk: bool
+        If set to true, will output the resolved collection data to disk.
+        Set to False if you want to use the data in memory only.
+        Needed for testing.
+
+    Returns
+    -------
+    list
+        A list of the rows that would be written to the output file. Only returned if
+        output_file_to_disk is set to False.
 
     Raises
     ------
@@ -248,6 +259,7 @@ def resolve_collection_data(
 
     data = json.load(io.BytesIO(golden_collections))
     print("------------------------------")
+    slugs_to_rows = {}
     for collection_def in data:
         start_time = time()
         opensea_slug = collection_def["collection_slug"]
@@ -288,14 +300,19 @@ def resolve_collection_data(
                 scores=open_rarity_scores,
             )
 
-        print(f"4. Wrote to CSV: {opensea_slug}")
+        if output_file_to_disk:
+            print(f"4. Wrote to CSV: {opensea_slug}")
 
-        serialize_to_csv(
+        rows = serialize_to_csv(
             collection_with_metadata=collection_with_metadata,
             tokens_with_rarity=tokens_with_rarity,
+            dry_run=not output_file_to_disk,
         )
+        slugs_to_rows[opensea_slug] = rows
         time_elapsed = round(time() - start_time)
         print(f"FINISHED: Resolved collection: {opensea_slug} in {time_elapsed} secs")
+
+    return slugs_to_rows if not output_file_to_disk else None
 
 
 def augment_with_open_rarity_scores(
@@ -491,13 +508,17 @@ def _rank_diff(rank1: int | None, rank2: int | None) -> int | None:
 def serialize_to_csv(
     collection_with_metadata: CollectionWithMetadata,
     tokens_with_rarity: list[TokenWithRarityData],
-) -> None:
+    dry_run: bool = False,
+) -> list | None:
     """Serialize collection and ranking data to CSV
 
     Parameters
     ----------
-    collection : Collection
-        collection
+    collection_with_metadata : Collection
+    dry_run: bool
+        If set to True, the CSV will not be written to disk but returned as an
+        array of rows
+
     """
     slug = collection_with_metadata.opensea_slug
     testset = open(f"testset_{slug}.csv", "w")
@@ -534,6 +555,7 @@ def serialize_to_csv(
 
     writer = csv.writer(testset)
     writer.writerow(headers)
+    rows = []
 
     for token_with_rarity in tokens_with_rarity:
         traits_sniper_rank = _get_provider_rank(
@@ -588,7 +610,12 @@ def serialize_to_csv(
             _rank_diff(rarity_sniper_rank, or_sum_rank),
             _rank_diff(rarity_sniper_rank, or_ic_rank),
         ]
-        writer.writerow(row)
+        if dry_run:
+            rows.append(row)
+        else:
+            writer.writerow(row)
+
+    return rows if rows else None
 
 
 if __name__ == "__main__":
