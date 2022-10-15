@@ -37,6 +37,7 @@ pep8-naming = "^0.13.1"
 pre-commit = "^2.19.0"
 pytest = "^7.1"
 pytest-cov = "^3.0"
+pytest-mock = "^3.10.0"
 types-requests = "^2.28.6"
 
 [tool.black]
