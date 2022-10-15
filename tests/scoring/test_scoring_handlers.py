@@ -4,15 +4,7 @@ from random import sample
 import numpy as np
 import pytest
 
-from open_rarity.scoring.handlers.arithmetic_mean_scoring_handler import (
-    ArithmeticMeanScoringHandler,
-)
-from open_rarity.scoring.handlers.geometric_mean_scoring_handler import (
-    GeometricMeanScoringHandler,
-)
-from open_rarity.scoring.handlers.harmonic_mean_scoring_handler import (
-    HarmonicMeanScoringHandler,
-)
+from open_rarity.models.collection import TRAIT_COUNT_ATTRIBUTE_NAME, Collection
 from open_rarity.scoring.handlers.information_content_scoring_handler import (
     InformationContentScoringHandler,
 )
@@ -20,28 +12,29 @@ from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
 from tests.helpers import (
     generate_collection_with_token_traits,
     generate_mixed_collection,
-    generate_onerare_rarity_collection,
-    generate_uniform_rarity_collection,
     get_mixed_trait_spread,
+    onerare_rarity_tokens,
+    uniform_rarity_tokens,
 )
 
 
 class TestScoringHandlers:
     max_scoring_time_for_10k_s = 2
+    uniform_tokens = uniform_rarity_tokens(
+        token_total_supply=10_000, attribute_count=5, values_per_attribute=10
+    )
 
-    uniform_collection = generate_uniform_rarity_collection(
-        attribute_count=5,
+    uniform_collection = Collection(tokens=uniform_tokens)
+
+    one_rare_tokens = onerare_rarity_tokens(
+        token_total_supply=10_000,
+        attribute_count=3,
         values_per_attribute=10,
-        token_total_supply=10000,
     )
 
     # The last token (#9999) has a unique attribute value for all
     # 5 different attribute types
-    onerare_collection = generate_onerare_rarity_collection(
-        attribute_count=5,
-        values_per_attribute=10,
-        token_total_supply=10000,
-    )
+    onerare_collection = Collection(tokens=one_rare_tokens)
 
     # Collection with following attribute distribution
     # "hat":
@@ -57,119 +50,13 @@ class TestScoringHandlers:
     #   others none
     mixed_collection = generate_mixed_collection()
 
-    def test_geometric_mean_scorer_uniform(self) -> None:
-        """test the geometric mean implementation of score_token"""
-        geometric_mean_rarity = GeometricMeanScoringHandler()
-        uniform_tokens_to_test = [
-            self.uniform_collection.tokens[0],
-            self.uniform_collection.tokens[1405],
-            self.uniform_collection.tokens[9999],
-        ]
-        expected_uniform_score = 10.0
-        for token_to_test in uniform_tokens_to_test:
-            assert np.round(
-                geometric_mean_rarity.score_token(
-                    collection=self.uniform_collection, token=token_to_test
-                ),
-                12,
-            ) == np.round(expected_uniform_score, 12)
-
-    def test_geometric_mean_scorer_onerare(self) -> None:
-        geometric_mean_rarity = GeometricMeanScoringHandler()
-        common_token = self.onerare_collection.tokens[0]
-        # Since weights and scores for every trait will all be the same,
-        # the score is just the same as a trait score
-        expected_common_score = 10000 / 1111
-        assert np.round(
-            geometric_mean_rarity.score_token(
-                collection=self.onerare_collection, token=common_token
-            ),
-            8,
-        ) == np.round(expected_common_score, 8)
-
-        rare_token = self.onerare_collection.tokens[-1]
-        # Since weights and scores for every trait will all be the same,
-        # the score is just the same as a trait score
-        expected_rare_score = 10000
-        assert np.round(
-            geometric_mean_rarity.score_token(
-                collection=self.onerare_collection, token=rare_token
-            ),
-            8,
-        ) == np.round(expected_rare_score, 8)
-
-    @pytest.mark.skip(reason="Not including performance testing as required testing")
-    def test_arithmetic_mean_score_collection_timing(self) -> None:
-        arithmetic_scorer = ArithmeticMeanScoringHandler()
-        tic = time.time()
-        arithmetic_scorer.score_tokens(
-            collection=self.mixed_collection,
-            tokens=self.mixed_collection.tokens,
-        )
-        toc = time.time()
-        assert (toc - tic) < self.max_scoring_time_for_10k_s
-
-    def test_arithmetic_mean_uniform(self) -> None:
-        """test the arithmetic mean implementation of score_token"""
-        arithmetic_mean_rarity = ArithmeticMeanScoringHandler()
-        tokens_to_test = [
-            self.uniform_collection.tokens[0],
-            self.uniform_collection.tokens[1],
-            self.uniform_collection.tokens[4050],
-            self.uniform_collection.tokens[9998],
-        ]
-        expected_score = 10
-
-        for token in tokens_to_test:
-            assert np.round(
-                arithmetic_mean_rarity.score_token(
-                    collection=self.uniform_collection, token=token
-                ),
-                8,
-            ) == np.round(expected_score, 8)
-
-    def test_arithmetic_mean_mixed(self) -> None:
-        arithmetic_scorer = ArithmeticMeanScoringHandler()
-        token_idxs_to_test = sample(range(self.mixed_collection.token_total_supply), 20)
-        scores = arithmetic_scorer.score_tokens(
-            collection=self.mixed_collection,
-            tokens=self.mixed_collection.tokens,
-        )
-        assert len(scores) == 10000
-        for token_idx in token_idxs_to_test:
-            token = self.mixed_collection.tokens[token_idx]
-            score = scores[token_idx]
-            assert score == arithmetic_scorer.score_token(
-                collection=self.mixed_collection,
-                token=token,
-            )
-            trait_scores, weights = get_token_attributes_scores_and_weights(
-                collection=self.mixed_collection,
-                token=token,
-                normalized=True,
-            )
-            assert np.average(trait_scores, weights=weights) == score
-
-    def test_harmonic_mean_uniform(self) -> None:
-        """test the harmonic mean implementation of score_token"""
-        harmonic_mean_rarity = HarmonicMeanScoringHandler()
-
-        uniform_token_to_test = self.uniform_collection.tokens[0]
-        uniform_harmonic_mean = 10
-        assert np.round(
-            harmonic_mean_rarity.score_token(
-                collection=self.uniform_collection, token=uniform_token_to_test
-            ),
-            8,
-        ) == np.round(uniform_harmonic_mean, 8)
-
     def test_information_content_rarity_uniform(self):
-        information_content_rarity = InformationContentScoringHandler()
+        ic_handler = InformationContentScoringHandler()
 
         uniform_token_to_test = self.uniform_collection.tokens[0]
         uniform_ic_rarity = 1.0
         assert np.round(
-            information_content_rarity.score_token(
+            ic_handler.score_token(
                 collection=self.uniform_collection, token=uniform_token_to_test
             ),
             8,
@@ -213,7 +100,59 @@ class TestScoringHandlers:
 
             assert score == ic_token_score / collection_entropy
 
-    def test_information_content_null_attribute(self):
+    def test_information_content_null_value_attribute(self):
+        ic_scorer = InformationContentScoringHandler()
+        collection_with_empty = generate_collection_with_token_traits(
+            [
+                {"bottom": "spec", "hat": "spec", "special": "true"},  # trait count = 3
+                {"bottom": "1", "hat": "1", "special": "true"},  # trait count = 3
+                {"bottom": "1", "hat": "1"},  # trait count = 2
+                {"bottom": "2", "hat": "2"},  # trait count = 2
+                {"bottom": "2", "hat": "2"},  # trait count = 2
+                {"bottom": "3", "hat": "2"},  # trait count = 2
+            ]
+        )
+
+        collection_entropy = ic_scorer._get_collection_entropy(collection_with_empty)
+        collection_probs = []
+        spread = {
+            "bottom": {"1": 2, "2": 2, "3": 1, "spec": 1},
+            "hat": {"1": 2, "2": 3, "spec": 1},
+            "special": {"true": 2, "Null": 4},
+            TRAIT_COUNT_ATTRIBUTE_NAME: {"2": 4, "3": 2},
+        }
+        for trait_dict in spread.values():
+            for tokens_with_trait in trait_dict.values():
+                collection_probs.append(tokens_with_trait / 6)
+
+        expected_collection_entropy = -np.dot(
+            collection_probs, np.log2(collection_probs)
+        )
+        assert np.round(collection_entropy, 10) == np.round(
+            expected_collection_entropy, 10
+        )
+
+        scores = ic_scorer.score_tokens(
+            collection=collection_with_empty, tokens=collection_with_empty.tokens
+        )
+        assert scores[0] > scores[1]
+        assert scores[1] > scores[2]
+        assert scores[5] > scores[2]
+        assert scores[2] > scores[3]
+        assert scores[3] == scores[4]
+
+        for i, token in enumerate(collection_with_empty.tokens):
+            attr_scores, _ = get_token_attributes_scores_and_weights(
+                collection=collection_with_empty,
+                token=token,
+                normalized=False,
+            )
+            ic_token_score = -np.sum(np.log2(np.reciprocal(attr_scores)))
+            expected_score = ic_token_score / collection_entropy
+
+            assert np.round(scores[i], 10) == np.round(expected_score, 10)
+
+    def test_information_content_empty_attribute(self):
         collection_with_null = generate_collection_with_token_traits(
             [
                 {"bottom": "1", "hat": "1", "special": "true"},
@@ -227,10 +166,10 @@ class TestScoringHandlers:
         collection_without_null = generate_collection_with_token_traits(
             [
                 {"bottom": "1", "hat": "1", "special": "true"},
-                {"bottom": "1", "hat": "1", "special": "false"},
-                {"bottom": "2", "hat": "2", "special": "false"},
-                {"bottom": "2", "hat": "2", "special": "false"},
-                {"bottom": "3", "hat": "2", "special": "false"},
+                {"bottom": "1", "hat": "1", "special": "none"},
+                {"bottom": "2", "hat": "2", "special": "none"},
+                {"bottom": "2", "hat": "2", "special": "none"},
+                {"bottom": "3", "hat": "2", "special": "none"},
             ]
         )
 
