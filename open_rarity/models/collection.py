@@ -1,3 +1,4 @@
+import warnings
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
@@ -11,7 +12,7 @@ from open_rarity.models.token_metadata import (
 from open_rarity.models.token_standard import TokenStandard
 from open_rarity.models.utils.attribute_utils import normalize_attribute_string
 
-TRAIT_COUNT_ATTRIBUTE_NAME = "meta trait: trait_count"
+TRAIT_COUNT_ATTRIBUTE_NAME = "meta_trait:trait_count"
 
 
 @dataclass
@@ -80,6 +81,13 @@ class Collection:
         | None = None,
         name: str | None = "",
     ):
+        if attributes_frequency_counts is not None:
+            warnings.warn(
+                "`attribute_frequency_counts` is deprecated and will be removed. "
+                "Counts will be derived from the token data.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self._trait_countify(tokens)
         self._tokens = tokens
         self.name = name or ""

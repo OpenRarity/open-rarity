@@ -139,7 +139,7 @@ def onerare_rarity_tokens(
             '-1': 1111, '0': 1111, '1': 1111, '2': 1111, '3': 1111,
             '4': 1111, '5': 1111, '6': 1111, '7': 1111, '9': 1
         },
-        'meta trait: trait_count': {'3': 10000}
+        'meta_trait:trait_count': {'3': 10000}
     }
     """
     tokens = []
@@ -213,7 +213,7 @@ def generate_onerare_rarity_collection(
             '-1': 1111, '0': 1111, '1': 1111, '2': 1111, '3': 1111,
             '4': 1111, '5': 1111, '6': 1111, '7': 1111, '9': 1
         },
-        'meta trait: trait_count': {'3': 10000}
+        'meta_trait:trait_count': {'3': 10000}
     }
     """
     tokens = onerare_rarity_tokens(
