@@ -69,14 +69,13 @@ class Collection:
     attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
     name: str
 
-    # TODO [vicky]: We should deprecate taking in attributes_frequency_counts
-    # as there can be divergence between the tokens and the attributes_frequency_counts.
-    # We should instead just take in tokens and compute the attributes_frequency_counts
-    # all the time.
     def __init__(
         self,
         tokens: list[Token],
         # Deprecated - Kept to not break interface, but is not used.
+        # We always coimpute the attributes_frequency_counts from the tokens to avoid
+        # divergence.
+        # TODO [10/16/22]: To remove in 1.0 release
         attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
         | None = None,
         name: str | None = "",
