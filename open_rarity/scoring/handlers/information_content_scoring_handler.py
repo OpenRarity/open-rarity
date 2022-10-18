@@ -116,19 +116,9 @@ class InformationContentScoringHandler:
         """
         logger.debug("Computing score for token %s", token)
 
-        # First calculate the individual attribute scores for all attributes
-        # of the provided token. Scores are the inverted probabilities of the
-        # attribute in the collection.
-        attr_scores, _ = get_token_attributes_scores_and_weights(
-            collection=collection,
-            token=token,
-            normalized=False,
-            collection_null_attributes=collection_null_attributes,
+        ic_token_score = self._get_ic_score(
+            collection, token, collection_null_attributes=collection_null_attributes
         )
-
-        # Get a single score (via information content) for the token by taking
-        # the sum of the logarithms of the attributes' scores.
-        ic_token_score = -np.sum(np.log2(np.reciprocal(attr_scores)))
         logger.debug("IC token score %s", ic_token_score)
 
         # Now, calculate the collection entropy to use as a normalization for
@@ -151,6 +141,26 @@ class InformationContentScoringHandler:
         )
 
         return normalized_token_score
+
+    def _get_ic_score(
+        self,
+        collection: Collection,
+        token: Token,
+        collection_null_attributes: dict[AttributeName, CollectionAttribute] = None,
+    ) -> float:
+        # First calculate the individual attribute scores for all attributes
+        # of the provided token. Scores are the inverted probabilities of the
+        # attribute in the collection.
+        attr_scores, _ = get_token_attributes_scores_and_weights(
+            collection=collection,
+            token=token,
+            normalized=False,
+            collection_null_attributes=collection_null_attributes,
+        )
+
+        # Get a single score (via information content) for the token by taking
+        # the sum of the logarithms of the attributes' scores.
+        return -np.sum(np.log2(np.reciprocal(attr_scores)))
 
     def _get_collection_entropy(
         self,

@@ -109,15 +109,15 @@ class RarityRanker:
             reverse=True,
         )
 
-        # perform ranking of each token in collection
-        for i, token in enumerate(sorted_token_rarities):
+        # Perform ranking of each token in collection
+        for i, token_rarity in enumerate(sorted_token_rarities):
             rank = i + 1
             if i > 0:
-                prev_token = sorted_token_rarities[i - 1]
-                scores_equal = math.isclose(token.score, prev_token.score)
+                prev_token_rarity = sorted_token_rarities[i - 1]
+                scores_equal = math.isclose(token_rarity.score, prev_token_rarity.score)
                 if scores_equal:
-                    rank = prev_token.rank
+                    rank = prev_token_rarity.rank
 
-            token.rank = rank
+            token_rarity.rank = rank
 
         return sorted_token_rarities

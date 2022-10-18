@@ -1,42 +1,66 @@
-from open_rarity.models.collection import Collection, CollectionAttribute
+from open_rarity.models.collection import (
+    TRAIT_COUNT_ATTRIBUTE_NAME,
+    Collection,
+    CollectionAttribute,
+)
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import StringAttribute, TokenMetadata
 from open_rarity.models.token_standard import TokenStandard
 from tests.helpers import (
     create_evm_token,
     create_numeric_evm_token,
+    create_string_evm_token,
     generate_mixed_collection,
 )
 
 
 class TestCollection:
 
-    attributes = {
-        "attribute1": {"value1": 20, "value2": 30},
-        "attribute2": {"value1": 10, "value2": 50},
-    }
-    tokens: list[Token] = [create_evm_token(token_id=i) for i in range(100)]
+    evm_token = create_evm_token(
+        token_id=1, metadata=TokenMetadata.from_attributes({"hat": "cap"})
+    )
 
-    string_numeric_tokens: list[Token] = [
-        create_evm_token(token_id=i) for i in range(50)
+    attributes = {
+        "hat": {"blue": 20, "red": 60},
+        "pants": {"jeans": 10, "sweats": 70},
+    }
+    tokens_with_attributes: list[Token] = [
+        create_evm_token(
+            token_id=i,
+            metadata=TokenMetadata.from_attributes(
+                {}
+                if i >= 80
+                else {
+                    "hat": "blue" if i < 20 else "red",
+                    "pants": "jeans" if i < 10 else "sweats",
+                }
+            ),
+        )
+        for i in range(100)
+    ]
+
+    test_collection_attributes: Collection = Collection(
+        name="collection with attributes mix",
+        tokens=tokens_with_attributes,
+    )
+
+    tokens_no_attributes: list[Token] = [
+        create_evm_token(token_id=i) for i in range(100)
+    ]
+
+    test_collection_no_attributes: Collection = Collection(
+        name="collection with tokens but no attributes",
+        tokens=tokens_no_attributes,
+    )
+
+    # All tokens have same attribute
+    tokens_mixed_type_attributes: list[Token] = [
+        create_string_evm_token(token_id=i) for i in range(50)
     ] + [create_numeric_evm_token(token_id=i) for i in range(50, 100)]
 
-    test_collection: Collection = Collection(
-        name="test",
-        tokens=tokens,
-        attributes_frequency_counts=attributes,
-    )
-
-    test_no_attributes_collection: Collection = Collection(
-        name="test2",
-        tokens=tokens,
-        attributes_frequency_counts={},
-    )
-
     test_numeric_attributes_collection: Collection = Collection(
-        name="test3",
-        tokens=string_numeric_tokens,
-        attributes_frequency_counts=attributes,
+        name="collection with uniform string and numeric attributes",
+        tokens=tokens_mixed_type_attributes,
     )
 
     test_mixed_erc_collection: Collection = Collection(
@@ -47,7 +71,6 @@ class TestCollection:
             for i in range(10, 50)
         ]
         + [create_evm_token(token_id=i) for i in range(50, 60)],
-        attributes_frequency_counts={},
     )
 
     test_erc1155_collection: Collection = Collection(
@@ -56,129 +79,82 @@ class TestCollection:
             create_evm_token(token_id=i, token_standard=TokenStandard.ERC1155)
             for i in range(10)
         ],
-        attributes_frequency_counts={},
     )
 
-    def test_attribute_frequency_counts_initialization(self):
-        all_lower_case_attributes = {
-            "hat": {"beanie": 40, "cap": 60},
-            "bottom": {"special": 1},
-        }
-        input_attributes_to_expected_output = [
-            [all_lower_case_attributes, all_lower_case_attributes],
-            # Name and one value has first letter uppercase
-            [
-                {"Hat": {"beanie": 40, "Cap": 60}, "bottom": {"special": 1}},
-                all_lower_case_attributes,
-            ],
-            # All caps
-            [
-                {"HAT": {"beanie": 40, "CAP": 60}, "Bottom": {"SPECIAL": 1}},
-                all_lower_case_attributes,
-            ],
-            # Duplicate traits
-            [
-                {
-                    "hat": {"beanie": 40, "cap": 29, "Cap": 31},
-                    "bottom": {"special": 1},
-                },
-                all_lower_case_attributes,
-            ],
-            # Duplicate trait names
-            [
-                {
-                    "hat": {"beanie": 40, "cap": 25},
-                    "Hat": {"Cap": 35},
-                    "bottom": {"special": 1},
-                },
-                all_lower_case_attributes,
-            ],
-            # Trailing or leading whitespaces
-            [
-                {
-                    " hat": {"beanie": 40, "cap": 25},
-                    "Hat ": {"Cap": 35},
-                    "bottom": {"special": 1},
-                },
-                all_lower_case_attributes,
-            ],
-            # Middle whitespace
-            [
-                {
-                    "hat": {
-                        "big beanie": 40,
-                        "cap": 25,
-                        "big beanie ": 10,
-                        "beanie": 5,
-                    },
-                },
-                {"hat": {"big beanie": 50, "cap": 25, "beanie": 5}},
-            ],
-            # Empty
-            [{}, {}],
-        ]
-
-        for (
-            input_attributes,
-            expected_attributes,
-        ) in input_attributes_to_expected_output:
-            c = Collection(
-                name="random",
-                tokens=[],
-                attributes_frequency_counts=input_attributes,
-            )
-            assert c.attributes_frequency_counts == expected_attributes
-
     def test_tokens(self):
-        collection_1 = Collection(
-            name="test",
-            tokens=self.tokens,
-            attributes_frequency_counts=self.attributes,
+        collection_one_token = Collection(tokens=[self.evm_token])
+        assert self.test_collection_attributes.tokens == self.tokens_with_attributes
+        assert self.test_collection_no_attributes.tokens == self.tokens_no_attributes
+        assert (
+            self.test_numeric_attributes_collection.tokens
+            == self.tokens_mixed_type_attributes
         )
-        collection_2 = Collection(
-            name="test",
-            tokens=self.tokens[0:50],
-            attributes_frequency_counts={},
-        )
+        assert collection_one_token.tokens == [self.evm_token]
 
-        assert collection_1.tokens == self.tokens
-        assert collection_2.tokens == self.tokens[0:50]
-        assert collection_1.token_total_supply == 100
-        assert collection_2.token_total_supply == 50
+        assert self.test_collection_attributes.token_total_supply == 100
+        assert self.test_collection_no_attributes.token_total_supply == 100
+        assert self.test_numeric_attributes_collection.token_total_supply == 100
+        assert collection_one_token.token_total_supply == 1
+
+        assert collection_one_token.attributes_frequency_counts == {
+            "hat": {"cap": 1},
+            TRAIT_COUNT_ATTRIBUTE_NAME: {"1": 1},
+        }
+        assert self.test_collection_no_attributes.attributes_frequency_counts == {
+            TRAIT_COUNT_ATTRIBUTE_NAME: {"0": 100}
+        }
+        assert self.test_collection_attributes.attributes_frequency_counts == {
+            **self.attributes,
+            TRAIT_COUNT_ATTRIBUTE_NAME: {"2": 80, "0": 20},
+        }
 
     def test_extract_null_attributes(self):
-        assert self.test_collection.extract_null_attributes() == {
-            "attribute1": CollectionAttribute(
-                StringAttribute("attribute1", "Null"), 50
-            ),
-            "attribute2": CollectionAttribute(
-                StringAttribute("attribute2", "Null"), 40
-            ),
+        assert self.test_collection_attributes.extract_null_attributes() == {
+            "hat": CollectionAttribute(StringAttribute("hat", "Null"), 20),
+            "pants": CollectionAttribute(StringAttribute("pants", "Null"), 20),
         }
 
     def test_extract_null_attributes_empty(self):
-        assert self.test_no_attributes_collection.extract_null_attributes() == {}
+        all_attributes = Collection(
+            tokens=self.tokens_with_attributes[0:80],
+        )
+        assert all_attributes.extract_null_attributes() == {}
+        assert self.test_collection_no_attributes.extract_null_attributes() == {}
 
     def test_extract_collection_attributes(self):
-        assert self.test_collection.extract_collection_attributes() == {
-            "attribute1": [
-                CollectionAttribute(StringAttribute("attribute1", "value1"), 20),
-                CollectionAttribute(StringAttribute("attribute1", "value2"), 30),
+        assert self.test_collection_attributes.extract_collection_attributes() == {
+            "hat": [
+                CollectionAttribute(StringAttribute("hat", "blue"), 20),
+                CollectionAttribute(StringAttribute("hat", "red"), 60),
             ],
-            "attribute2": [
-                CollectionAttribute(StringAttribute("attribute2", "value1"), 10),
-                CollectionAttribute(StringAttribute("attribute2", "value2"), 50),
+            "pants": [
+                CollectionAttribute(StringAttribute("pants", "jeans"), 10),
+                CollectionAttribute(StringAttribute("pants", "sweats"), 70),
+            ],
+            TRAIT_COUNT_ATTRIBUTE_NAME: [
+                CollectionAttribute(
+                    StringAttribute(TRAIT_COUNT_ATTRIBUTE_NAME, "2"), 80
+                ),
+                CollectionAttribute(
+                    StringAttribute(TRAIT_COUNT_ATTRIBUTE_NAME, "0"), 20
+                ),
             ],
         }
 
     def test_extract_empty_collection_attributes(self):
-        assert self.test_no_attributes_collection.extract_collection_attributes() == {}
+        assert self.test_collection_no_attributes.extract_collection_attributes() == {
+            TRAIT_COUNT_ATTRIBUTE_NAME: [
+                CollectionAttribute(
+                    StringAttribute(TRAIT_COUNT_ATTRIBUTE_NAME, "0"), 100
+                )
+            ]
+        }
 
     def test_has_numeric_attributes(self):
         assert self.test_numeric_attributes_collection.has_numeric_attribute
-        assert not self.test_collection.has_numeric_attribute
+        assert not self.test_collection_attributes.has_numeric_attribute
 
-    def test_collection_without_attributes_init(self):
+    def test_collection_init(self):
         collection = Collection(
             tokens=[
                 create_evm_token(
@@ -225,9 +201,181 @@ class TestCollection:
             },
             "something another": {"special": 1, "not special": 1},
             "new": {"very special": 1},
+            TRAIT_COUNT_ATTRIBUTE_NAME: {"3": 3},
         }
 
-    def test_collection_without_attributes_init_equality(self):
+    def test_init_no_trait_count(self):
+        tokens = [
+            create_evm_token(
+                token_id=1,
+                metadata=TokenMetadata.from_attributes(
+                    {
+                        "hat": "cap",
+                        "bottom": "jeans",
+                        "something another": "special",
+                    }
+                ),
+            ),
+            create_evm_token(
+                token_id=2,
+                metadata=TokenMetadata.from_attributes(
+                    {
+                        "hat": "cap",
+                        "something another": "not special",
+                    }
+                ),
+            ),
+            create_evm_token(
+                token_id=2,
+                metadata=TokenMetadata.from_attributes(
+                    {
+                        "hat": "bucket hat",
+                        "new": "very special",
+                        "integer trait - will not be shown": 1,
+                        "four": "four value",
+                    }
+                ),
+            ),
+            create_evm_token(
+                token_id=2,
+                metadata=TokenMetadata.from_attributes(
+                    {
+                        "hat": "bucket hat",
+                        "new": "very special",
+                        "integer trait - will not be shown": 1,
+                        "four": "four value",
+                    }
+                ),
+            ),
+        ]
+        collection = Collection(tokens=tokens)
+        assert collection.attributes_frequency_counts == {
+            "hat": {"cap": 2, "bucket hat": 2},
+            "bottom": {"jeans": 1},
+            "something another": {"special": 1, "not special": 1},
+            "new": {"very special": 2},
+            "four": {"four value": 2},
+            TRAIT_COUNT_ATTRIBUTE_NAME: {"3": 1, "2": 1, "4": 2},
+        }
+
+    def test_init_trait_count_diff_name_exists(self):
+        tokens = [
+            create_evm_token(
+                token_id=1,
+                metadata=TokenMetadata.from_attributes(
+                    {
+                        "hat": "cap",
+                        "bottom": "jeans",
+                        "something another": "special",
+                        "TRAIT_COUNT": "3",
+                    }
+                ),
+            ),
+            create_evm_token(
+                token_id=2,
+                metadata=TokenMetadata.from_attributes(
+                    {
+                        "hat": "cap",
+                        "something another": "not special",
+                        "TRAIT_COUNT": "2",
+                    }
+                ),
+            ),
+            create_evm_token(
+                token_id=2,
+                metadata=TokenMetadata.from_attributes(
+                    {
+                        "hat": "bucket hat",
+                        "new": "very special",
+                        "integer trait - will not be shown": 1,
+                        "four": "four value",
+                        "TRAIT_COUNT": "4",
+                    }
+                ),
+            ),
+            create_evm_token(
+                token_id=2,
+                metadata=TokenMetadata.from_attributes(
+                    {
+                        "hat": "bucket hat",
+                        "new": "very special",
+                        "integer trait - will not be shown": 1,
+                        "four": "four value",
+                        "TRAIT_COUNT": "4",
+                    }
+                ),
+            ),
+        ]
+        collection = Collection(tokens=tokens)
+        assert collection.attributes_frequency_counts == {
+            "hat": {"cap": 2, "bucket hat": 2},
+            "bottom": {"jeans": 1},
+            "something another": {"special": 1, "not special": 1},
+            "new": {"very special": 2},
+            "four": {"four value": 2},
+            "trait_count": {"3": 1, "2": 1, "4": 2},
+            TRAIT_COUNT_ATTRIBUTE_NAME: {"3": 1, "4": 1, "5": 2},
+        }
+
+    def test_init_trait_count_exists(self):
+        tokens = [
+            create_evm_token(
+                token_id=1,
+                metadata=TokenMetadata.from_attributes(
+                    {
+                        "hat": "cap",
+                        "bottom": "jeans",
+                        "something another": "special",
+                        TRAIT_COUNT_ATTRIBUTE_NAME: "3",
+                    }
+                ),
+            ),
+            create_evm_token(
+                token_id=2,
+                metadata=TokenMetadata.from_attributes(
+                    {
+                        "hat": "cap",
+                        "something another": "not special",
+                        TRAIT_COUNT_ATTRIBUTE_NAME: "2",
+                    }
+                ),
+            ),
+            create_evm_token(
+                token_id=2,
+                metadata=TokenMetadata.from_attributes(
+                    {
+                        "hat": "bucket hat",
+                        "new": "very special",
+                        "integer trait - will not be shown": 1,
+                        "four": "four value",
+                        TRAIT_COUNT_ATTRIBUTE_NAME: "4",
+                    }
+                ),
+            ),
+            create_evm_token(
+                token_id=2,
+                metadata=TokenMetadata.from_attributes(
+                    {
+                        "hat": "bucket hat",
+                        "new": "very special",
+                        "integer trait - will not be shown": 1,
+                        "four": "four value",
+                        TRAIT_COUNT_ATTRIBUTE_NAME: "4",
+                    }
+                ),
+            ),
+        ]
+        collection = Collection(tokens=tokens)
+        assert collection.attributes_frequency_counts == {
+            "hat": {"cap": 2, "bucket hat": 2},
+            "bottom": {"jeans": 1},
+            "something another": {"special": 1, "not special": 1},
+            "new": {"very special": 2},
+            "four": {"four value": 2},
+            TRAIT_COUNT_ATTRIBUTE_NAME: {"3": 1, "2": 1, "4": 2},
+        }
+
+    def test_collection_init_equality(self):
         large_collection = generate_mixed_collection()
         comparable_collection = Collection(tokens=large_collection.tokens)
         assert (
@@ -236,8 +384,8 @@ class TestCollection:
         )
 
     def test_token_standards(self):
-        assert self.test_collection.token_standards == [TokenStandard.ERC721]
-        assert self.test_no_attributes_collection.token_standards == [
+        assert self.test_collection_attributes.token_standards == [TokenStandard.ERC721]
+        assert self.test_collection_no_attributes.token_standards == [
             TokenStandard.ERC721
         ]
         assert self.test_erc1155_collection.token_standards == [TokenStandard.ERC1155]

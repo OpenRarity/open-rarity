@@ -7,8 +7,14 @@ from open_rarity.models.token_identifier import (
     TokenIdentifier,
     get_identifier_class_from_dict,
 )
-from open_rarity.models.token_metadata import AttributeName, TokenMetadata
+from open_rarity.models.token_metadata import (
+    Attribute,
+    AttributeName,
+    StringAttribute,
+    TokenMetadata,
+)
 from open_rarity.models.token_standard import TokenStandard
+from open_rarity.models.utils.attribute_utils import normalize_attribute_string
 
 
 @dataclass
@@ -112,6 +118,29 @@ class Token:
 
     def attributes(self) -> dict[AttributeName, Any]:
         return self.metadata.to_attributes()
+
+    def has_attribute(self, attribute_name: str) -> bool:
+        return self.metadata.attribute_exists(attribute_name)
+
+    def trait_count(self) -> int:
+        """Returns the count of non-null, non-"none" value traits this token has."""
+
+        def get_attributes_count(attributes: list[Attribute]) -> int:
+            return sum(
+                map(
+                    lambda a: (
+                        not isinstance(a, StringAttribute)
+                        or normalize_attribute_string(a.value) not in ("none", "")
+                    ),
+                    attributes,
+                )
+            )
+
+        return (
+            get_attributes_count(self.metadata.string_attributes.values())
+            + get_attributes_count(self.metadata.numeric_attributes.values())
+            + get_attributes_count(self.metadata.date_attributes.values())
+        )
 
     def to_dict(self) -> dict:
         return {

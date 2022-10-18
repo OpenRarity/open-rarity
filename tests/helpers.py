@@ -31,6 +31,22 @@ def create_evm_token(
     )
 
 
+def create_string_evm_token(
+    token_id: int,
+    contract_address: str = "0xaaa",
+    token_standard: TokenStandard = TokenStandard.ERC721,
+) -> Token:
+    string_metadata = TokenMetadata(
+        string_attributes={"test name": StringAttribute("test name", "test value")}
+    )
+    return create_evm_token(
+        token_id=token_id,
+        contract_address=contract_address,
+        token_standard=token_standard,
+        metadata=string_metadata,
+    )
+
+
 def create_numeric_evm_token(
     token_id: int,
     contract_address: str = "0xaaa",
@@ -47,36 +63,34 @@ def create_numeric_evm_token(
     )
 
 
-def generate_uniform_attributes_count(
+def uniform_rarity_tokens(
     attribute_count: int = 5,
     values_per_attribute: int = 10,
     token_total_supply: int = 10000,
-) -> dict[str, dict[str, int]]:
-    """Generate trait counts with uniformly distributed attributes
-    Example output(with default inputs):
-    {
-        "0": {"0": 1,000, "1": 1,000, "2": 1,000, ... "9": 1,000},
-        ...
-        "4": {"0": 1,000, "1": 1,000, "2": 1,000, ... "9": 1,000},
-    }
-    This means every token in the 10,000 collection will have exactly
-    <attribute_count> traits.
+):
+    tokens = []
+    for token_id in range(token_total_supply):
+        string_attribute_dict = {}
 
-    """
+        # Construct attributes for the token such that the first bucket
+        # gets the first possible value for every attribute, second bucket
+        # gets the second possible value for every attribute, etc.
+        for attr_name in range(attribute_count):
+            string_attribute_dict[str(attr_name)] = StringAttribute(
+                name=str(attr_name),
+                value=str(token_id // (token_total_supply // values_per_attribute)),
+            )
 
-    if token_total_supply % values_per_attribute > 0:
-        raise Exception(
-            """token_total_supply must be divisible by values_per_attribute
-            for uniform count metadata"""
+        tokens.append(
+            Token(
+                token_identifier=EVMContractTokenIdentifier(
+                    contract_address="0x0", token_id=token_id
+                ),
+                token_standard=TokenStandard.ERC721,
+                metadata=TokenMetadata(string_attributes=string_attribute_dict),
+            )
         )
-
-    return {
-        str(attr_name): {
-            str(attr_value): token_total_supply // values_per_attribute
-            for attr_value in range(values_per_attribute)
-        }
-        for attr_name in range(attribute_count)
-    }
+    return tokens
 
 
 def generate_uniform_rarity_collection(
@@ -90,84 +104,45 @@ def generate_uniform_rarity_collection(
     Every bucket of (token_total_supply // values_per_attribute) gets the same
     attributes.
     """
-
-    collection_attributes_count = generate_uniform_attributes_count(
-        attribute_count, values_per_attribute, token_total_supply
+    tokens = uniform_rarity_tokens(
+        token_total_supply=token_total_supply,
+        attribute_count=attribute_count,
+        values_per_attribute=values_per_attribute,
     )
 
-    token_list = []
-    for token_id in range(token_total_supply):
-        string_attribute_dict = {}
-
-        # Construct attributes for the token such that the first bucket
-        # gets the first possible value for every attribute, second bucket
-        # gets the second possible value for every attribute, etc.
-        for attr_name in range(attribute_count):
-            string_attribute_dict[str(attr_name)] = StringAttribute(
-                name=str(attr_name),
-                value=str(token_id // (token_total_supply // values_per_attribute)),
-            )
-
-        token_list.append(
-            Token(
-                token_identifier=EVMContractTokenIdentifier(
-                    contract_address="0x0", token_id=token_id
-                ),
-                token_standard=TokenStandard.ERC721,
-                metadata=TokenMetadata(string_attributes=string_attribute_dict),
-            )
-        )
-
-    return Collection(
-        name="Uniform Rarity Collection",
-        tokens=token_list,
-        attributes_frequency_counts=collection_attributes_count,
-    )
+    return Collection(name="Uniform Rarity Collection", tokens=tokens)
 
 
-def generate_onerare_attributes_count(
-    attribute_count: int = 5,
-    values_per_attribute: int = 10,
-    token_total_supply: int = 10000,
-) -> dict[str, dict[str, int]]:
-    """Generate a Collection with every token except a single token has uniformly
-    distributed attributes. The single rare token will be the only token that
-    exhibits a unique attribute name/value combo for all attributes.
-    """
-
-    if (token_total_supply - 1) % (values_per_attribute - 1) > 0:
-        raise Exception(
-            """token_total_supply-1 must be divisible by values_per_attribute-1
-            for onerare count metadata"""
-        )
-
-    # Start with a uniform distribution for the entire token supply minus one token.
-    collection_attributes_count = generate_uniform_attributes_count(
-        attribute_count, values_per_attribute - 1, token_total_supply - 1
-    )
-
-    # Make it such that this last token is a rare token with a unique value for
-    # all attributes.
-    for attr_name in range(attribute_count):
-        attr_value = str(values_per_attribute - 1)
-        collection_attributes_count[str(attr_name)][attr_value] = 1
-
-    return collection_attributes_count
-
-
-def generate_onerare_rarity_collection(
-    attribute_count: int = 5,
+def onerare_rarity_tokens(
+    attribute_count: int = 3,
     values_per_attribute: int = 10,
     token_total_supply: int = 10000,
 ) -> Collection:
     """generate a Collection with a single token with one rare attribute;
-    otherwise uniformly distributed attributes"""
+    otherwise uniformly distributed attributes.
 
-    collection_attributes_count = generate_onerare_attributes_count(
-        attribute_count, values_per_attribute, token_total_supply
-    )
-
-    token_list = []
+    For default params:
+        - every bundle of 1111 tokens have exactly the same attributes
+        - the first 9,999 tokens all have attributes with the same probabilities
+        - the last token has all unique attributes
+    Collection attributes frequency:
+    {
+        '0': {
+            '-1': 1111, '0': 1111, '1': 1111, '2': 1111, '3': 1111,
+            '4': 1111, '5': 1111, '6': 1111, '7': 1111, '9': 1
+        },
+        '1': {
+            '-1': 1111, '0': 1111, '1': 1111, '2': 1111, '3': 1111,
+            '4': 1111, '5': 1111, '6': 1111, '7': 1111, '9': 1
+        },
+        '2': {
+            '-1': 1111, '0': 1111, '1': 1111, '2': 1111, '3': 1111,
+            '4': 1111, '5': 1111, '6': 1111, '7': 1111, '9': 1
+        },
+        'meta_trait:trait_count': {'3': 10000}
+    }
+    """
+    tokens = []
 
     # Create attributes for all the uniform tokens
     for token_id in range(token_total_supply - 1):
@@ -177,11 +152,11 @@ def generate_onerare_rarity_collection(
             string_attribute_dict[AttributeName(attr_name)] = StringAttribute(
                 name=AttributeName(attr_name),
                 value=str(
-                    token_id // (token_total_supply - 1 // values_per_attribute - 1)
+                    token_id // (token_total_supply // (values_per_attribute - 1)) - 1
                 ),
             )
 
-        token_list.append(
+        tokens.append(
             Token(
                 token_identifier=EVMContractTokenIdentifier(
                     contract_address="0x0", token_id=token_id
@@ -196,10 +171,10 @@ def generate_onerare_rarity_collection(
     for attr_name in range(attribute_count):
         rare_token_string_attribute_dict[AttributeName(attr_name)] = StringAttribute(
             name=AttributeName(attr_name),
-            value=str(values_per_attribute - 1),
+            value=str(values_per_attribute),
         )
 
-    token_list.append(
+    tokens.append(
         Token(
             token_identifier=EVMContractTokenIdentifier(
                 contract_address="0x0", token_id=token_total_supply - 1
@@ -209,11 +184,45 @@ def generate_onerare_rarity_collection(
         )
     )
 
-    return Collection(
-        name="One Rare Rarity Collection",
-        tokens=token_list,
-        attributes_frequency_counts=collection_attributes_count,
+    return tokens
+
+
+def generate_onerare_rarity_collection(
+    attribute_count: int = 3,
+    values_per_attribute: int = 10,
+    token_total_supply: int = 10000,
+) -> Collection:
+    """generate a Collection with a single token with one rare attribute;
+    otherwise uniformly distributed attributes.
+
+    For default params:
+        - every bundle of 1111 tokens have exactly the same attributes
+        - the first 9,999 tokens all have attributes with the same probabilities
+        - the last token has all unique attributes
+    Collection attributes frequency:
+    {
+        '0': {
+            '-1': 1111, '0': 1111, '1': 1111, '2': 1111, '3': 1111,
+            '4': 1111, '5': 1111, '6': 1111, '7': 1111, '9': 1
+        },
+        '1': {
+            '-1': 1111, '0': 1111, '1': 1111, '2': 1111, '3': 1111,
+            '4': 1111, '5': 1111, '6': 1111, '7': 1111, '9': 1
+        },
+        '2': {
+            '-1': 1111, '0': 1111, '1': 1111, '2': 1111, '3': 1111,
+            '4': 1111, '5': 1111, '6': 1111, '7': 1111, '9': 1
+        },
+        'meta_trait:trait_count': {'3': 10000}
+    }
+    """
+    tokens = onerare_rarity_tokens(
+        token_total_supply=token_total_supply,
+        attribute_count=attribute_count,
+        values_per_attribute=values_per_attribute,
     )
+
+    return Collection(name="One Rare Rarity Collection", tokens=tokens)
 
 
 def generate_collection_with_token_traits(
@@ -221,29 +230,7 @@ def generate_collection_with_token_traits(
     token_identifier_type: str = "evm_contract",
 ) -> Collection:
     tokens = []
-    attributes_frequency_counts = {}
     for idx, token_traits in enumerate(tokens_traits):
-        token_string_attributes: dict[str, StringAttribute] = {}
-        token_number_attributes: dict[str, NumericAttribute] = {}
-
-        for attribute_name, attribute_value in token_traits.items():
-            # Update collection attributes frequency based on tokens' traits
-            attributes_frequency_counts.setdefault(attribute_name, {}).setdefault(
-                attribute_value, 0
-            )
-            attributes_frequency_counts[attribute_name][attribute_value] += 1
-
-            # Create the string attributes for token
-            if isinstance(attribute_value, str):
-                token_string_attributes[attribute_name] = StringAttribute(
-                    name=attribute_name, value=attribute_value
-                )
-            else:
-                token_number_attributes[attribute_name] = NumericAttribute(
-                    name=attribute_name, value=attribute_value
-                )
-
-        # Add the tokens
         match token_identifier_type:
             case EVMContractTokenIdentifier.identifier_type:
                 identifier_type = EVMContractTokenIdentifier(
@@ -264,24 +251,17 @@ def generate_collection_with_token_traits(
             Token(
                 token_identifier=identifier_type,
                 token_standard=token_standard,
-                metadata=TokenMetadata(
-                    string_attributes=token_string_attributes,
-                    numeric_attributes=token_number_attributes,
-                ),
+                metadata=TokenMetadata.from_attributes(token_traits),
             )
         )
 
-    return Collection(
-        name="My collection",
-        tokens=tokens,
-        attributes_frequency_counts=attributes_frequency_counts,
-    )
+    return Collection(name="My collection", tokens=tokens)
 
 
 def get_mixed_trait_spread(
     max_total_supply: int = 10000,
 ) -> dict[str, dict[str, float]]:
-    # dict[attribute name, dict[attribute value, % of max supply]]
+    # dict[attribute name, dict[attribute value, items with that attribute]]
     return {
         "hat": {
             "cap": int(max_total_supply * 0.2),
@@ -313,7 +293,7 @@ def generate_mixed_collection(max_total_supply: int = 10000):
        20% have "vest"
      "special":
        1% have "special"
-       others none
+       others "null"
     Note: The token ids are shuffled and it is random order in terms of
     which trait/value combo they get.
     """

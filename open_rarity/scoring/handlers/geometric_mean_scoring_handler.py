@@ -1,13 +1,9 @@
-import logging
-
 import scipy.stats
 
 from open_rarity.models.collection import Collection, CollectionAttribute
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import AttributeName
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
-
-logger = logging.getLogger("open_rarity_logger")
 
 
 class GeometricMeanScoringHandler:
@@ -72,8 +68,6 @@ class GeometricMeanScoringHandler:
         float
             The token score
         """
-        logger.debug(f"Computing geometric mean for {collection} token {token}")
-
         attr_scores, attr_weights = get_token_attributes_scores_and_weights(
             collection=collection,
             token=token,

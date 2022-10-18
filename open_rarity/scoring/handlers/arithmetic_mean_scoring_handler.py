@@ -1,13 +1,9 @@
-import logging
-
 import numpy as np
 
 from open_rarity.models.collection import Collection, CollectionAttribute
 from open_rarity.models.token import Token
 from open_rarity.models.token_metadata import AttributeName
 from open_rarity.scoring.utils import get_token_attributes_scores_and_weights
-
-logger = logging.getLogger("open_rarity_logger")
 
 
 class ArithmeticMeanScoringHandler:
@@ -69,21 +65,11 @@ class ArithmeticMeanScoringHandler:
         float
             The token score
         """
-        logger.debug("Computing arithmetic mean for token %s", token)
-
         attr_scores, attr_weights = get_token_attributes_scores_and_weights(
             collection=collection,
             token=token,
             normalized=normalized,
             collection_null_attributes=collection_null_attributes,
-        )
-
-        logger.debug(
-            "[amean] Calculated for %s %s:%s %s",
-            collection,
-            token,
-            attr_scores,
-            attr_weights,
         )
 
         avg = float(np.average(attr_scores, weights=attr_weights))

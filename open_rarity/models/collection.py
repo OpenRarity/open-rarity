@@ -1,3 +1,4 @@
+import warnings
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
@@ -10,6 +11,8 @@ from open_rarity.models.token_metadata import (
 )
 from open_rarity.models.token_standard import TokenStandard
 from open_rarity.models.utils.attribute_utils import normalize_attribute_string
+
+TRAIT_COUNT_ATTRIBUTE_NAME = "meta_trait:trait_count"
 
 
 @dataclass
@@ -69,20 +72,27 @@ class Collection:
     def __init__(
         self,
         tokens: list[Token],
+        # Deprecated - Kept to not break interface, but is not used.
+        # We always coimpute the attributes_frequency_counts from the tokens to avoid
+        # divergence.
+        # TODO [10/16/22]: To remove in 1.0 release
         attributes_frequency_counts: dict[AttributeName, dict[AttributeValue, int]]
         | None = None,
         name: str | None = "",
     ):
+        if attributes_frequency_counts is not None:
+            warnings.warn(
+                "`attribute_frequency_counts` is deprecated and will be removed. "
+                "Counts will be derived from the token data.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        self._trait_countify(tokens)
         self._tokens = tokens
         self.name = name or ""
-        if attributes_frequency_counts:
-            self.attributes_frequency_counts = (
-                self._normalize_attributes_frequency_counts(attributes_frequency_counts)
-            )
-        else:
-            self.attributes_frequency_counts = (
-                self._derive_normalized_attributes_frequency_counts()
-            )
+        self.attributes_frequency_counts = (
+            self._derive_normalized_attributes_frequency_counts()
+        )
 
     @property
     def tokens(self) -> list[Token]:
@@ -200,6 +210,31 @@ class Collection:
                 )
 
         return collection_traits
+
+    def _trait_countify(self, tokens: list[Token]) -> None:
+        """Updates tokens to have meta attribute "meta trait: trait_count" if it doesn't
+        already exist.
+
+        Parameters
+        ----------
+        tokens : list[Token]
+            List of tokens to add trait count attribute to. Modifies in place.
+
+        """
+        for token in tokens:
+            trait_count = token.trait_count()
+            if token.has_attribute(TRAIT_COUNT_ATTRIBUTE_NAME):
+                trait_count -= 1
+            # NOTE: There is a chance we override an existing attribute here, but it's
+            # highly unlikely that a token would have a trait_count attribute to begin
+            # with (no known collections have it right now).
+            # To decrease the chance of collision, we pre-pend "meta trait: ".
+            # If an existing trait count attribute already exists with a different name,
+            # we will not remove it. In the future, we can refactor to distinguish
+            # between meta and non-meta attributes.
+            token.metadata.add_attribute(
+                StringAttribute(name=TRAIT_COUNT_ATTRIBUTE_NAME, value=str(trait_count))
+            )
 
     def _normalize_attributes_frequency_counts(
         self,
