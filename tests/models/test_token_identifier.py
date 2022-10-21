@@ -1,4 +1,4 @@
-from open_rarity.models.token_identifier import (
+from openrarity.token_identifier import (
     EVMContractTokenIdentifier,
     SolanaMintAddressTokenIdentifier,
 )

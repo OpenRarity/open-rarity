@@ -1,4 +1,4 @@
-from open_rarity.scorers.features import TokenFeatureExtractor
+from openrarity.scorers.features import TokenFeatureExtractor
 from tests.helpers import generate_collection_with_token_traits
 
 

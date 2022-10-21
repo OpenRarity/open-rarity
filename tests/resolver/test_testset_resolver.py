@@ -1,7 +1,7 @@
 import pytest
 
-from open_rarity.providers.models.token import RankProvider
-from open_rarity.providers.testset_resolver import resolve_collection_data
+from openrarity.providers.token import RankProvider
+from openrarity.providers.testset_resolver import resolve_collection_data
 
 
 class TestTestsetResolver:

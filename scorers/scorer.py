@@ -1,7 +1,7 @@
-from open_rarity.models.collection.collection import Collection
-from open_rarity.models.token.standard import TokenStandard
-from open_rarity.models.token.token import Token
-from open_rarity.scorers.information_content import IC
+from openrarity.collection.collection import Collection
+from openrarity.token.standard import TokenStandard
+from openrarity.token.token import Token
+from openrarity.scorers.information_content import IC
 
 
 class Scorer:

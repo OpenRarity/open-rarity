@@ -1,6 +1,6 @@
 from random import sample
 
-from open_rarity.scorers.utils import get_token_attributes_scores_and_weights
+from openrarity.scorers.utils import get_token_attributes_scores_and_weights
 from tests.helpers import (
     generate_collection_with_token_traits,
     generate_mixed_collection,

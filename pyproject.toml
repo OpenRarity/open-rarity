@@ -2,7 +2,7 @@
 authors = ["Dan Meshkov <daniil.meshkov@opensea.io>", "Vicky Gong <vicky.gong@opensea.io>"]
 description = "Open-Rarity library is an open standard that provides an easy, explanable and reproducible computation for NFT rarity"
 license = "Apache-2.0"
-name = "open-rarity"
+name = "openrarity"
 version = "0.5.1-beta"
 
 exclude = ["**/__tests__"]

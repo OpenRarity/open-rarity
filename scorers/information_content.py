@@ -1,12 +1,12 @@
 import logging
 from math import log2
 
-# from open_rarity.models.collections.collection import Collection, CollectionAttribute
-from open_rarity.models.collection.types import AttributeCounts
+# from open_rarity.collections.collection import Collection, CollectionAttribute
+from openrarity.collection.types import AttributeCounts
 
 # import numpy as np
 
-# from open_rarity.models.tokens.token import Token
+# from open_rarity.tokens.token import Token
 # from open_rarity.scorers.utils import get_token_attributes_scores_and_weights
 
 logger = logging.getLogger("open_rarity_logger")

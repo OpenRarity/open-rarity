@@ -2,9 +2,9 @@ import argparse
 import csv
 import json
 
-from open_rarity import RarityRanker
-from open_rarity.models.token.rarity import TokenRarity
-from open_rarity.providers.opensea import get_collection_from_opensea
+from openrarity import RarityRanker
+from openrarity.token.rarity import TokenRarity
+from openrarity.providers.opensea import get_collection_from_opensea
 
 parser = argparse.ArgumentParser()
 parser.add_argument(

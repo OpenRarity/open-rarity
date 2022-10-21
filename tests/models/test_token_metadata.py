@@ -1,5 +1,5 @@
 import pytest
-from open_rarity.models.token.metadata import (
+from openrarity.token.metadata import (
     DateAttribute,
     NumericAttribute,
     StringAttribute,

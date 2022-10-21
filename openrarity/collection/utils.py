@@ -3,13 +3,8 @@ from itertools import chain
 
 from satchel import groupapply
 
-from open_rarity.models.token import (
-    AttributeName,
-    RawToken,
-    TokenAttribute,
-    TokenSchema,
-)
-from open_rarity.models.token.types import TokenId
+from openrarity.token import AttributeName, RawToken, TokenAttribute, TokenSchema
+from openrarity.token.types import TokenId
 
 
 def flatten_token_data(tokens: dict[TokenId, RawToken]) -> list[TokenAttribute]:

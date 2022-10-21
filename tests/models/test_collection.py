@@ -1,7 +1,7 @@
-from open_rarity.models.collection.collection import Collection, CollectionAttribute
-from open_rarity.models.token.metadata import StringAttribute, TokenMetadata
-from open_rarity.models.token.standard import TokenStandard
-from open_rarity.models.token.token import Token
+from openrarity.collection.collection import Collection, CollectionAttribute
+from openrarity.token.metadata import StringAttribute, TokenMetadata
+from openrarity.token.standard import TokenStandard
+from openrarity.token.token import Token
 from tests.helpers import (
     create_evm_token,
     create_numeric_evm_token,

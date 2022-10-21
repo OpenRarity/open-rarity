@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, root_validator, validator
 
-from open_rarity.models.validators.string import clean_lower_string
+from openrarity.validators.string import clean_lower_string
 
 logger = Logger(__name__)
 

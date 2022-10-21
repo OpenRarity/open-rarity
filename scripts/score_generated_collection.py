@@ -1,9 +1,9 @@
-from open_rarity import (
+from openrarity import (
     Collection,
     OpenRarityScorer,
     Token,
 )
-from open_rarity.rarity_ranker import RarityRanker
+from openrarity.rarity_ranker import RarityRanker
 
 if __name__ == "__main__":
     scorer = OpenRarityScorer()

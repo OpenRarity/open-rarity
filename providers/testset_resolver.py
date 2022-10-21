@@ -10,25 +10,25 @@ from time import process_time, strftime
 
 import numpy as np
 
-from open_rarity.models.collection.collection import Collection
-from open_rarity.models.token.identifier import EVMContractTokenIdentifier
-from open_rarity.models.token.rarity import TokenRarity
-from open_rarity.models.token.token import Token
-from open_rarity.providers.external_rarity_provider import (
+from openrarity.collection.collection import Collection
+from openrarity.token.identifier import EVMContractTokenIdentifier
+from openrarity.token.rarity import TokenRarity
+from openrarity.token.token import Token
+from openrarity.providers.external_rarity_provider import (
     EXTERNAL_RANK_PROVIDERS,
     ExternalRarityProvider,
 )
-from open_rarity.providers.models.collection import CollectionWithMetadata
-from open_rarity.providers.models.token import (
+from openrarity.providers.collection import CollectionWithMetadata
+from openrarity.providers.token import (
     RankProvider,
     RarityData,
     TokenWithRarityData,
 )
-from open_rarity.providers.opensea import get_collection_with_metadata_from_opensea
-from open_rarity.rarity_ranker import RarityRanker
-from open_rarity.scorers.features import TokenFeatureExtractor
-from open_rarity.scorers.information_content import IC
-from open_rarity.scorers.sum_scoring_handler import SumScoringHandler
+from openrarity.providers.opensea import get_collection_with_metadata_from_opensea
+from openrarity.rarity_ranker import RarityRanker
+from openrarity.scorers.features import TokenFeatureExtractor
+from openrarity.scorers.information_content import IC
+from openrarity.scorers.sum_scoring_handler import SumScoringHandler
 
 sum_handler = SumScoringHandler()
 ic_handler = IC()

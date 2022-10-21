@@ -1,7 +1,7 @@
 import pytest
 
-from open_rarity import Collection, OpenRarityScorer, TokenStandard
-from open_rarity.scorers.information_content import IC
+from openrarity import Collection, OpenRarityScorer, TokenStandard
+from openrarity.scorers.information_content import IC
 from tests.helpers import create_evm_token, generate_collection_with_token_traits
 
 

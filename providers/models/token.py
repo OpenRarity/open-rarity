@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from open_rarity.models.token import Token
+from openrarity.token import Token
 
 
 class RankProvider(Enum):

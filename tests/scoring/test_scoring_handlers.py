@@ -4,8 +4,8 @@ from random import sample
 import numpy as np
 import pytest
 
-from open_rarity.scorers.information_content import IC
-from open_rarity.scorers.utils import get_token_attributes_scores_and_weights
+from openrarity.scorers.information_content import IC
+from openrarity.scorers.utils import get_token_attributes_scores_and_weights
 from tests.helpers import (
     generate_collection_with_token_traits,
     generate_mixed_collection,

@@ -1,6 +1,6 @@
-from pydantic import BaseModel, parse_obj_as, root_validator
+from pydantic import BaseModel, root_validator
 
-from open_rarity.metrics.trait_count import count_traits
+from openrarity.metrics.trait_count import count_traits
 
 from .metadata import MetadataAttributeModel
 from .types import RawToken, TokenId

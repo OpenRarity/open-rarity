@@ -1,5 +1,5 @@
-from open_rarity.models.collection.collection import Collection, CollectionAttribute
-from open_rarity.models.token.token import Token
+from openrarity.collection.collection import Collection, CollectionAttribute
+from openrarity.token.token import Token
 
 
 def get_token_attributes_scores_and_weights(

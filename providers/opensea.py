@@ -3,19 +3,19 @@ import logging
 import math
 
 import requests
-from requests.models import HTTPError
+from requests import HTTPError
 
-from open_rarity.models.collection.collection import Collection
-from open_rarity.models.token.identifier import EVMContractTokenIdentifier
-from open_rarity.models.token.metadata import (
+from openrarity.collection.collection import Collection
+from openrarity.token.identifier import EVMContractTokenIdentifier
+from openrarity.token.metadata import (
     DateAttribute,
     NumericAttribute,
     StringAttribute,
     TokenMetadata,
 )
-from open_rarity.models.token.standard import TokenStandard
-from open_rarity.models.token.token import Token
-from open_rarity.providers.models.collection import CollectionWithMetadata
+from openrarity.token.standard import TokenStandard
+from openrarity.token.token import Token
+from openrarity.providers.collection import CollectionWithMetadata
 
 logger = logging.getLogger("open_rarity_logger")
 

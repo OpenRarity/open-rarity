@@ -4,13 +4,13 @@ from logging import Logger
 from os import PathLike
 from typing import Literal, overload
 
-from open_rarity.io import read, write
-from open_rarity.metrics.ic import information_content
-from open_rarity.models.token import (
+from openrarity.io import read, write
+from openrarity.metrics.ic import information_content
+from openrarity.token import (
+    AttributeStatistic,
     RankedToken,
     RawToken,
     TokenAttribute,
-    AttributeStatistic,
     validate_tokens,
 )
 

@@ -1,6 +1,6 @@
-from open_rarity.models.collection.collection import Collection
-from open_rarity.models.token.features import TokenFeatures
-from open_rarity.models.token.token import Token
+from openrarity.collection.collection import Collection
+from openrarity.token.features import TokenFeatures
+from openrarity.token.token import Token
 
 
 class TokenFeatureExtractor:

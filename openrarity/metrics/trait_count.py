@@ -1,5 +1,5 @@
-from open_rarity.models.token import AttributeStatistic
-from open_rarity.models.token.types import MetadataAttribute
+from openrarity.token import AttributeStatistic
+from openrarity.token.types import MetadataAttribute
 
 
 def unique_trait_count(tokens: list[AttributeStatistic]) -> list[AttributeStatistic]:

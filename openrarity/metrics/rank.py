@@ -2,7 +2,7 @@
 methodology as opposed to DENSE RANK. This means that ties would show up as 1, 1, 1, 4
 as opposed to 1, 1, 1, 2.
 """
-from open_rarity.models.token import RankedToken, AttributeStatistic
+from openrarity.token import RankedToken, AttributeStatistic
 
 
 def rank_semi_fungible_tokens(
