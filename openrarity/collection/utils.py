@@ -1,11 +1,12 @@
 from collections import defaultdict
 from itertools import chain
+from math import prod
 from typing import Literal
 
 from satchel import groupapply
 
 from openrarity.token import AttributeName, RawToken, TokenAttribute, TokenSchema
-from openrarity.token.types import TokenId
+from openrarity.token.types import RankedToken, TokenId, TokenStatistic
 
 
 def flatten_token_data(tokens: dict[TokenId, RawToken]) -> list[TokenAttribute]:
@@ -157,4 +158,25 @@ def enforce_schema(
     schema = _create_token_schema(tokens)
     return schema, sorted(
         [*tokens, *_create_null_values(tokens, schema)], key=lambda t: t["token_id"]
+    )
+
+
+def aggregate_tokens(tokens: list[TokenStatistic]) -> list[TokenStatistic]:
+    return sorted(
+        [
+            {"token_id": tid, **stats}
+            for tid, stats in groupapply(
+                tokens,
+                "token_id",
+                lambda group: {
+                    "probability": prod((t["probability"] for t in group)),
+                    "ic": sum((t["ic"] for t in group)),
+                    "unique_traits": sum(
+                        (t["count"] for t in group if t["count"] == 1)
+                    ),
+                },
+            ).items()
+        ],
+        key=lambda token: (token["unique_traits"], token["ic"]),
+        reverse=True,
     )

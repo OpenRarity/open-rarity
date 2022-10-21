@@ -19,7 +19,12 @@ from openrarity.token import (
 from openrarity.utils import merge
 
 from . import AttributeStatistic
-from .utils import count_attribute_values, enforce_schema, flatten_token_data
+from .utils import (
+    aggregate_tokens,
+    count_attribute_values,
+    enforce_schema,
+    flatten_token_data,
+)
 
 logger = Logger(__name__)
 
@@ -125,8 +130,8 @@ class TokenCollection:
             self._vertical_attribute_data, self._attribute_statistics, ("name", "value")
         )
 
-        # TODO: Placeholder to suppress error
-        self._ranks = ["ranks"]
+        self._ranks = aggregate_tokens(self._token_statistics)
+
         if return_ranks:
             return self._ranks
 
