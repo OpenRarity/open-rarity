@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from open_rarity.models.collections.collection import Collection
+from open_rarity.models.collection.collection import Collection
 
 
 @dataclass

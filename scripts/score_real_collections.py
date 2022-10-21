@@ -3,7 +3,7 @@ import csv
 import json
 
 from open_rarity import RarityRanker
-from open_rarity.models.tokens.rarity import TokenRarity
+from open_rarity.models.token.rarity import TokenRarity
 from open_rarity.providers.opensea import get_collection_from_opensea
 
 parser = argparse.ArgumentParser()

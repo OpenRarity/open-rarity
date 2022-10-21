@@ -5,16 +5,16 @@ import math
 import requests
 from requests.models import HTTPError
 
-from open_rarity.models.collections.collection import Collection
-from open_rarity.models.tokens.identifier import EVMContractTokenIdentifier
-from open_rarity.models.tokens.metadata import (
+from open_rarity.models.collection.collection import Collection
+from open_rarity.models.token.identifier import EVMContractTokenIdentifier
+from open_rarity.models.token.metadata import (
     DateAttribute,
     NumericAttribute,
     StringAttribute,
     TokenMetadata,
 )
-from open_rarity.models.tokens.standards import TokenStandard
-from open_rarity.models.tokens.token import Token
+from open_rarity.models.token.standard import TokenStandard
+from open_rarity.models.token.token import Token
 from open_rarity.providers.models.collection import CollectionWithMetadata
 
 logger = logging.getLogger("open_rarity_logger")

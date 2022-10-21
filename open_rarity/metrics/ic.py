@@ -1,6 +1,6 @@
 from math import log2
 
-from open_rarity.models.collections import AttributeCounted, AttributeStatistic
+from open_rarity.models.collection import AttributeCounted, AttributeStatistic
 
 
 def information_content(

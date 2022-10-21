@@ -1,14 +1,15 @@
-from open_rarity.models.token import Token
-from open_rarity.models.token_identifier import EVMContractTokenIdentifier
-from open_rarity.models.tokens.metadata import (
-    NumericAttribute,
-    TokenMetadata,
-    StringAttribute,
-    AttributeName,
-)
-from open_rarity.models.collections.collection import Collection
-from open_rarity.models.tokens.standards import TokenStandard
 from random import shuffle
+
+from open_rarity.models.collection.collection import Collection
+from open_rarity.models.token import Token
+from open_rarity.models.token.identifier import EVMContractTokenIdentifier
+from open_rarity.models.token.metadata import (
+    AttributeName,
+    NumericAttribute,
+    StringAttribute,
+    TokenMetadata,
+)
+from open_rarity.models.token.standard import TokenStandard
 
 
 def create_evm_token(

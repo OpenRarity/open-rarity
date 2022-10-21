@@ -10,10 +10,10 @@ from time import process_time, strftime
 
 import numpy as np
 
-from open_rarity.models.collections.collection import Collection
-from open_rarity.models.tokens.identifier import EVMContractTokenIdentifier
-from open_rarity.models.tokens.rarity import TokenRarity
-from open_rarity.models.tokens.token import Token
+from open_rarity.models.collection.collection import Collection
+from open_rarity.models.token.identifier import EVMContractTokenIdentifier
+from open_rarity.models.token.rarity import TokenRarity
+from open_rarity.models.token.token import Token
 from open_rarity.providers.external_rarity_provider import (
     EXTERNAL_RANK_PROVIDERS,
     ExternalRarityProvider,

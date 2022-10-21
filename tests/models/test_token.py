@@ -1,12 +1,11 @@
 from open_rarity.models.token import Token
-from open_rarity.models.token_identifier import EVMContractTokenIdentifier
-from open_rarity.models.tokens.metadata import (
+from open_rarity.models.token.identifier import EVMContractTokenIdentifier
+from open_rarity.models.token.metadata import (
     NumericAttribute,
     StringAttribute,
     TokenMetadata,
 )
-from open_rarity.models.tokens.standards import TokenStandard
-
+from open_rarity.models.token.standard import TokenStandard
 from tests.helpers import create_evm_token
 
 

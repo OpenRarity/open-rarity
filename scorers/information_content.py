@@ -2,7 +2,7 @@ import logging
 from math import log2
 
 # from open_rarity.models.collections.collection import Collection, CollectionAttribute
-from open_rarity.models.collections.types import AttributeCounts
+from open_rarity.models.collection.types import AttributeCounts
 
 # import numpy as np
 

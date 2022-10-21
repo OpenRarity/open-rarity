@@ -5,6 +5,7 @@ license = "Apache-2.0"
 name = "open-rarity"
 version = "0.5.1-beta"
 
+exclude = ["**/__tests__"]
 readme = "README.md"
 
 classifiers = [
@@ -33,13 +34,13 @@ black = "^22.6.0"
 flake8 = "^5.0.2"
 flake8-bugbear = "^22.7.1"
 isort = "^5.10.1"
+jupyterlab = "^3.4.8"
 mypy = "^0.971"
 pep8-naming = "^0.13.1"
 pre-commit = "^2.19.0"
 pytest = "^7.1"
 pytest-cov = "^3.0"
 types-requests = "^2.28.6"
-jupyterlab = "^3.4.8"
 
 [tool.black]
 line-length = 88

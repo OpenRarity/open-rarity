@@ -3,15 +3,16 @@ from itertools import chain
 
 from satchel import groupapply
 
-from open_rarity.models.tokens import (
+from open_rarity.models.token import (
     AttributeName,
     RawToken,
-    TokenIdMetadataAttr,
+    TokenAttribute,
     TokenSchema,
 )
+from open_rarity.models.token.types import TokenId
 
 
-def flatten_token_data(tokens: list[RawToken]) -> list[TokenIdMetadataAttr]:
+def flatten_token_data(tokens: dict[TokenId, RawToken]) -> list[TokenAttribute]:
     """Denormalized and flatten token data. Attributes move to the top level and are
     assign a `token_id: <id>` key.
 
@@ -22,30 +23,30 @@ def flatten_token_data(tokens: list[RawToken]) -> list[TokenIdMetadataAttr]:
 
     Returns
     -------
-    list[TokenIdMetadataAttr]
+    list[TokenAttribute]
         _description_
     """
     return list(
         chain(
             *[
-                [{"token_id": t["token_id"], **attr} for attr in t["attributes"]]
-                for t in tokens
+                [{"token_id": tid, **attr} for attr in token["attributes"]]
+                for tid, token in tokens.items()
             ]
         )
     )
 
 
-def extract_token_name_key(t: TokenIdMetadataAttr) -> tuple[int | str, str]:
+def extract_token_name_key(t: TokenAttribute) -> tuple[int | str, str]:
     return t["token_id"], t["name"]
 
 
-def _create_token_schema(tokens: list[TokenIdMetadataAttr]) -> TokenSchema:
+def _create_token_schema(tokens: list[TokenAttribute]) -> TokenSchema:
     """Create a schema that is representative of a token containing all possible
     attribute keys and the correct number of them.
 
     Parameters
     ----------
-    tokens : list[TokenIdMetadataAttr]
+    tokens : list[TokenAttribute]
         _description_
 
     Returns
@@ -61,21 +62,21 @@ def _create_token_schema(tokens: list[TokenIdMetadataAttr]) -> TokenSchema:
 
 
 def _create_null_values(
-    tokens: list[TokenIdMetadataAttr], schema: TokenSchema
-) -> list[TokenIdMetadataAttr]:
+    tokens: list[TokenAttribute], schema: TokenSchema
+) -> list[TokenAttribute]:
     """Use a provide schema of {name: expected_count} to generate null attribute values
     to add to the token data.
 
     Parameters
     ----------
-    tokens : list[TokenIdMetadataAttr]
+    tokens : list[TokenAttribute]
         _description_
     schema : TokenSchema
         _description_
 
     Returns
     -------
-    list[TokenIdMetadataAttr]
+    list[TokenAttribute]
         _description_
     """
     itemized_schema = set(schema.items())
@@ -89,7 +90,7 @@ def _create_null_values(
                         {
                             "token_id": tid,
                             "name": name,
-                            "value": "<null>",
+                            "value": "openrarity.null_trait",
                             "display_type": "string",
                         }
                     ]
@@ -98,12 +99,12 @@ def _create_null_values(
     return null_attrs
 
 
-def _count_token_attrs(tokens: list[TokenIdMetadataAttr]) -> dict[int, dict[str, int]]:
+def _count_token_attrs(tokens: list[TokenAttribute]) -> dict[int, dict[str, int]]:
     """Aggregate by token_id then create a count of each attribute on that token.
 
     Parameters
     ----------
-    tokens : list[TokenIdMetadataAttr]
+    tokens : list[TokenAttribute]
         _description_
 
     Returns
@@ -117,13 +118,13 @@ def _count_token_attrs(tokens: list[TokenIdMetadataAttr]) -> dict[int, dict[str,
 
 
 def count_attribute_values(
-    tokens: list[TokenIdMetadataAttr],
+    tokens: list[TokenAttribute],
 ) -> dict[AttributeName, int]:
     """Aggregate and count on the combination of (name, value).
 
     Parameters
     ----------
-    tokens : list[TokenIdMetadataAttr]
+    tokens : list[TokenAttribute]
         Vertical token data to be aggregated.
 
     Returns
@@ -140,21 +141,21 @@ def count_attribute_values(
 
 
 def enforce_schema(
-    tokens: list[TokenIdMetadataAttr],
-) -> tuple[TokenSchema, list[TokenIdMetadataAttr]]:
+    tokens: list[TokenAttribute],
+) -> tuple[TokenSchema, list[TokenAttribute]]:
     """Enforce the token schema across the dataset to include attribute names where
     missing and nullify the appropriate attributes.
 
     Parameters
     ----------
-    tokens : list[TokenIdMetadataAttr]
+    tokens : list[TokenAttribute]
         _description_
     schema : TokenSchema
         _description_
 
     Returns
     -------
-    list[TokenIdMetadataAttr]
+    list[TokenAttribute]
         _description_
     """
     schema = _create_token_schema(tokens)

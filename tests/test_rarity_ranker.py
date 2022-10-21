@@ -1,11 +1,11 @@
-from open_rarity.models.collections.collection import Collection
+from open_rarity.models.collection.collection import Collection
 from open_rarity.models.token import Token
-from open_rarity.models.tokens.features import TokenRankingFeatures
+from open_rarity.models.token.features import TokenRankingFeatures
 from open_rarity.models.token_identifier import (
     EVMContractTokenIdentifier,
 )
-from open_rarity.models.tokens.metadata import TokenMetadata
-from open_rarity.models.tokens.rarity import TokenRarity
+from open_rarity.models.token.metadata import TokenMetadata
+from open_rarity.models.token.rarity import TokenRarity
 from open_rarity.rarity_ranker import RarityRanker
 from tests.helpers import generate_collection_with_token_traits
 
