@@ -1,10 +1,10 @@
 from math import log2
 
-from openrarity.collection import AttributeCounted, AttributeStatistic
+from openrarity.collection import AttributeStatistic
 
 
 def information_content(
-    counts: list[AttributeCounted], total: int
+    counts: list[AttributeStatistic], total: int
 ) -> list[AttributeStatistic]:
     return [
         {

@@ -11,10 +11,11 @@ from openrarity.token import (
     RankedToken,
     RawToken,
     TokenAttribute,
+    TokenId,
     validate_tokens,
 )
 
-from . import AttributeCounted
+from . import AttributeStatistic
 from .utils import count_attribute_values, enforce_schema, flatten_token_data
 
 logger = Logger(__name__)
@@ -26,13 +27,12 @@ class TokenCollection:
     def __init__(
         self,
         token_type: Literal["non-fungible", "semi-fungible"],
-        tokens: list[RawToken],  # TODO Change to dictionary with token_id key
+        tokens: dict[TokenId, RawToken],
         **config,
     ):
         self._token_type = token_type
 
-        # TODO: Total Supply will need augmented for semi fungible tokens ie: ERC1155
-        (self._total_supply, self._tokens) = validate_tokens(tokens)
+        (self._token_supply, self._tokens) = validate_tokens(token_type, tokens)
 
         # Derived data
         self._vertical_attribute_data: list[TokenAttribute] | None = None
@@ -48,10 +48,14 @@ class TokenCollection:
 
     @property
     def total_supply(self) -> int:
-        return self._total_supply
+        # SemiFungible needs to sum the supply of each token
+        if isinstance(self._total_supply, dict):
+            return sum(self._total_supply.values())
+
+        return self._token_supply
 
     @property
-    def attribute_statistics(self) -> list[AttributeCounted]:
+    def attribute_statistics(self) -> list[AttributeStatistic]:
         if not self._attribute_statistics:
             raise AttributeError(
                 f"Please run '{repr(self)}.rank_collection()' to view this property"
