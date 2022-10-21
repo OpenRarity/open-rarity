@@ -20,11 +20,14 @@ class TokenAttribute(MetadataAttribute):
     token_id: int
 
 
-class AttributeStatistic(TokenAttribute):
+class AttributeStatistic(MetadataAttribute):
     count: int
     probability: float
     ic: float
     entropy: NotRequired[float]
+
+
+class TokenStatistic(TokenAttribute, AttributeStatistic):
     unique_trait_count: NotRequired[int]
 
 
@@ -46,4 +49,5 @@ __all__ = [
     "RankedToken",
     "TokenSchema",
     "TokenId",
+    "TokenStatistic",
 ]

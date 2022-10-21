@@ -1,5 +1,6 @@
 from collections import defaultdict
 from itertools import chain
+from typing import Literal
 
 from satchel import groupapply
 

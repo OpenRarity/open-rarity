@@ -1,4 +1,5 @@
 import json
+from functools import cached_property
 from hashlib import md5
 from logging import Logger
 from os import PathLike
@@ -12,8 +13,10 @@ from openrarity.token import (
     RawToken,
     TokenAttribute,
     TokenId,
+    TokenStatistic,
     validate_tokens,
 )
+from openrarity.utils import merge
 
 from . import AttributeStatistic
 from .utils import count_attribute_values, enforce_schema, flatten_token_data
@@ -37,6 +40,8 @@ class TokenCollection:
         # Derived data
         self._vertical_attribute_data: list[TokenAttribute] | None = None
         self._attribute_statistics: list[AttributeStatistic] = None
+        self._token_statistics: list[TokenStatistic] = None
+
         self._ranks: list[RankedToken] = None
 
     def __repr__(self) -> str:
@@ -46,11 +51,11 @@ class TokenCollection:
     def tokens(self) -> list[RawToken]:
         return self._tokens
 
-    @property
+    @cached_property
     def total_supply(self) -> int:
         # SemiFungible needs to sum the supply of each token
-        if isinstance(self._total_supply, dict):
-            return sum(self._total_supply.values())
+        if isinstance(self._token_supply, dict):
+            return sum(self._token_supply.values())
 
         return self._token_supply
 
@@ -61,6 +66,14 @@ class TokenCollection:
                 f"Please run '{repr(self)}.rank_collection()' to view this property"
             )
         return self._attribute_statistics
+
+    @property
+    def token_statistics(self) -> list[TokenStatistic]:
+        if not self._token_statistics:
+            raise AttributeError(
+                f"Please run '{repr(self)}.rank_collection()' to view this property"
+            )
+        return self._token_statistics
 
     @property
     def ranks(self) -> list[RankedToken]:
@@ -104,10 +117,13 @@ class TokenCollection:
             self._vertical_attribute_data
         )
         self._attribute_statistics = information_content(
-            self._attribute_statistics, self._total_supply
+            self._attribute_statistics, self.total_supply
         )
 
         # TODO: Add token statistics and aggregate
+        self._token_statistics = merge(
+            self._vertical_attribute_data, self._attribute_statistics, ("name", "value")
+        )
 
         # TODO: Placeholder to suppress error
         self._ranks = ["ranks"]
