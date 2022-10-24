@@ -93,9 +93,6 @@ class TokenCollection:
 
     @property
     def checksum(self) -> str:
-        logger.warn(
-            "The checksum method has not been validated and should not be relied on for production use."
-        )
         if not self._ranks_checksum:
             raise AttributeError(
                 f"Please run '{repr(self)}.rank_collection()' to view this property"
