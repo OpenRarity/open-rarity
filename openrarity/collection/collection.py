@@ -3,6 +3,7 @@ from functools import cached_property
 from hashlib import md5
 from logging import Logger
 from os import PathLike
+from sys import prefix
 from typing import Literal, overload
 
 from openrarity.io import read, write
@@ -16,6 +17,7 @@ from openrarity.token import (
     TokenStatistic,
     validate_tokens,
 )
+from openrarity.types import JsonEncodable
 from openrarity.utils import merge, rank_over
 
 from . import AttributeStatistic
@@ -39,7 +41,7 @@ class TokenCollection:
         **config,
     ):
         self._token_type = token_type
-
+        self._input_checksum: str = self._hash_data(tokens)
         (self._token_supply, self._tokens) = validate_tokens(token_type, tokens)
 
         # Derived data
@@ -89,11 +91,23 @@ class TokenCollection:
         return self._ranks
 
     @overload
-    def rank_collection(self, return_ranks=True) -> list[RankedToken]:
+    def rank_collection(
+        self,
+        rank_by: tuple[
+            Literal["unique_traits", "ic", "probability", "trait_count"], ...
+        ] = ("unique_traits", "ic"),
+        return_ranks=True,
+    ) -> list[RankedToken]:
         ...
 
     @overload
-    def rank_collection(self, return_ranks=False) -> None:
+    def rank_collection(
+        self,
+        rank_by: tuple[
+            Literal["unique_traits", "ic", "probability", "trait_count"], ...
+        ] = ("unique_traits", "ic"),
+        return_ranks=False,
+    ) -> None:
         ...
 
     def rank_collection(
@@ -121,7 +135,7 @@ class TokenCollection:
             _vertical_attribute_data
         )
 
-        # TODO: Process number display_type
+        # TODO: Process number/date display_type
 
         # TODO: This will be replaced with a TokenStandard specific handler
         self._attribute_statistics = count_attribute_values(
@@ -136,7 +150,7 @@ class TokenCollection:
             self._vertical_attribute_data, self._attribute_statistics, ("name", "value")
         )
 
-        self._ranks = aggregate_tokens(self._token_statistics)
+        self._ranks = rank_over(aggregate_tokens(self._token_statistics), rank_by)
 
         if return_ranks:
             return self._ranks
@@ -149,18 +163,33 @@ class TokenCollection:
         raise NotImplementedError()
         read.from_csv(self._ranks, path)
 
-    def to_json(self, path: str | PathLike):
-        write.to_json(self.ranks, path)
+    def to_json(self, directory: str | PathLike, prefix: str, ranks_only: bool = True):
+        write.to_json(self.ranks, directory / f"{prefix}_ranks.json")
+        if not ranks_only:
+            write.to_json(
+                {
+                    "input": self.tokens,
+                    "verticalData": self._vertical_attribute_data,
+                    "attributeStatistics": self.attribute_statistics,
+                    "tokenStatistics": self.token_statistics,
+                },
+                directory / f"{prefix}_artifacts.json",
+            )
+            ...
 
     def to_csv(self, path: str | PathLike):
         raise NotImplementedError()
         write.to_csv(self.ranks, path)
+
+    @classmethod
+    def _hash_data(cls, data: JsonEncodable) -> str:
+        return md5(json.dumps(data, sort_keys=True).encode("utf-8")).hexdigest()
 
     def checksum(self) -> str:
         logger.warn(
             "The checksum method has not been validated and should not be relied on for production use."
         )
         return (
-            md5(json.dumps(self.tokens).encode("utf-8")).hexdigest()
-            + md5(json.dumps(self.ranks).encode("utf-8")).hexdigest()
+            md5(json.dumps(self.tokens, sort_keys=True).encode("utf-8")).hexdigest()
+            + md5(json.dumps(self.ranks, sort_keys=True).encode("utf-8")).hexdigest()
         )

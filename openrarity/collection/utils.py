@@ -78,6 +78,10 @@ def _create_null_values(
     """
     itemized_schema = set(schema.items())
     null_attrs = []
+    # The following will loop each token_id and and the counts of its individual
+    # attributes. Those cound are compared against the expected schema via set
+    # subtraction. Any misalignments are then reconciled by adding new values to the
+    # token data with null values.
     for tid, counted_attrs in _count_token_attrs(tokens).items():
         if counted_attrs != schema:
             diffs = itemized_schema - set(counted_attrs.items())
@@ -109,6 +113,8 @@ def _count_token_attrs(tokens: list[TokenAttribute]) -> dict[int, dict[str, int]
     dict[int, dict[str, int]]
         _description_
     """
+    # TODO: Double groupapply. This can probably be flattened using a composite key of
+    # (token_id, name) which should improve performance
     return groupapply(
         tokens, "token_id", lambda attrs: groupapply(attrs, "name", "count")
     )
@@ -162,21 +168,50 @@ def enforce_schema(
 
 
 def aggregate_tokens(tokens: list[TokenStatistic]) -> list[TokenStatistic]:
-    return sorted(
+    """Aggregate by the token_id and combine desired statistics for eventual ranking.
+
+    Parameters
+    ----------
+    tokens : list[TokenStatistic]
+        Input token statistics with the following data structure.
+
         [
-            {"token_id": tid, **stats}
-            for tid, stats in groupapply(
-                tokens,
-                "token_id",
-                lambda group: {
-                    "probability": prod((t["probability"] for t in group)),
-                    "ic": sum((t["ic"] for t in group)),
-                    "unique_traits": sum(
-                        (t["count"] for t in group if t["count"] == 1)
-                    ),
-                },
-            ).items()
-        ],
-        key=lambda token: (token["unique_traits"], token["ic"]),
-        reverse=True,
-    )
+            {
+                token_id: int,
+                name: str,
+                value: str | float | int,
+                count: int,
+                probability: float,
+                ic: float,
+            }
+        ]
+
+    Returns
+    -------
+    list[TokenStatistic]
+        Agregated statistics for each token_id.
+
+        [
+            {
+                token_id: int,
+                count: int,
+                probability: float,
+                max_trait_ic: float,
+                ic: float,
+                unique_traits: int,
+            }
+        ]
+    """
+    return [
+        {"token_id": tid, **stats}
+        for tid, stats in groupapply(
+            tokens,
+            "token_id",
+            lambda group: {
+                "probability": prod((t["probability"] for t in group)),
+                "max_trait_ic": max((t["ic"] for t in group)),
+                "ic": sum((t["ic"] for t in group)),
+                "unique_traits": sum((t["count"] for t in group if t["count"] == 1)),
+            },
+        ).items()
+    ]

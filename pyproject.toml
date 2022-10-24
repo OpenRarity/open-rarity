@@ -3,7 +3,7 @@ authors = ["Dan Meshkov <daniil.meshkov@opensea.io>", "Vicky Gong <vicky.gong@op
 description = "Open-Rarity library is an open standard that provides an easy, explanable and reproducible computation for NFT rarity"
 license = "Apache-2.0"
 name = "openrarity"
-version = "0.5.1-beta"
+version = "1.0.0a0"
 
 exclude = ["**/__tests__"]
 readme = "README.md"
@@ -28,6 +28,7 @@ pysatchel = "^0.1.0"
 python = ">=3.10,<3.11"
 requests = "^2.28.1"
 scipy = "^1.9.0"
+tqdm = "^4.64.1"
 
 [tool.poetry.dev-dependencies]
 black = "^22.6.0"

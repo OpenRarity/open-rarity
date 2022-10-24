@@ -29,6 +29,7 @@ class AttributeStatistic(MetadataAttribute):
 
 class TokenStatistic(TokenAttribute, AttributeStatistic):
     unique_trait_count: NotRequired[int]
+    max_trait_ic: NotRequired[float]
 
 
 class RankedToken(TypedDict):
