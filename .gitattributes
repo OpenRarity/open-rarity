@@ -1,3 +1,4 @@
 data/collection1.json filter=lfs diff=lfs merge=lfs -text
 data/external_rank_provider_1.json filter=lfs diff=lfs merge=lfs -text
 data/test_collections.json filter=lfs diff=lfs merge=lfs -text
+notebooks/GettingStarted.ipynb filter=lfs diff=lfs merge=lfs -text
