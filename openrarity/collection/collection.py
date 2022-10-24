@@ -1,9 +1,8 @@
 import json
-from functools import cached_property
+from functools import cache
 from hashlib import md5
 from logging import Logger
 from os import PathLike
-from sys import prefix
 from typing import Literal, overload
 
 from openrarity.io import read, write
@@ -42,6 +41,7 @@ class TokenCollection:
     ):
         self._token_type = token_type
         self._input_checksum: str = self._hash_data(tokens)
+        self._ranks_checksum: str | None = None
         (self._token_supply, self._tokens) = validate_tokens(token_type, tokens)
 
         # Derived data
@@ -58,7 +58,8 @@ class TokenCollection:
     def tokens(self) -> list[RawToken]:
         return self._tokens
 
-    @cached_property
+    @property
+    @cache
     def total_supply(self) -> int:
         # SemiFungible needs to sum the supply of each token
         if isinstance(self._token_supply, dict):
@@ -89,6 +90,17 @@ class TokenCollection:
                 f"Please run '{repr(self)}.rank_collection()' to view this property"
             )
         return self._ranks
+
+    @property
+    def checksum(self) -> str:
+        logger.warn(
+            "The checksum method has not been validated and should not be relied on for production use."
+        )
+        if not self._ranks_checksum:
+            raise AttributeError(
+                f"Please run '{repr(self)}.rank_collection()' to view this property"
+            )
+        return self._input_checksum + self._ranks_checksum
 
     @overload
     def rank_collection(
@@ -151,17 +163,22 @@ class TokenCollection:
         )
 
         self._ranks = rank_over(aggregate_tokens(self._token_statistics), rank_by)
+        self._ranks_checksum = self._hash_data(self.ranks)
 
         if return_ranks:
             return self._ranks
 
-    def from_json(self, path: str | PathLike):
-        raise NotImplementedError()
-        read.from_json(self._ranks, path)
+    @classmethod
+    def from_json(
+        cls, path: str | PathLike, token_type: Literal["non-fungible", "semi-fungible"]
+    ):
+        return cls(token_type, read.from_json(path))
 
-    def from_csv(self, path: str | PathLike):
-        raise NotImplementedError()
-        read.from_csv(self._ranks, path)
+    @classmethod
+    def from_csv(
+        cls, path: str | PathLike, token_type: Literal["non-fungible", "semi-fungible"]
+    ):
+        return cls(token_type, read.from_csv(path))
 
     def to_json(self, directory: str | PathLike, prefix: str, ranks_only: bool = True):
         write.to_json(self.ranks, directory / f"{prefix}_ranks.json")
@@ -175,21 +192,22 @@ class TokenCollection:
                 },
                 directory / f"{prefix}_artifacts.json",
             )
-            ...
 
-    def to_csv(self, path: str | PathLike):
-        raise NotImplementedError()
-        write.to_csv(self.ranks, path)
+    def to_csv(self, directory: str | PathLike, prefix: str, ranks_only: bool = True):
+        write.to_csv(self.ranks, directory / f"{prefix}_ranks.json")
+        if not ranks_only:
+            data = {
+                "input": self.tokens,
+                "verticalData": self._vertical_attribute_data,
+                "attributeStatistics": self.attribute_statistics,
+                "tokenStatistics": self.token_statistics,
+            }
+            for key in data:
+                write.to_csv(
+                    data[key],
+                    directory / f"{prefix}_{key}_artifact.csv",
+                )
 
     @classmethod
     def _hash_data(cls, data: JsonEncodable) -> str:
         return md5(json.dumps(data, sort_keys=True).encode("utf-8")).hexdigest()
-
-    def checksum(self) -> str:
-        logger.warn(
-            "The checksum method has not been validated and should not be relied on for production use."
-        )
-        return (
-            md5(json.dumps(self.tokens, sort_keys=True).encode("utf-8")).hexdigest()
-            + md5(json.dumps(self.ranks, sort_keys=True).encode("utf-8")).hexdigest()
-        )

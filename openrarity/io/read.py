@@ -9,4 +9,4 @@ def from_json(path: str | PathLike) -> list | dict:
 
 
 def from_csv(path: str | PathLike) -> list | dict:
-    ...
+    raise NotImplementedError()
