@@ -16,7 +16,7 @@ from openrarity.token import (
     TokenStatistic,
     validate_tokens,
 )
-from openrarity.utils import merge
+from openrarity.utils import merge, rank_over
 
 from . import AttributeStatistic
 from .utils import (
@@ -96,7 +96,13 @@ class TokenCollection:
     def rank_collection(self, return_ranks=False) -> None:
         ...
 
-    def rank_collection(self, return_ranks=True) -> list[RankedToken] | None:
+    def rank_collection(
+        self,
+        rank_by: tuple[
+            Literal["unique_traits", "ic", "probability", "trait_count"], ...
+        ] = ("unique_traits", "ic"),
+        return_ranks=True,
+    ) -> list[RankedToken] | None:
         """Preprocess tokens then rank the tokens for the collection and set the
         corresponding cls.ranks attribute. Optionally, return the ranks.
 
