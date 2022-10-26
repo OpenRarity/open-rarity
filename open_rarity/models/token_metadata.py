@@ -163,13 +163,15 @@ class TokenMetadata:
 
     def to_attributes(self) -> dict[AttributeName, Any]:
         """Returns a dictionary of all attributes in this metadata object."""
-        attributes = {}
-        for attr in self.string_attributes.values():
-            attributes[attr.name] = attr.value
-        for attr in self.numeric_attributes.values():
-            attributes[attr.name] = attr.value
-        for attr in self.date_attributes.values():
-            attributes[attr.name] = datetime.fromtimestamp(attr.value)
+        attributes: dict[AttributeName, Any] = {}
+        for str_attr in self.string_attributes.values():
+            attributes[str_attr.name] = str_attr.value
+        for num_attr in self.numeric_attributes.values():
+            attributes[num_attr.name] = num_attr.value
+        for date_attr in self.date_attributes.values():
+            attributes[date_attr.name] = datetime.datetime.fromtimestamp(
+                date_attr.value
+            )
         return attributes
 
     def add_attribute(self, attribute: Attribute):
