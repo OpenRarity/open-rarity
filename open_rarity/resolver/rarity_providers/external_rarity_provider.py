@@ -147,9 +147,7 @@ class ExternalRarityProvider:
         # If we didn't want to load cache or cache is empty, pull data from API
         if not self._is_cache_loaded(slug, rank_provider):
             resolver = get_external_resolver(rank_provider)
-            token_ids_to_ranks = resolver.get_all_ranks(
-                contract_address=contract_address
-            )
+            token_ids_to_ranks = resolver.get_all_ranks(contract_address)
             self._set_cache(
                 slug=slug, rank_provider=rank_provider, rank_data=token_ids_to_ranks
             )
