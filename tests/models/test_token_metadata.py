@@ -9,6 +9,8 @@ from open_rarity.models.token_metadata import (
     TokenMetadata,
 )
 
+now = datetime.now()
+
 
 class TestTokenMetadata:
     token_metadata = TokenMetadata(
@@ -19,9 +21,7 @@ class TestTokenMetadata:
             "integer trait": NumericAttribute(name="integer trait", value=1),
         },
         date_attributes={
-            "created": DateAttribute(
-                name="created", value=int(datetime.now().timestamp())
-            ),
+            "created": DateAttribute(name="created", value=int(now.timestamp())),
         },
     )
 
@@ -128,3 +128,14 @@ class TestTokenMetadata:
                 name="created 2", value=int(created_date_2.timestamp())
             ),
         }
+
+    def test_metadata_to_attributes(self):
+        attribute_dict = self.token_metadata.to_attributes()
+
+        assert attribute_dict["hat"] == "blue cap"
+        assert attribute_dict["integer trait"] == 1
+
+        # the microseconds will get lost so compare to a datetime without them
+        assert attribute_dict["created"] == datetime(
+            now.year, now.month, now.day, now.hour, now.minute, now.second
+        )
