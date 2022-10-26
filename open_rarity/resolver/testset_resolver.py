@@ -8,6 +8,7 @@ import os
 import pkgutil
 from dataclasses import dataclass
 from time import strftime, time
+from typing import Iterable
 
 import numpy as np
 
@@ -174,7 +175,10 @@ def get_tokens_with_rarity(
 
     t1_start = time()
 
-    for batch_id, tokens_batch in enumerate(np.array_split(tokens, num_batches)):
+    tokens_batch: Iterable[Token]
+    for batch_id, tokens_batch in enumerate(
+        np.array_split(tokens, num_batches)  # type: ignore
+    ):
         message = (
             f"\tStarting batch {batch_id} for collection "
             f"{slug}: Processing {len(tokens_batch)} tokens. "
@@ -259,7 +263,7 @@ def resolve_collection_data(
 
     data = json.load(io.BytesIO(golden_collections))
     print("------------------------------")
-    slugs_to_rows = {}
+    output_rows: list = []
     for collection_def in data:
         start_time = time()
         opensea_slug = collection_def["collection_slug"]
@@ -308,11 +312,12 @@ def resolve_collection_data(
             tokens_with_rarity=tokens_with_rarity,
             dry_run=not output_file_to_disk,
         )
-        slugs_to_rows[opensea_slug] = rows
+        if rows is not None:
+            output_rows += rows
         time_elapsed = round(time() - start_time)
         print(f"FINISHED: Resolved collection: {opensea_slug} in {time_elapsed} secs")
 
-    return slugs_to_rows if not output_file_to_disk else None
+    return output_rows if not output_file_to_disk else None
 
 
 def augment_with_open_rarity_scores(
@@ -354,29 +359,34 @@ def augment_with_open_rarity_scores(
         )
 
 
-def extract_rank(tokens_to_score: dict[int, TokenRarity]) -> RankedTokens:
+def extract_rank(tokens_to_score: dict[str, TokenRarity]) -> RankedTokens:
     """Sorts dictionary by float score and extract rank according to the score
 
     Parameters
     ----------
-    token_id_to_scores : dict[int, TokenRarity]
+    token_id_to_scores : dict[str, TokenRarity]
         dictionary of token_id_to_scores with token_id to score mapping
 
     Returns
     -------
-    dict[int, RankScore]
+    dict[str, RankScore]
         dictionary of token to rank, score pair
     """
     ranked_tokens: list[TokenRarity] = RarityRanker.set_rarity_ranks(
-        token_rarities=tokens_to_score.values()
+        token_rarities=list(tokens_to_score.values())
     )
-    return {
-        int(token.token.token_identifier.token_id): (
+
+    result = {}
+    for token in ranked_tokens:
+        assert token.rank
+        # note: this is a bug, ignoring the mypy error for now
+        # token_identifier can be of type SolanaMintAddressTokenIdentifier
+        # which has no token_id
+        result[int(token.token.token_identifier.token_id)] = (  # type: ignore
             token.rank,
             token.score,
         )
-        for token in ranked_tokens
-    }
+    return result
 
 
 def resolve_open_rarity_score(

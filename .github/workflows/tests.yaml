@@ -20,5 +20,8 @@ jobs:
       - name: Code Formatting
         uses: psf/black@stable
 
+      - name: Type Check
+        run: poetry run mypy open_rarity
+
       - name: Unit tests
         run: poetry run pytest --cov-config=.coveragerc --cov=open_rarity tests/

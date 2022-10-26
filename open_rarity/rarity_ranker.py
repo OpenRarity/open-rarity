@@ -116,6 +116,7 @@ class RarityRanker:
                 prev_token_rarity = sorted_token_rarities[i - 1]
                 scores_equal = math.isclose(token_rarity.score, prev_token_rarity.score)
                 if scores_equal:
+                    assert prev_token_rarity.rank is not None
                     rank = prev_token_rarity.rank
 
             token_rarity.rank = rank

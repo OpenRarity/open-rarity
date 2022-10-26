@@ -228,9 +228,10 @@ class ExternalRarityProvider:
                     )
 
                 # Store in cache
-                self._get_cache_for_collection(opensea_slug, rank_provider)[
-                    str(token_id)
-                ] = rank
+                if rank is not None:
+                    self._get_cache_for_collection(opensea_slug, rank_provider)[
+                        str(token_id)
+                    ] = rank
 
             if rank:
                 token_with_rarity.rarities.append(

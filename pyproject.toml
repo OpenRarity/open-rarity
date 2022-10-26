@@ -32,7 +32,7 @@ black = "^22.6.0"
 flake8 = "^5.0.2"
 flake8-bugbear = "^22.7.1"
 isort = "^5.10.1"
-mypy = "^0.971"
+mypy = "^0.982"
 pep8-naming = "^0.13.1"
 pre-commit = "^2.19.0"
 pytest = "^7.1"
@@ -52,3 +52,7 @@ include_trailing_comma = true
 known_first_party = "open_rarity"
 multi_line_output = 3
 profile = "black"
+
+[[tool.mypy.overrides]]
+module = ["scipy", "scipy.stats"]
+ignore_missing_imports = true
