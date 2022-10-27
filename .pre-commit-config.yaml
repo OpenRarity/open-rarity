@@ -35,3 +35,15 @@ repos:
     hooks:
       - id: flake8
         additional_dependencies: [flake8-bugbear, pep8-naming]
+
+  # Mypy
+  # run locally to ensure
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        types: [python]
+        entry: poetry run mypy open_rarity
+        language: system
+        always_run: true
+        pass_filenames: false

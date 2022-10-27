@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Iterable
 
 from open_rarity.models.token_identifier import (
     EVMContractTokenIdentifier,
@@ -125,7 +125,7 @@ class Token:
     def trait_count(self) -> int:
         """Returns the count of non-null, non-"none" value traits this token has."""
 
-        def get_attributes_count(attributes: list[Attribute]) -> int:
+        def get_attributes_count(attributes: Iterable[Attribute]) -> int:
             return sum(
                 map(
                     lambda a: (

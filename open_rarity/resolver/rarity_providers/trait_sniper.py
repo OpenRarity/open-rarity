@@ -135,7 +135,7 @@ class TraitSniperResolver(RankResolver):
         """
         # TODO [vicky]: In future, we can add retry mechanisms if needed
 
-        querystring = {
+        querystring: dict[str, str | int] = {
             "trait_norm": "true",
             "trait_count": "true",
             "token_id": token_id,

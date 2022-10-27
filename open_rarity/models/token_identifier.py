@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Type, TypeAlias, Union
 
 from pydantic import Field
 
@@ -66,8 +66,12 @@ TokenIdentifier = Annotated[
     Field(discriminator="identifier_type"),
 ]
 
+TokenIdentifierClass: TypeAlias = Union[
+    Type[EVMContractTokenIdentifier], Type[SolanaMintAddressTokenIdentifier]
+]
 
-def get_identifier_class_from_dict(data_dict: dict) -> TokenIdentifier:
+
+def get_identifier_class_from_dict(data_dict: dict) -> TokenIdentifierClass:
     return (
         EVMContractTokenIdentifier
         if "token_id" in data_dict
