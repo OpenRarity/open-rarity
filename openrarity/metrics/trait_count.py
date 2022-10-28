@@ -1,5 +1,4 @@
-from openrarity.token import AttributeStatistic
-from openrarity.token.types import MetadataAttribute
+from openrarity.token.types import AttributeStatistic, MetadataAttribute
 
 
 def unique_trait_count(tokens: list[AttributeStatistic]) -> list[AttributeStatistic]:
@@ -37,7 +36,7 @@ def count_traits(
     return attributes + [
         {
             "name": "openrarity.trait_count",
-            "value": len(attributes),
+            "value": int(len(attributes)),
             "display_type": "string",
         }
     ]

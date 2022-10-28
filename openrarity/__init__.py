@@ -1,1 +1,1 @@
-from .collection import TokenCollection
+from .collection import TokenCollection  # type: ignore
