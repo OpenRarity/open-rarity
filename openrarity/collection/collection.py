@@ -1,9 +1,8 @@
 import json
-from functools import cache
 from hashlib import md5
 from logging import Logger
-from os import PathLike
-from typing import Literal, overload
+from pathlib import Path
+from typing import Literal, cast, overload
 
 from openrarity.io import read, write
 from openrarity.metrics.ic import information_content
@@ -19,7 +18,6 @@ from openrarity.token import (
 from openrarity.types import JsonEncodable
 from openrarity.utils import merge, rank_over
 
-from . import AttributeStatistic
 from .utils import (
     aggregate_tokens,
     count_attribute_values,
@@ -37,29 +35,28 @@ class TokenCollection:
         self,
         token_type: Literal["non-fungible", "semi-fungible"],
         tokens: dict[TokenId, RawToken],
-        **config,
     ):
         self._token_type = token_type
-        self._input_checksum: str = self._hash_data(tokens)
+        self._input_checksum: str = self._hash_data(cast(JsonEncodable, tokens))
         self._ranks_checksum: str | None = None
+        self._token_supply: int | dict[str | int, int]
         (self._token_supply, self._tokens) = validate_tokens(token_type, tokens)
 
         # Derived data
         self._vertical_attribute_data: list[TokenAttribute] | None = None
-        self._attribute_statistics: list[AttributeStatistic] = None
-        self._token_statistics: list[TokenStatistic] = None
+        self._attribute_statistics: list[AttributeStatistic] | None = None
+        self._token_statistics: list[TokenStatistic] | None = None
 
-        self._ranks: list[RankedToken] = None
+        self._ranks: list[RankedToken] | None = None
 
     def __repr__(self) -> str:
         return f"Collection({self._token_type})"
 
     @property
-    def tokens(self) -> list[RawToken]:
+    def tokens(self) -> dict[TokenId, RawToken]:
         return self._tokens
 
     @property
-    @cache
     def total_supply(self) -> int:
         # SemiFungible needs to sum the supply of each token
         if isinstance(self._token_supply, dict):
@@ -104,8 +101,8 @@ class TokenCollection:
         self,
         rank_by: tuple[
             Literal["unique_traits", "ic", "probability", "trait_count"], ...
-        ] = ("unique_traits", "ic"),
-        return_ranks=True,
+        ],
+        return_ranks: Literal[True],
     ) -> list[RankedToken]:
         ...
 
@@ -114,8 +111,8 @@ class TokenCollection:
         self,
         rank_by: tuple[
             Literal["unique_traits", "ic", "probability", "trait_count"], ...
-        ] = ("unique_traits", "ic"),
-        return_ranks=False,
+        ],
+        return_ranks: Literal[False],
     ) -> None:
         ...
 
@@ -124,13 +121,16 @@ class TokenCollection:
         rank_by: tuple[
             Literal["unique_traits", "ic", "probability", "trait_count"], ...
         ] = ("unique_traits", "ic"),
-        return_ranks=True,
+        return_ranks: bool = True,
     ) -> list[RankedToken] | None:
         """Preprocess tokens then rank the tokens for the collection and set the
         corresponding cls.ranks attribute. Optionally, return the ranks.
 
+
         Parameters
         ----------
+        rank_by : tuple[ Literal[&quot;unique_traits&quot;, &quot;ic&quot;, &quot;probability&quot;, &quot;trait_count&quot;], ... ], optional
+            Metrics to sort by when ranking, by default ("unique_traits", "ic")
         return_ranks : bool, optional
             Return the set ranks attribute, by default True
 
@@ -150,48 +150,104 @@ class TokenCollection:
         self._attribute_statistics = count_attribute_values(
             self._vertical_attribute_data
         )
-        self._attribute_statistics = information_content(
-            self._attribute_statistics, self.total_supply
+        self._attribute_statistics = cast(
+            list[AttributeStatistic],
+            information_content(self._attribute_statistics, self.total_supply),  # type: ignore
         )
 
         # TODO: Add token statistics and aggregate
-        self._token_statistics = merge(
-            self._vertical_attribute_data, self._attribute_statistics, ("name", "value")
+        self._token_statistics = cast(
+            list[TokenStatistic],
+            merge(
+                self._vertical_attribute_data,  # type: ignore
+                self._attribute_statistics,  # type: ignore
+                ("name", "value"),
+            ),
         )
 
-        self._ranks = rank_over(aggregate_tokens(self._token_statistics), rank_by)
-        self._ranks_checksum = self._hash_data(self.ranks)
+        self._ranks = cast(
+            list[RankedToken],
+            rank_over(aggregate_tokens(self._token_statistics), rank_by),  # type: ignore
+        )
+        self._ranks_checksum = self._hash_data(self.ranks)  # type: ignore
 
         if return_ranks:
             return self._ranks
+        return None
 
     @classmethod
     def from_json(
-        cls, path: str | PathLike, token_type: Literal["non-fungible", "semi-fungible"]
-    ):
-        return cls(token_type, read.from_json(path))
+        cls, path: str | Path, token_type: Literal["non-fungible", "semi-fungible"]
+    ) -> "TokenCollection":
+        """_summary_
+
+        Parameters
+        ----------
+        path : str | PathLike
+            _description_
+        token_type : &quot;non-fungible&quot; | &quot;semi-fungible&quot;
+            _description_
+
+        Returns
+        -------
+        TokenCollection
+            Instantiated collection with tokens from json
+        """
+        return cls(token_type, read.from_json(path))  # type: ignore
 
     @classmethod
     def from_csv(
-        cls, path: str | PathLike, token_type: Literal["non-fungible", "semi-fungible"]
-    ):
+        cls, path: str | Path, token_type: Literal["non-fungible", "semi-fungible"]
+    ) -> "TokenCollection":
+        """_summary_
+
+        Parameters
+        ----------
+        path : str | PathLike
+            Path to csv of token data
+        token_type : &quot;non-fungible&quot; | &quot;semi-fungible&quot;
+            _description_
+
+        Returns
+        -------
+        TokenCollection
+            Instantiated collection with tokens from csv
+        """
+        raise NotImplementedError()
         return cls(token_type, read.from_csv(path))
 
-    def to_json(self, directory: str | PathLike, prefix: str, ranks_only: bool = True):
-        write.to_json(self.ranks, directory / f"{prefix}_ranks.json")
+    def to_json(self, directory: str | Path, prefix: str, ranks_only: bool = True):
+        """Dump TokenCollection class to json file.
+
+        Parameters
+        ----------
+        directory : str | PathLike
+            Directory to write files.
+        prefix : str
+            The prefix to append to the filenames constructed as <prefix>_<data-kind>
+        ranks_only : bool, optional
+            A value of `True` only saves the rank data. A value of `False` will write
+            intermediary data as well, by default True
+        """
+        directory = directory if isinstance(directory, Path) else Path(directory)
+        write.to_json(self.ranks, directory / f"{prefix}_ranks.json")  # type: ignore
         if not ranks_only:
             write.to_json(
-                {
-                    "input": self.tokens,
-                    "verticalData": self._vertical_attribute_data,
-                    "attributeStatistics": self.attribute_statistics,
-                    "tokenStatistics": self.token_statistics,
-                },
+                cast(
+                    JsonEncodable,
+                    {
+                        "input": self.tokens,
+                        "verticalData": self._vertical_attribute_data,
+                        "attributeStatistics": self.attribute_statistics,
+                        "tokenStatistics": self.token_statistics,
+                    },
+                ),
                 directory / f"{prefix}_artifacts.json",
             )
 
-    def to_csv(self, directory: str | PathLike, prefix: str, ranks_only: bool = True):
-        write.to_csv(self.ranks, directory / f"{prefix}_ranks.json")
+    def to_csv(self, directory: str | Path, prefix: str, ranks_only: bool = True):
+        directory = directory if isinstance(directory, Path) else Path(directory)
+        write.to_csv(self.ranks, directory / f"{prefix}_ranks.csv")  # type: ignore
         if not ranks_only:
             data = {
                 "input": self.tokens,
@@ -200,11 +256,14 @@ class TokenCollection:
                 "tokenStatistics": self.token_statistics,
             }
             for key in data:
-                write.to_csv(
+                write.to_csv(  # type: ignore
                     data[key],
                     directory / f"{prefix}_{key}_artifact.csv",
                 )
 
     @classmethod
     def _hash_data(cls, data: JsonEncodable) -> str:
+        """Simple hash function that first json encodes a data structure then md5 hashes
+        the json string.
+        """
         return md5(json.dumps(data, sort_keys=True).encode("utf-8")).hexdigest()

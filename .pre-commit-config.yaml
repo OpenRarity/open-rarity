@@ -18,8 +18,19 @@ repos:
       - id: black
         types: [python]
   # Flake8
-  # - repo: https://gitlab.com/pycqa/flake8
-  #   rev: 4.0.1
-  #   hooks:
-  #     - id: flake8
-  #       additional_dependencies: [flake8-bugbear, pep8-naming]
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 4.0.1
+    hooks:
+      - id: flake8
+        additional_dependencies: [flake8-bugbear, pep8-naming]
+  # Mypy
+  # run locally to ensure
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        types: [python]
+        entry: poetry run mypy openrarity
+        language: system
+        always_run: true
+        pass_filenames: false

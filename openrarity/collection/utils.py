@@ -1,12 +1,12 @@
 from collections import defaultdict
 from itertools import chain
 from math import prod
-from typing import Literal
+from typing import Iterable, cast
 
-from satchel import groupapply
+from satchel.aggregate import groupapply
 
-from openrarity.token import AttributeName, RawToken, TokenAttribute, TokenSchema
-from openrarity.token.types import RankedToken, TokenId, TokenStatistic
+from openrarity.token import AttributeStatistic, RawToken, TokenAttribute, TokenSchema
+from openrarity.token.types import TokenId, TokenStatistic
 
 
 def flatten_token_data(tokens: dict[TokenId, RawToken]) -> list[TokenAttribute]:
@@ -26,7 +26,10 @@ def flatten_token_data(tokens: dict[TokenId, RawToken]) -> list[TokenAttribute]:
     return list(
         chain(
             *[
-                [{"token_id": tid, **attr} for attr in token["attributes"]]
+                [
+                    cast(TokenAttribute, {"token_id": tid, **attr})
+                    for attr in token["attributes"]
+                ]
                 for tid, token in tokens.items()
             ]
         )
@@ -34,6 +37,7 @@ def flatten_token_data(tokens: dict[TokenId, RawToken]) -> list[TokenAttribute]:
 
 
 def extract_token_name_key(t: TokenAttribute) -> tuple[int | str, str]:
+    """Stand in for returning the tuple key for grouping tokenattributes"""
     return t["token_id"], t["name"]
 
 
@@ -51,8 +55,12 @@ def _create_token_schema(tokens: list[TokenAttribute]) -> TokenSchema:
     TokenSchema
         _description_
     """
-    d = defaultdict(int)
-    for key, count in groupapply(tokens, extract_token_name_key, "count").items():
+    d: dict[str, int] = defaultdict(int)
+
+    for key, count in cast(
+        Iterable[tuple[tuple[str, str], int]],
+        groupapply(tokens, extract_token_name_key, "count").items(),  # type: ignore
+    ):
         attr = key[1]
         d[attr] = max(count, d[attr])
     return dict(d)
@@ -77,7 +85,7 @@ def _create_null_values(
         _description_
     """
     itemized_schema = set(schema.items())
-    null_attrs = []
+    null_attrs: list[TokenAttribute] = []
     # The following will loop each token_id and and the counts of its individual
     # attributes. Those cound are compared against the expected schema via set
     # subtraction. Any misalignments are then reconciled by adding new values to the
@@ -88,12 +96,15 @@ def _create_null_values(
             for name, expected_count in diffs:
                 null_attrs.extend(
                     [
-                        {
-                            "token_id": tid,
-                            "name": name,
-                            "value": "openrarity.null_trait",
-                            "display_type": "string",
-                        }
+                        cast(
+                            TokenAttribute,
+                            {
+                                "token_id": tid,
+                                "name": name,
+                                "value": "openrarity.null_trait",
+                                "display_type": "string",
+                            },
+                        )
                     ]
                     * (expected_count - counted_attrs.get(name, 0))
                 )
@@ -115,14 +126,17 @@ def _count_token_attrs(tokens: list[TokenAttribute]) -> dict[int, dict[str, int]
     """
     # TODO: Double groupapply. This can probably be flattened using a composite key of
     # (token_id, name) which should improve performance
-    return groupapply(
-        tokens, "token_id", lambda attrs: groupapply(attrs, "name", "count")
+    return cast(
+        dict[int, dict[str, int]],
+        groupapply(
+            tokens, "token_id", lambda attrs: groupapply(attrs, "name", "count")
+        ),
     )
 
 
 def count_attribute_values(
     tokens: list[TokenAttribute],
-) -> dict[AttributeName, int]:
+) -> list[AttributeStatistic]:
     """Aggregate and count on the combination of (name, value).
 
     Parameters
@@ -135,10 +149,10 @@ def count_attribute_values(
     dict[AttributeName, int]
 
     """
-    return [
-        {"name": k[0], "value": k[1], "count": count}
+    return [  # type: ignore
+        cast(AttributeStatistic, {"name": k[0], "value": k[1], "count": count})  # type: ignore
         for k, count in groupapply(
-            tokens, lambda t: (t["name"], t["value"]), "count"
+            tokens, lambda t: (t["name"], t["value"]), "count"  # type: ignore
         ).items()
     ]
 
@@ -203,7 +217,10 @@ def aggregate_tokens(tokens: list[TokenStatistic]) -> list[TokenStatistic]:
         ]
     """
     return [
-        {"token_id": tid, **stats}
+        cast(
+            TokenStatistic,
+            {"token_id": tid, **cast(dict[str, str | float | int], stats)},
+        )
         for tid, stats in groupapply(
             tokens,
             "token_id",

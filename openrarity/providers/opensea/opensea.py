@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 
 
 class OpenseaApi:
+    USER_AGENT = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"  # noqa: E501
+    }
     # https://docs.opensea.io/reference/retrieving-a-single-collection
     OS_COLLECTION_URL = "https://api.opensea.io/api/v1/collection/{slug}"
     OS_ASSETS_URL = "https://api.opensea.io/api/v1/assets"

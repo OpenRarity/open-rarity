@@ -2,11 +2,13 @@ from typing_extensions import NotRequired, TypedDict
 
 
 class AttributeStatistic(TypedDict):
+    """Statistics dictionary for just a (name, value) attributes pair."""
+
     name: str
     value: float | int | str
     count: int
-    probability: float
-    ic: float
+    probability: NotRequired[float]
+    ic: NotRequired[float]
     entropy: NotRequired[float]
 
 

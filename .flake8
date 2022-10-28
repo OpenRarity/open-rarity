@@ -1,5 +1,6 @@
 [flake8]
 max-line-length = 88
+ignore = E501,W503
 exclude =
     __init__.py
     __pycache__
@@ -9,3 +10,7 @@ exclude =
     .venv
     .github
     .pytest_cache
+classmethod-decorators =
+    classmethod
+    validator
+    root_validator

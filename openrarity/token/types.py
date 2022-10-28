@@ -13,21 +13,28 @@ class MetadataAttribute(TypedDict):
 
 class RawToken(TypedDict):
     attributes: list[MetadataAttribute]
-    properties: NotRequired[dict]
+    token_supply: NotRequired[dict[str | int, int]]
 
 
-class TokenAttribute(MetadataAttribute):
+class TokenAttribute(TypedDict):
     token_id: int
+    name: str
+    value: str | int | float
+    display_type: NotRequired[str | None]
 
 
 class AttributeStatistic(MetadataAttribute):
     count: int
-    probability: float
-    ic: float
+    probability: NotRequired[float]
+    ic: NotRequired[float]
     entropy: NotRequired[float]
 
 
-class TokenStatistic(TokenAttribute, AttributeStatistic):
+class TokenStatistic(TokenAttribute):
+    count: int
+    probability: float
+    ic: float
+    entropy: NotRequired[float]
     unique_trait_count: NotRequired[int]
     max_trait_ic: NotRequired[float]
 

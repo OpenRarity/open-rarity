@@ -1,14 +1,12 @@
-from typing import TypeVar
+from typing import Hashable, TypeVar
 
-K = TypeVar("K", str, int, float, tuple)
-L = TypeVar("L")
-R = TypeVar("R")
+K = TypeVar("K", bound=Hashable)
 T = TypeVar("T")
 
 
 def merge(
-    left: list[dict[K, L]], right: list[dict[K, R]], key: tuple[K]
-) -> list[dict[K, L | R]]:
+    left: list[dict[K, T]], right: list[dict[K, T]], key: tuple[K, ...]
+) -> list[dict[K, T]]:
     """Performs a hash merge of two list of dict data structures. A general assumption
     that the `right` list is shorter in length than the `left` is wise. Duplicated rows
     by key in the `right` are not handled and only the latest value in the list will be
@@ -30,13 +28,13 @@ def merge(
     list[dict]
         List with merged and joined values from both lists
     """
-    right = {tuple((row[k] for k in key)): row for row in right}
-    return [lrow | right[tuple((lrow[k] for k in key))] for lrow in left]
+    right_hashed = {tuple((row[k] for k in key)): row for row in right}
+    return [lrow | right_hashed[tuple((lrow[k] for k in key))] for lrow in left]
 
 
 def rank_over(
-    data: list[dict[K, T]], key: K | tuple[K, K], desc: bool = True
-) -> list[dict[K, T | int]]:
+    data: list[dict[K | str, T | int]], key: K | tuple[K, ...], desc: bool = True
+) -> list[dict[K | str, T | int]]:
     """Simple RANK OVER algorithm. The data will be sorted by the key or tuple of keys
     provided. Ranks are then applied where ties receive the same rank while the next
     'possible' rank will continue to increment as opposed to a DENSE RANK where the next
@@ -56,16 +54,20 @@ def rank_over(
     list[dict[str, T]]
         An identical data structure to the passed data with the addition of a 'rank' key
     """
-    # TODO: probably should generically validate that the key exists for all rows in data
-    key = (key,) if isinstance(key, str) else key
+    # TODO: should generically validate that the key exists for all rows in data
+    iter_key = (key,) if not isinstance(key, tuple) else key  # type: ignore
 
-    data = sorted(data, key=lambda row: tuple((row[k] for k in key)), reverse=desc)
+    data = sorted(
+        data,
+        key=lambda row: tuple((row[k] for k in iter_key)),  # type: ignore
+        reverse=desc,
+    )
 
     current_rank = 1
     prev_value = None
     for incremental_rank, row in enumerate(data, 1):
         data_index = incremental_rank - 1
-        current_value = tuple((row[k] for k in key))
+        current_value = tuple((row[k] for k in iter_key))  # type: ignore
 
         if current_value == prev_value or incremental_rank == 1:
             data[data_index]["rank"] = current_rank

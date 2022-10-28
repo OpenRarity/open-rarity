@@ -9,7 +9,7 @@ logger = Logger(__name__)
 
 
 class MetadataAttributeModel(BaseModel):
-    """ """
+    """A validator for Token Metadata."""
 
     name: str
     value: float | int | str
@@ -18,7 +18,7 @@ class MetadataAttributeModel(BaseModel):
     name_validator = validator("name", allow_reuse=True)(clean_lower_string)
 
     @root_validator(pre=True)
-    def clean_attribute_value(cls, values: dict):
+    def clean_attribute_value(cls, values: dict[str, str | float | int | None]):
         if "trait_type" in values:
             values["name"] = values.pop("trait_type")
         dtype = values.setdefault("display_type", "string")

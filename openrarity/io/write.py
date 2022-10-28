@@ -1,13 +1,12 @@
-import csv
 import json
-from os import PathLike
 from pathlib import Path
-from typing import Any
+
+from openrarity.types import JsonEncodable
 
 
-def to_json(data, path: str | PathLike):
+def to_json(data: JsonEncodable, path: str | Path):
     Path(path).write_text(json.dumps(data, sort_keys=True, indent=2))
 
 
-def to_csv(data, path: str | PathLike):
+def to_csv(data, path: str | Path):  # type: ignore
     raise NotImplementedError()
