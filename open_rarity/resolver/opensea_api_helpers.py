@@ -427,10 +427,22 @@ def read_collection_data_from_file(expected_supply: int, slug: str) -> list[Toke
                     len(tokens_data),
                     expected_supply,
                 )
+            non_null_tokens = 0
             if len(tokens_data) > 0:
                 for token_data in tokens_data:
-                    assert token_data["metadata_dict"]
-                    tokens.append(Token.from_dict(token_data))
+                    if token_data["metadata_dict"]:
+                        non_null_tokens += 1
+                        tokens.append(Token.from_dict(token_data))
+            null_tokens = len(tokens_data) - non_null_tokens
+            if null_tokens:
+                msg = (
+                    f"Warning: Data cache file had empty metadata for {null_tokens} "
+                    "tokens. This is expected if those tokens are burned or "
+                    "unrevealed. However, they are not taken into account into "
+                    "rarity. Please check the cache file for errors."
+                )
+                logger.warning(msg)
+                print(msg)
         logger.debug(f"Read {len(tokens)} tokens from cache file: {cache_filename}")
     except FileNotFoundError:
         logger.warning(f"No opensea cache file found for {slug}: {cache_filename}")
