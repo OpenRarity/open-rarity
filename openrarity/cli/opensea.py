@@ -7,7 +7,7 @@ from typing import Optional
 import typer
 
 from openrarity import TokenCollection
-from openrarity.providers import OpenseaApi  # type: ignore
+from openrarity.providers import OpenseaApi
 
 from .utils import print_rankings
 
