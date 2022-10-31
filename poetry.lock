@@ -1425,6 +1425,17 @@ pure-eval = "*"
 tests = ["cython", "littleutils", "pygments", "typeguard", "pytest"]
 
 [[package]]
+name = "tabulate"
+version = "0.9.0"
+description = "Pretty-print tabular data"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+widechars = ["wcwidth"]
+
+[[package]]
 name = "terminado"
 version = "0.17.0"
 description = "Tornado websocket backend for the Xterm.js Javascript terminal emulator library."
@@ -1615,7 +1626,7 @@ docs = ["sphinx-rtd-theme (>=0.5)", "Sphinx (>=3.4)"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "fc788cde97d76f7559cdf8585755a80d24a604e1a90fe0f32bf1849d14e146dc"
+content-hash = "d51bd32e7384c06cbcee537291c10371328922c63f85740f5184301b19de1483"
 
 [metadata.files]
 anyio = []
@@ -1728,6 +1739,7 @@ six = []
 sniffio = []
 soupsieve = []
 stack-data = []
+tabulate = []
 terminado = []
 tinycss2 = []
 toml = []

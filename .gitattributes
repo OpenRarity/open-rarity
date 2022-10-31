@@ -1,3 +1,11 @@
 notebooks/GettingStarted.ipynb filter=lfs diff=lfs merge=lfs -text
-data/collections.json filter=lfs diff=lfs merge=lfs -text
-data/external_ranks.json filter=lfs diff=lfs merge=lfs -text
+data/boredapeyachtclub/ranks.json filter=lfs diff=lfs merge=lfs -text
+data/doodles-official/tokens.json filter=lfs diff=lfs merge=lfs -text
+data/moonbirds-oddities/ranks.json filter=lfs diff=lfs merge=lfs -text
+data/moonbirds-oddities/tokens.json filter=lfs diff=lfs merge=lfs -text
+data/proof-moonbirds/tokens.json filter=lfs diff=lfs merge=lfs -text
+data/boredapeyachtclub/tokens.json filter=lfs diff=lfs merge=lfs -text
+data/cool-cats-nft/ranks.json filter=lfs diff=lfs merge=lfs -text
+data/cool-cats-nft/tokens.json filter=lfs diff=lfs merge=lfs -text
+data/doodles-official/ranks.json filter=lfs diff=lfs merge=lfs -text
+data/proof-moonbirds/ranks.json filter=lfs diff=lfs merge=lfs -text

@@ -7,13 +7,54 @@
 
 # OpenRarity
 
-We’re excited to announce OpenRarity(Beta), a new rarity protocol we’re building for the NFT community. Our objective is to provide a transparent rarity calculation that is entirely open-source, objective, and reproducible.
+We’re excited to announce OpenRarity, a new rarity protocol we’re building for the NFT community. Our objective is to provide a transparent rarity calculation that is entirely open-source, objective, and reproducible.
 
 With the explosion of new collections, marketplaces and tooling in the NFT ecosystem, we realized that rarity ranks often differed across platforms which could lead to confusion for buyers, sellers and creators. We believe it’s important to find a way to provide a unified and consistent set of rarity rankings across all platforms to help build more trust and transparency in the industry.
 
 We are releasing the OpenRarity library in a Beta preview to crowdsource feedback from the community and incorporate it into the library evolution.
 
 See the full announcement in the [blog post](https://mirror.xyz/openrarity.eth/LUoJnybWuNYedIQHD6RRdX1SS9MiowdI6a69X-lefGM).
+
+## CLI Usage
+
+
+If you already have a json file containing the metadata for the tokens you want to rank you can run the following which will print ranks to stdout.
+
+```
+❯ openrarity rank data/boredapeyachtclub/tokens.json | head -n 10
+  token_id    unique_traits       ic    rank
+----------  ---------------  -------  ------
+      7495                0  42.0592       1
+      4873                0  40.4554       2
+      8854                0  40.2091       3
+       446                0  40.017        4
+        73                0  39.6501       5
+      8135                0  39.5842       6
+      8976                0  39.5072       7
+      4980                0  39.4849       8
+```
+
+Likewise you can write to a json file
+```
+❯ openrarity rank data/boredapeyachtclub/tokens.json -o boredapeyachtclub_ranks.json
+```
+
+
+If you don't have metadata available you can fetch it from OpenSea first
+```
+❯ openrarity opensea fetch-assets --slug boredapeyachtclub --start-token-id 0 --end-token-id 9999 --rank | head -n 10
+100%|████████████████████████████████████████| 334/334 [01:40<00:00,  3.33it/s]
+  token_id    unique_traits       ic    rank
+----------  ---------------  -------  ------
+      7495                0  42.0592       1
+      4873                0  40.4554       2
+      8854                0  40.2091       3
+       446                0  40.017        4
+        73                0  39.6501       5
+      8135                0  39.5842       6
+      8976                0  39.5072       7
+      4980                0  39.4849       8
+```
 
 # Developer documentation
 
@@ -26,25 +67,8 @@ poetry install # install dependencies locally
 poetry run pytest # run tests
 ```
 
-Some tests are skipped by default due to it being more integration/slow tests.
-To run resolver tests:
-```
-poetry run pytest -k test_testset_resolver --run-resolvers
-```
-
 # Library usage
-You can install open rarity as a [python package](https://pypi.org/project/open-rarity/) to use OpenRarity in your project:
-```
-pip install open-rarity
-```
-Please refer to the [scripts/](/scripts/) folder for an example of how to use the library.
-
-If you have downloaded the repo, you can use OpenRarity shell tool to generate json or csv outputs of OpenRarity scoring and ranks for any collections:
-```
-python -m scripts.score_real_collections boredapeyachtclub proof-moonbirds
-```
 Read [developer documentation](https://openrarity.gitbook.io/developers/) for advanced library usage
-
 
 
 # Contributions guide and governance
@@ -70,7 +94,6 @@ We used the following core technologies in OpenRarity:
 
 - Python ≥ 3.10.x
 - Poetry for dependency management
-- Numpy ≥1.23.1
 - PyTest for unit tests
 
 # License

@@ -1,15 +1,15 @@
 import asyncio as aio
 import json
 import logging
-import sys
-from inspect import cleandoc
 from pathlib import Path
 from typing import Optional
 
 import typer
-from tqdm import tqdm  # type: ignore
 
+from openrarity import TokenCollection
 from openrarity.providers import OpenseaApi  # type: ignore
+
+from .utils import print_rankings
 
 logger = logging.getLogger(__name__)
 app = typer.Typer(name="opensea")
@@ -17,9 +17,9 @@ app = typer.Typer(name="opensea")
 
 @app.command("fetch-assets")
 def fetch_assets(
-    token_ids: Optional[list[str]] = typer.Argument(
+    token_ids_file: Path = typer.Argument(
         None,
-        help="Space delimited list of token_ids. Used in place of start and end values.",
+        help="Either a newline delimited text file or json file with an array of token ids.",
     ),
     slug: str = typer.Option(..., help="Collection slug to fetch"),
     start_token_id: Optional[int] = typer.Option(
@@ -28,14 +28,25 @@ def fetch_assets(
     end_token_id: Optional[int] = typer.Option(
         None, help="End id value for contiguous token_id collections"
     ),
-    output: Path = typer.Option(
-        None,
-        "-o",
-        "--output",
-        help="Json file path to write data to. Defaults to stdout",
+    semi_fungible: bool = typer.Option(False),
+    rank: bool = typer.Option(False),
+    write: bool = typer.Option(
+        False,
+        "-w",
+        "--write",
+        help="Boolean flag to write results.",
+    ),
+    dir: Path = typer.Option(
+        ".", "-d", "--dir", help="Directory to write outputs files."
+    ),
+    columns: str = typer.Option(
+        "token_id,unique_traits,ic,rank",
+        "--collumns",
+        "-C",
+        help="Columns to print or write to file.",
     ),
 ):
-    if not token_ids:
+    if token_ids_file is None:
         if start_token_id is None or end_token_id is None:
             raise ValueError(
                 "Either a list of token-ids must be provided or both --start-token-id AND --end-token-id must be set."
@@ -44,52 +55,52 @@ def fetch_assets(
             raise ValueError("--end-token-id must be greater than --start-token-id")
 
         token_ids = [str(i) for i in range(start_token_id, end_token_id + 1)]
-
-    # typer.echo(f"Fetching tokens for {slug}")
+    else:
+        contents = token_ids_file.read_text()
+        match token_ids_file.suffix:
+            case ".txt":
+                token_ids = contents.split()
+            case ".json":
+                token_ids = json.loads(contents)
+            case _:
+                raise ValueError("Input file must be either a .txt or .json file.")
 
     tokens = aio.run(
         OpenseaApi.fetch_opensea_assets_data(slug=slug, token_ids=token_ids)
     )
+    ranks = None
+    if rank:
+        ranks = TokenCollection(
+            "non-fungible" if not semi_fungible else "semi-fungible", tokens
+        ).rank_collection()
 
-    if output is None:
-        print(json.dumps(tokens))
+    column_values = columns.split(",")  # type: ignore
+    if write:
+        tokens_path = dir / f"{slug}_opensea.json"
+        tokens_path.write_text(json.dumps(tokens, indent=2))
+        typer.echo(f"Writing {str(tokens_path)}...")
+        if ranks is not None:
+            ranks = [[str(row[c]) for c in columns] for row in ranks]  # type: ignore
+            ranks_path = dir / f"{slug}_ranks.json"
+            ranks_path.write_text(json.dumps(ranks, indent=2))
+            typer.echo(f"Writing {str(ranks_path)}...")
+    elif ranks is not None:
+        print_rankings(ranks, column_values)
     else:
-        output.write_text(json.dumps(tokens, indent=2))
-        typer.echo(f"Writing {str(output)}...")
+        print(json.dumps(tokens))
 
 
 @app.command("transform-assets")
 def transform_assets(
-    data: str = typer.Argument(... if sys.stdin.isatty() else sys.stdin.read().strip()),
-):
-    print(json.dumps(OpenseaApi.transform_assets_response(json.loads(data))))
-
-
-@app.command(
-    "transform-assets-bulk",
-    help=cleandoc(
-        """
-        Transform a directory of json files containing Opensea Asset data.
-
-        Provided paths must be directories that already exist.
-        """
-    ),
-)
-def transform_assets_bulk(
-    input_path: Path = typer.Argument(
-        ..., help="Directory to read json files with asset data from"
-    ),
-    output_path: Path = typer.Argument(
-        ..., help="Directory to write transformed data to"
+    input: Path = typer.Argument(..., help="Json file with Opensea assets response."),
+    output: Optional[Path] = typer.Option(
+        None, "--output", "-o", help="Json file to write transformed data."
     ),
 ):
-    if not input_path.is_dir() and output_path.is_dir():
-        raise ValueError("Input and Output paths must be existing directories.")
-    for p in tqdm(list(input_path.glob("*.json"))):
-        try:
-            (output_path / p.name).write_text(
-                json.dumps(OpenseaApi.transform(json.loads(p.read_text())))
-            )
-        except Exception:
-            typer.echo(f"Input File: {str(p)}")
-            raise
+    transformed = OpenseaApi.transform_assets_response(
+        json.loads(input.read_text())["assets"]
+    )
+    if output:
+        output.write_text(json.dumps(transformed, indent=2))
+    else:
+        print(json.dumps(transformed))
