@@ -30,7 +30,7 @@ repos:
       - id: mypy
         name: mypy
         types: [python]
-        entry: poetry run mypy openrarity
+        entry: poetry run mypy --namespace-packages openrarity
         language: system
         always_run: true
         pass_filenames: false

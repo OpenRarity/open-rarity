@@ -1,15 +1,15 @@
-from typing import Literal, TypedDict
-
-TraitType = str
-TraitValue = str | float | int
+from typing import TypedDict
 
 
-class TokenIdentifier(TypedDict):
-    contract_address: str
-    token_id: int | str
+class TokenTrait(TypedDict):
+    trait_type: str
+    value: str | float | int
+    display_type: str | None
+    max_value: int | None
+    trait_count: int
+    order: None
 
 
 class TokenAsset(TypedDict):
-    token_identifier: TokenIdentifier
-    token_standard: str | Literal["ERC721", "ERC1155"]
-    metadata_dict: dict[TraitType, TraitValue]
+    token_id: str
+    traits: list[TokenTrait]

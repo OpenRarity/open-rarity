@@ -97,22 +97,22 @@ class TokenCollection:
         return self._input_checksum + self._ranks_checksum
 
     @overload
-    def rank_collection(
+    def rank_collection(  # type: ignore
         self,
         rank_by: tuple[
             Literal["unique_traits", "ic", "probability", "trait_count"], ...
-        ],
-        return_ranks: Literal[True],
+        ] = ("unique_traits", "ic"),
+        return_ranks: Literal[True] = True,
     ) -> list[RankedToken]:
         ...
 
     @overload
-    def rank_collection(
+    def rank_collection(  # type: ignore
         self,
         rank_by: tuple[
             Literal["unique_traits", "ic", "probability", "trait_count"], ...
-        ],
-        return_ranks: Literal[False],
+        ] = ("unique_traits", "ic"),
+        return_ranks: Literal[False] = False,
     ) -> None:
         ...
 

@@ -42,4 +42,5 @@ cached_data/*.json
 .openrarity
 
 # Local scratch files
-scratch.*
+scratch*.ipynb
+*.env
