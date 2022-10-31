@@ -15,15 +15,14 @@ from openrarity.token import (
     TokenStatistic,
     validate_tokens,
 )
+from openrarity.token.standard import (  # type: ignore
+    non_fungible_attribute_count,
+    semi_fungible_attribute_count,
+)
 from openrarity.types import JsonEncodable
 from openrarity.utils import merge, rank_over
 
-from .utils import (
-    aggregate_tokens,
-    count_attribute_values,
-    enforce_schema,
-    flatten_token_data,
-)
+from .utils import aggregate_tokens, enforce_schema, flatten_token_data
 
 logger = Logger(__name__)
 
@@ -147,8 +146,13 @@ class TokenCollection:
         # TODO: Process number/date display_type
 
         # TODO: This will be replaced with a TokenStandard specific handler
-        self._attribute_statistics = count_attribute_values(
-            self._vertical_attribute_data
+        self._attribute_statistics = (
+            non_fungible_attribute_count(self._vertical_attribute_data)
+            if self._token_type != "semi-fungible"
+            else semi_fungible_attribute_count(
+                self._vertical_attribute_data,
+                cast(dict[str | int, int], self._token_supply),
+            )
         )
         self._attribute_statistics = cast(
             list[AttributeStatistic],

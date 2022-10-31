@@ -92,7 +92,5 @@ def validate_tokens(
         if token_type == "semi-fungible"
         else len(tokens)
     )
-    if token_type == "semi-fungible":
-        raise NotImplementedError("SemiFungible tokens are not currently supported!")
 
     return token_supply, tokens  # type: ignore
