@@ -1,8 +1,11 @@
 import json
 from hashlib import md5
+from itertools import chain
 from logging import Logger
 from pathlib import Path
-from typing import Literal, cast, overload
+from typing import Literal, TypedDict, cast, overload
+
+from satchel.aggregate import groupapply
 
 from openrarity.io import read, write
 from openrarity.metrics.ic import information_content
@@ -10,21 +13,28 @@ from openrarity.token import (
     AttributeStatistic,
     RankedToken,
     RawToken,
-    TokenAttribute,
     TokenId,
     TokenStatistic,
+    ValidatedTokenAttribute,
+    enforce_schema,
     validate_tokens,
 )
-from openrarity.token.standard import (  # type: ignore
-    non_fungible_attribute_count,
-    semi_fungible_attribute_count,
+from openrarity.token.metadata.dtypes import (
+    process_numeric_dtypes,
+    process_string_dtypes,
 )
 from openrarity.types import JsonEncodable
 from openrarity.utils import merge, rank_over
 
-from .utils import aggregate_tokens, enforce_schema, flatten_token_data
+from .utils import aggregate_tokens, flatten_token_data
 
 logger = Logger(__name__)
+
+
+class AttributesStatistics(TypedDict):
+    string: list[AttributeStatistic]
+    number: list[AttributeStatistic]
+    date: list[AttributeStatistic]
 
 
 class TokenCollection:
@@ -42,11 +52,19 @@ class TokenCollection:
         (self._token_supply, self._tokens) = validate_tokens(token_type, tokens)
 
         # Derived data
-        self._vertical_attribute_data: list[TokenAttribute] | None = None
-        self._attribute_statistics: list[AttributeStatistic] | None = None
-        self._token_statistics: list[TokenStatistic] | None = None
+        self._vertical_attribute_data: list[ValidatedTokenAttribute] = []
+        self._attribute_statistics: AttributesStatistics = {
+            "string": [],
+            "number": [],
+            "date": [],
+        }
+        self._token_statistics: list[TokenStatistic] = []
+        self._string_types: list[ValidatedTokenAttribute] = []
+        self._number_types: list[ValidatedTokenAttribute] = []
+        self._date_types: list[ValidatedTokenAttribute] = []
 
-        self._ranks: list[RankedToken] | None = None
+        # Output data
+        self._ranks: list[RankedToken] = []
 
     def __repr__(self) -> str:
         return f"Collection({self._token_type})"
@@ -64,7 +82,7 @@ class TokenCollection:
         return self._token_supply
 
     @property
-    def attribute_statistics(self) -> list[AttributeStatistic]:
+    def attribute_statistics(self) -> AttributesStatistics:
         if not self._attribute_statistics:
             raise AttributeError(
                 f"Please run '{repr(self)}.rank_collection()' to view this property"
@@ -99,8 +117,15 @@ class TokenCollection:
     def rank_collection(  # type: ignore
         self,
         rank_by: tuple[
-            Literal["unique_traits", "ic", "probability", "trait_count"], ...
-        ] = ("unique_traits", "ic"),
+            Literal[
+                "metric.probability",
+                "metric.information",
+                "metric.entropy",
+                "metric.unique_trait_count",
+                "metric.max_trait_information",
+            ],
+            ...,
+        ] = ("metric.unique_trait_count", "metric.information"),
         return_ranks: Literal[True] = True,
     ) -> list[RankedToken]:
         ...
@@ -109,8 +134,15 @@ class TokenCollection:
     def rank_collection(  # type: ignore
         self,
         rank_by: tuple[
-            Literal["unique_traits", "ic", "probability", "trait_count"], ...
-        ] = ("unique_traits", "ic"),
+            Literal[
+                "metric.probability",
+                "metric.information",
+                "metric.entropy",
+                "metric.unique_trait_count",
+                "metric.max_trait_information",
+            ],
+            ...,
+        ] = ("metric.unique_trait_count", "metric.information"),
         return_ranks: Literal[False] = False,
     ) -> None:
         ...
@@ -118,8 +150,15 @@ class TokenCollection:
     def rank_collection(
         self,
         rank_by: tuple[
-            Literal["unique_traits", "ic", "probability", "trait_count"], ...
-        ] = ("unique_traits", "ic"),
+            Literal[
+                "metric.probability",
+                "metric.information",
+                "metric.entropy",
+                "metric.unique_trait_count",
+                "metric.max_trait_information",
+            ],
+            ...,
+        ] = ("metric.unique_trait_count", "metric.information"),
         return_ranks: bool = True,
     ) -> list[RankedToken] | None:
         """Preprocess tokens then rank the tokens for the collection and set the
@@ -138,33 +177,47 @@ class TokenCollection:
         list[RankedToken] | None
             Ranked tokens
         """
-        _vertical_attribute_data = flatten_token_data(self._tokens)
-        self._token_schema, self._vertical_attribute_data = enforce_schema(
-            _vertical_attribute_data
+
+        self.token_schema, self._vertical_attribute_data = enforce_schema(
+            flatten_token_data(self._tokens, self._token_supply), self._token_supply
         )
 
-        # TODO: Process number/date display_type
-
-        # TODO: This will be replaced with a TokenStandard specific handler
-        self._attribute_statistics = (
-            non_fungible_attribute_count(self._vertical_attribute_data)
-            if self._token_type != "semi-fungible"
-            else semi_fungible_attribute_count(
-                self._vertical_attribute_data,
-                cast(dict[str | int, int], self._token_supply),
-            )
+        dtype_groups = cast(
+            dict[Literal["string", "number", "date"], list[ValidatedTokenAttribute]],
+            groupapply(self._vertical_attribute_data, "display_type"),
         )
+
+        self._string_types = dtype_groups.setdefault("string", [])  # type: ignore
+        self._number_types = dtype_groups.setdefault("number", [])  # type: ignore
+        self._date_types = dtype_groups.setdefault("date", [])  # type: ignore
+
+        _string_stats = process_string_dtypes(self._string_types)
+        _number_stats = process_numeric_dtypes(self._number_types)
+        _date_stats = process_numeric_dtypes(self._date_types)
+
+        self._attribute_statistics = {
+            "string": _string_stats,
+            "number": _number_stats,
+            "date": _date_stats,
+        }
+
         self._attribute_statistics = cast(
-            list[AttributeStatistic],
-            information_content(self._attribute_statistics, self.total_supply),  # type: ignore
+            AttributesStatistics,
+            {
+                dtype: information_content(
+                    self._attribute_statistics[dtype],  # type: ignore
+                    self.total_supply,
+                )
+                for dtype in self._attribute_statistics
+            },
         )
 
-        # TODO: Add token statistics and aggregate
+        # # TODO: Add token statistics and aggregate
         self._token_statistics = cast(
             list[TokenStatistic],
             merge(
                 self._vertical_attribute_data,  # type: ignore
-                self._attribute_statistics,  # type: ignore
+                list(chain(*self._attribute_statistics.values())),  # type: ignore
                 ("name", "value"),
             ),
         )

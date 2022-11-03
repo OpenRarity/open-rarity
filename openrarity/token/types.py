@@ -23,20 +23,40 @@ class TokenAttribute(TypedDict):
     display_type: NotRequired[str | None]
 
 
+ValidatedTokenAttribute = TypedDict(
+    "ValidatedTokenAttribute",
+    {
+        "token_id": int,
+        "name": str,
+        "value": str | int | float,
+        "display_type": str,
+        "token.supply": int,
+    },
+)
+
+
 class AttributeStatistic(MetadataAttribute):
+    left: NotRequired[float]
+    right: NotRequired[float]
     count: int
     probability: NotRequired[float]
     ic: NotRequired[float]
     entropy: NotRequired[float]
 
 
-class TokenStatistic(TokenAttribute):
-    count: int
-    probability: float
-    ic: float
-    entropy: NotRequired[float]
-    unique_trait_count: NotRequired[int]
-    max_trait_ic: NotRequired[float]
+TokenStatistic = TypedDict(
+    "TokenStatistic",
+    {
+        "token_id": str | int,
+        "attribute.token_count": int,
+        "attribute.supply": int,
+        "metric.probability": float,
+        "metric.information": float,
+        "metric.entropy": NotRequired[float],
+        "metric.unique_trait_count": NotRequired[int],
+        "metric.max_trait_information": NotRequired[float],
+    },
+)
 
 
 class RankedToken(TypedDict):
@@ -45,7 +65,7 @@ class RankedToken(TypedDict):
     metrics: list[AttributeStatistic]
 
 
-TokenSchema = dict[AttributeName, int]
+TokenSchema = dict[tuple[AttributeName, str], int]
 
 __all__ = [
     "AttributeName",
@@ -58,4 +78,5 @@ __all__ = [
     "TokenSchema",
     "TokenId",
     "TokenStatistic",
+    "ValidatedTokenAttribute",
 ]

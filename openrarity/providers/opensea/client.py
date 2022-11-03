@@ -1,10 +1,13 @@
 import logging
 import os
 from itertools import chain
-from typing import Iterable, cast
+from typing import Any, Iterable, cast
 
 import httpx
 from satchel.iterable import chunk
+from tenacity import retry
+from tenacity.stop import stop_after_attempt
+from tenacity.wait import wait_exponential
 
 from openrarity.token import RawToken, TokenId
 from openrarity.token.types import MetadataAttribute
@@ -151,3 +154,10 @@ class OpenseaApi:
             return cls.transform_assets_response(
                 chain(*[r.json()["assets"] for r in responses])
             )
+
+    @classmethod
+    @retry(wait=wait_exponential(), stop=stop_after_attempt(7))
+    async def _send_request(
+        cls, client: "httpx.AsyncClient", url: str, params: dict[str, Any]
+    ):
+        return client.get(cls.ASSETS_URL, params=params)

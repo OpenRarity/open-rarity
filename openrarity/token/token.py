@@ -1,50 +1,29 @@
 from typing import Literal, cast
 
-from pydantic import BaseModel, root_validator
-
 from openrarity.metrics.trait_count import count_traits
 
-from .metadata import MetadataAttributeModel
-from .types import MetadataAttribute, RawToken, TokenId
+from .metadata import validate_metadata
+from .types import RawToken, TokenId
 
 
-class NonFungibleTokenModel(BaseModel):
-    """Validator for NonFungible tokens.
-
-    Attributes are deduplicated on (name, value, display_type) and a `trait_count`
-    attribute is added.
-    """
-
-    attributes: list[MetadataAttributeModel]
-
-    @root_validator(pre=True)
-    def add_trait_count(cls, values: RawToken):
-        attrs = [
-            cast(MetadataAttribute, dict(deduped))
-            for deduped in {tuple(attr.items()) for attr in values["attributes"]}
-        ]
-        values["attributes"] = count_traits(attrs)
-        return values
+def trait_count(values: RawToken) -> RawToken:
+    attrs = [
+        dict(deduped)
+        for deduped in {tuple(attr.items()) for attr in values["attributes"]}
+    ]
+    values["attributes"] = count_traits(attrs)  # type: ignore
+    return values
 
 
-class SemiFungibleTokenModel(NonFungibleTokenModel):
-    token_supply: int
+def validate_token(
+    token: RawToken, token_type: Literal["non-fungible", "semi-fungible"]
+) -> RawToken:
+    if token_type == "semi-fungible" and "token_supply" not in token:
+        raise ValueError("token_supply")
 
+    token["attributes"] = [validate_metadata(attr) for attr in token["attributes"]]
 
-# @overload
-# def validate_tokens(
-#     tokens: dict[TokenId, RawToken],
-#     token_type: Literal["non-fungible"] = "non-fungible",
-# ) -> tuple[int, dict[TokenId, RawToken]]:
-#     ...
-
-
-# @overload
-# def validate_tokens(
-#     tokens: dict[TokenId, RawToken],
-#     token_type: Literal["semi-fungible"] = "semi-fungible",
-# ) -> tuple[dict[TokenId, int], dict[TokenId, RawToken]]:
-#     ...
+    return trait_count(token)
 
 
 def validate_tokens(
@@ -70,20 +49,8 @@ def validate_tokens(
     NotImplementedError
         _description_
     """
-    validator = (
-        SemiFungibleTokenModel
-        if token_type == "semi-fungible"
-        else NonFungibleTokenModel
-    )
 
-    tokens = {
-        tid: cast(
-            RawToken,
-            validator(**token).dict(),  # type: ignore
-        )
-        for tid, token in tokens.items()
-    }
-
+    tokens = {id: validate_token(token, token_type) for id, token in tokens.items()}
     token_supply = (
         cast(
             dict[TokenId, int],

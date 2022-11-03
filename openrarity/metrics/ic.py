@@ -31,8 +31,8 @@ def information_content(
             AttributeStatistic,
             {
                 **attr,
-                "probability": attr["count"] / total,
-                "ic": -log2(attr["count"] / total),
+                "metric.probability": attr["attribute.supply"] / total,
+                "metric.information": -log2(attr["attribute.supply"] / total),
             },
         )
         for attr in counts

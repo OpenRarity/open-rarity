@@ -2,23 +2,9 @@ import dataclasses
 from collections.abc import Mapping
 from typing import Iterator
 
-from pydantic.dataclasses import dataclass
-
 
 @dataclasses.dataclass
 class BaseDataClass(Mapping):  # type: ignore
-    def __getitem__(self, item: str):
-        return getattr(self, item)
-
-    def __iter__(self) -> Iterator[str]:
-        return (k for k in self.__dict__.keys())
-
-    def __len__(self) -> int:
-        return len(self.__dict__)
-
-
-@dataclass
-class BaseValidatedDataClass(Mapping):  # type: ignore
     def __getitem__(self, item: str):
         return getattr(self, item)
 

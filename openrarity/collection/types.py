@@ -1,15 +1,15 @@
 from typing_extensions import NotRequired, TypedDict
 
-
-class AttributeStatistic(TypedDict):
-    """Statistics dictionary for just a (name, value) attributes pair."""
-
-    name: str
-    value: float | int | str
-    count: int
-    probability: NotRequired[float]
-    ic: NotRequired[float]
-    entropy: NotRequired[float]
-
-
+AttributeStatistic = TypedDict(
+    "AttributeStatistic",
+    {
+        "name": str,
+        "value": float | int | str,
+        "attribute.token_count": int,
+        "attribute.supply": int,
+        "metric.probability": NotRequired[float],
+        "metric.information": NotRequired[float],
+        "entropy": NotRequired[float],
+    },
+)
 __all__ = ["AttributeStatistic"]

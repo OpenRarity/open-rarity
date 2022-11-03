@@ -41,7 +41,7 @@ def fetch_assets(
     ),
     columns: str = typer.Option(
         "token_id,unique_traits,ic,rank",
-        "--collumns",
+        "--columns",
         "-C",
         help="Columns to print or write to file.",
     ),
