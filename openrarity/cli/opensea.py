@@ -9,7 +9,7 @@ import typer
 from openrarity import TokenCollection
 from openrarity.providers import OpenseaApi
 
-from .utils import print_rankings
+from .utils import DEFAULT_COLUMNS, print_rankings
 
 logger = logging.getLogger(__name__)
 app = typer.Typer(name="opensea")
@@ -40,7 +40,7 @@ def fetch_assets(
         ".", "-d", "--dir", help="Directory to write outputs files."
     ),
     columns: str = typer.Option(
-        "token_id,unique_traits,ic,rank",
+        DEFAULT_COLUMNS,
         "--columns",
         "-C",
         help="Columns to print or write to file.",

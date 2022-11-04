@@ -8,7 +8,7 @@ import typer
 from openrarity import TokenCollection
 
 from . import opensea
-from .utils import print_rankings
+from .utils import DEFAULT_COLUMNS, print_rankings
 
 app = typer.Typer()
 app.add_typer(opensea.app)
@@ -22,7 +22,7 @@ def rank(
         None, "--output", "-o", help="Json file to write rank data."
     ),
     columns: str = typer.Option(
-        "token_id,unique_traits,ic,rank",
+        DEFAULT_COLUMNS,
         "--columns",
         "-C",
         help="Columns to print or write to file.",
