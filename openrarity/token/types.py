@@ -63,11 +63,17 @@ TokenStatistic = TypedDict(
 )
 
 
-class RankedToken(TypedDict):
-    token_id: int | str
-    rank: int
-    metrics: list[AttributeStatistic]
-
+RankedToken = TypedDict(
+    "RankedToken",
+    {
+        "token_id": str | int,
+        "metric.probability": float,
+        "metric.information": float,
+        "metric.unique_trait_count": int,
+        "metric.max_trait_information": float,
+        "rank": int,
+    },
+)
 
 TokenSchema = dict[tuple[AttributeName, str], int]
 
