@@ -206,6 +206,16 @@ SUCCEEDS = [
                             "value": 1647519737,
                             "display_type": "date",
                         },
+                        {
+                            "name": "start",
+                            "value": "2022-01-01T00:00:00",
+                            "display_type": "date",
+                        },
+                        {
+                            "name": "end",
+                            "value": "2022-02-01",
+                            "display_type": "date",
+                        },
                     ]
                 },
             },
@@ -214,26 +224,36 @@ SUCCEEDS = [
             "token_supply": 1,
             "tokens": {
                 1: {
-                    "attributes": [
+                    'attributes': [
                         {
-                            "name": "level",
-                            "value": 10.0,
-                            "display_type": "number",
+                            'name': 'start',
+                            'value': 1641013200.0,
+                            'display_type': 'date',
                         },
                         {
-                            "name": "birthday",
-                            "value": 1647519737,
-                            "display_type": "date",
+                            'name': 'level',
+                            'value': 10.0,
+                            'display_type': 'number',
                         },
                         {
-                            "name": "openrarity.trait_count",
-                            "value": 2,
-                            "display_type": "string",
+                            'name': 'birthday',
+                            'value': 1647519737,
+                            'display_type': 'date',
                         },
+                        {
+                            'name': 'end',
+                            'value': 1643691600.0,
+                            'display_type': 'date',
+                        },
+                        {
+                            'name': 'openrarity.trait_count',
+                            'value': 4,
+                            'display_type': 'string',
+                        }
                     ]
                 }
-            },
-        },
+            }
+        }
     },
 ]
 
