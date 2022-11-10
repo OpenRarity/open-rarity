@@ -17,9 +17,7 @@ def test_validate_tokens_succeed(params):
         expected_token = expected_tokens[token_id]
         if params["input"]["token_type"] == "semi-fungible":
             assert token["token_supply"] == expected_token["token_supply"]
-        sorted_attrs = sorted(
-            token["attributes"], key=lambda a: sorted(a.items())
-        )
+        sorted_attrs = sorted(token["attributes"], key=lambda a: sorted(a.items()))
         expected_sorted_attrs = sorted(
             expected_token["attributes"], key=lambda a: sorted(a.items())
         )
