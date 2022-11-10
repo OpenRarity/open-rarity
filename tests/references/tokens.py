@@ -245,9 +245,7 @@ SUCCEEDS = [
                         },
                         {
                             "name": "end",
-                            "value": datetime.fromisoformat(
-                                "2022-02-01"
-                            ).timestamp(),
+                            "value": datetime.fromisoformat("2022-02-01").timestamp(),
                             "display_type": "date",
                         },
                         {
