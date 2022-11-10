@@ -206,16 +206,6 @@ SUCCEEDS = [
                             "value": 1647519737,
                             "display_type": "date",
                         },
-                        {
-                            "name": "start",
-                            "value": "2022-01-01T00:00:00",
-                            "display_type": "date",
-                        },
-                        {
-                            "name": "end",
-                            "value": "2022-02-01",
-                            "display_type": "date",
-                        },
                     ]
                 },
             },
@@ -225,11 +215,6 @@ SUCCEEDS = [
             "tokens": {
                 1: {
                     "attributes": [
-                        {
-                            "name": "start",
-                            "value": 1641013200.0,
-                            "display_type": "date",
-                        },
                         {
                             "name": "level",
                             "value": 10.0,
@@ -241,13 +226,8 @@ SUCCEEDS = [
                             "display_type": "date",
                         },
                         {
-                            "name": "end",
-                            "value": 1643691600.0,
-                            "display_type": "date",
-                        },
-                        {
                             "name": "openrarity.trait_count",
-                            "value": 4,
+                            "value": 2,
                             "display_type": "string",
                         },
                     ]
