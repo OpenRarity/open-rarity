@@ -182,6 +182,59 @@ SUCCEEDS = [
         },
     },
     {
+        "desc": cleandoc("""Collection with date traits in string format."""),
+        "token_type": "non-fungible",
+        "tokens": {
+            1: {
+                "attributes": [
+                    {
+                        "name": "start",
+                        "value": "2022-01-01T00:00:00",
+                        "display_type": "date",
+                    },
+                    {
+                        "name": "end",
+                        "value": "2022-02-01T00:00:00",
+                        "display_type": "date",
+                    },
+                ]
+            },
+            2: {
+                "attributes": [
+                    {
+                        "name": "start",
+                        "value": "2022-02-01",
+                        "display_type": "date",
+                    },
+                    {
+                        "name": "end",
+                        "value": "2022-03-01",
+                        "display_type": "date",
+                    },
+                ]
+            },
+            3: {
+                "attributes": [
+                    {
+                        "name": "start",
+                        "value": "2022-01-01",
+                        "display_type": "date",
+                    },
+                    {
+                        "name": "end",
+                        "value": "2022-03-01T00:00:00",
+                        "display_type": "date",
+                    },
+                ]
+            },
+        },
+        "_expected": {
+            1: 1,
+            2: 1,
+            3: 3,
+        },
+    },
+    {
         "desc": cleandoc("""Item ranked higher for having unique trait count."""),
         "token_type": "non-fungible",
         "tokens": {
