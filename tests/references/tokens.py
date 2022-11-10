@@ -1,3 +1,4 @@
+from datetime import datetime
 from inspect import cleandoc
 
 SUCCEEDS = [
@@ -206,6 +207,16 @@ SUCCEEDS = [
                             "value": 1647519737,
                             "display_type": "date",
                         },
+                        {
+                            "name": "start",
+                            "value": "2022-01-01T00:00:00",
+                            "display_type": "date",
+                        },
+                        {
+                            "name": "end",
+                            "value": "2022-02-01",
+                            "display_type": "date",
+                        },
                     ]
                 },
             },
@@ -215,6 +226,13 @@ SUCCEEDS = [
             "tokens": {
                 1: {
                     "attributes": [
+                        {
+                            "name": "start",
+                            "value": datetime.fromisoformat(
+                                "2022-01-01T00:00:00"
+                            ).timestamp(),
+                            "display_type": "date",
+                        },
                         {
                             "name": "level",
                             "value": 10.0,
@@ -226,8 +244,15 @@ SUCCEEDS = [
                             "display_type": "date",
                         },
                         {
+                            "name": "end",
+                            "value": datetime.fromisoformat(
+                                "2022-02-01"
+                            ).timestamp(),
+                            "display_type": "date",
+                        },
+                        {
                             "name": "openrarity.trait_count",
-                            "value": 2,
+                            "value": 4,
                             "display_type": "string",
                         },
                     ]
