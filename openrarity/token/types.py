@@ -35,14 +35,18 @@ ValidatedTokenAttribute = TypedDict(
 )
 
 
-class AttributeStatistic(MetadataAttribute):
-    left: NotRequired[float]
-    right: NotRequired[float]
-    count: int
-    probability: NotRequired[float]
-    ic: NotRequired[float]
-    entropy: NotRequired[float]
-
+AttributeStatistic = TypedDict(
+    "AttributeStatistic",
+    {
+        "name": str,
+        "value": str | int | float,
+        "attribute.token_count": int,
+        "attribute.supply": int,
+        "metric.probability": float,
+        "metric.information": float,
+        "metric.entropy": NotRequired[float],
+    },
+)
 
 TokenStatistic = TypedDict(
     "TokenStatistic",
