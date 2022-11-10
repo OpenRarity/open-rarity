@@ -3,7 +3,7 @@ import pytest
 
 from openrarity.token.token import validate_tokens
 
-from .references.tokens import SUCCEEDS, FAILS
+from .references.tokens import FAILS, SUCCEEDS
 
 
 @pytest.mark.parametrize("params", SUCCEEDS)

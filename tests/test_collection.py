@@ -1,5 +1,6 @@
 # type: ignore
 import copy
+
 import pytest
 
 from openrarity import TokenCollection
@@ -8,8 +9,8 @@ from .references.collections import (
     SUCCEEDS,
     TEST_ATTRIBUTE_STATISTICS_PARAMS,
     TEST_CHECKSUM_PARAMS,
-    TEST_TOKENS_PARAMS,
     TEST_TOKEN_STATISTICS_PARAMS,
+    TEST_TOKENS_PARAMS,
     TEST_TOTAL_SUPPLY_PARAMS,
 )
 

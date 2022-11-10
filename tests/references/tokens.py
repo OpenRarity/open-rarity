@@ -1,6 +1,5 @@
 from inspect import cleandoc
 
-
 SUCCEEDS = [
     {
         "desc": cleandoc(
