@@ -15,7 +15,8 @@ SUCCEEDS = [
                 {
                     "name": "name",
                     "value": "value",
-                    "count": 3,
+                    "attribute.token_count": 3,
+                    "attribute.supply": 3,
                 }
             ],
             "total": 6,
@@ -24,9 +25,10 @@ SUCCEEDS = [
             {
                 "name": "name",
                 "value": "value",
-                "count": 3,
-                "probability": 0.5,
-                "ic": 1.0,
+                "attribute.token_count": 3,
+                "attribute.supply": 3,
+                "metric.probability": 0.5,
+                "metric.information": 1.0,
             }
         ],
     },
