@@ -1,19 +1,22 @@
 import logging
 import os
+import sys
 from itertools import chain
 from typing import Any, Iterable, cast
 
 import httpx
 from satchel.iterable import chunk
-from tenacity import retry
+from tenacity import before_sleep, retry, stop, wait
 from tenacity.stop import stop_after_attempt
 from tenacity.wait import wait_exponential
 
 from openrarity.token import RawToken, TokenId
 from openrarity.token.types import MetadataAttribute
-from openrarity.utils.aio import semaphore_gather
+from openrarity.utils.aio import ratelimited_gather
 
 from .types import TokenAsset
+
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +29,7 @@ class OpenseaApi:
     COLLECTION_URL = "https://api.opensea.io/api/v1/collection/{slug}"
     ASSETS_URL = "https://api.opensea.io/api/v1/assets"
     API_KEY = os.environ.get("OPENSEA_API_KEY", "")
-    RATE_LIMIT_SEMAPHORE = 5 if API_KEY else 2
+    RATE_LIMIT_SEMAPHORE = int(os.environ.get("OPENSEA_API_RPS", 2))
     HEADERS = {
         "Accept": "application/json",
         "X-API-KEY": API_KEY,
@@ -98,6 +101,17 @@ class OpenseaApi:
             for asset in responses
         }
 
+    @retry(
+        stop=stop.stop_after_attempt(7),
+        wait=wait.wait_exponential(1),
+        before_sleep=before_sleep.before_sleep_log(logger, logging.DEBUG),
+    )
+    @classmethod
+    async def fetch_one(
+        cls, url: str, params: dict[str, Any], client: httpx.AsyncClient
+    ):
+        return await client.get(url, params=params)  # type: ignore
+
     @classmethod
     async def fetch_opensea_assets_data(
         cls, slug: str, token_ids: list[str], limit: int = 30
@@ -128,11 +142,12 @@ class OpenseaApi:
 
         # Max 30 limit enforced on API
         assert limit <= 30
-        async with httpx.AsyncClient(headers=cls.HEADERS) as client:
-            responses: list[httpx.Response] = await semaphore_gather(
-                2,
+        async with httpx.AsyncClient(headers=cls.HEADERS, timeout=None) as client:
+            responses: list[httpx.Response] = await ratelimited_gather(
+                cls.RATE_LIMIT_SEMAPHORE,
                 coros=[
-                    client.get(  # type: ignore
+                    _send_request(  # type: ignore
+                        client,
                         cls.ASSETS_URL,
                         params={
                             "token_ids": tids,
@@ -155,9 +170,14 @@ class OpenseaApi:
                 chain(*[r.json()["assets"] for r in responses])
             )
 
-    @classmethod
-    @retry(wait=wait_exponential(), stop=stop_after_attempt(7))
-    async def _send_request(
-        cls, client: "httpx.AsyncClient", url: str, params: dict[str, Any]
-    ):
-        return client.get(cls.ASSETS_URL, params=params)
+
+@retry(
+    wait=wait_exponential(1),
+    stop=stop_after_attempt(7),
+    before_sleep=before_sleep.before_sleep_log(logger, logging.WARN),
+)
+async def _send_request(client: "httpx.AsyncClient", url: str, params: dict[str, Any]):
+    response = await client.get(url, params=params)
+    if response.status_code != 200:
+        response.raise_for_status()
+    return response

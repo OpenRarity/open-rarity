@@ -1,4 +1,15 @@
 [[package]]
+name = "aiolimiter"
+version = "1.0.0"
+description = "asyncio rate limiter, a leaky bucket implementation"
+category = "main"
+optional = false
+python-versions = ">=3.6.1,<4.0.0"
+
+[package.extras]
+docs = ["aiohttp-theme (>=0.1.6,<0.2.0)", "sphinx (>=2.2.1,<5.0.0)", "sphinx-autodoc-typehints (>=1.10.3,<2.0.0)", "sphinxcontrib-spelling (>=4.3,<8.0)", "toml (>=0.10.0,<0.11.0)"]
+
+[[package]]
 name = "anyio"
 version = "3.6.2"
 description = "High level compatibility layer for multiple asynchronous event loop implementations"
@@ -1622,9 +1633,10 @@ docs = ["sphinx-rtd-theme (>=0.5)", "Sphinx (>=3.4)"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "0b7ab52afe5d36e00da59060205ce77d8a5b53c964e4fbdf2445e2f41fadcd44"
+content-hash = "e46bb6ddeaed432f30e0554e82e114a33c5478a891b35da168d1b0978dd17ca0"
 
 [metadata.files]
+aiolimiter = []
 anyio = []
 appnope = []
 argon2-cffi = []
