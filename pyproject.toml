@@ -7,7 +7,7 @@ packages = [
   {include = "openrarity"},
   {include = "openrarity/py.typed"},
 ]
-version = "1.0.0a0"
+version = "1.0.0a1"
 
 readme = "README.md"
 
