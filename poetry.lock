@@ -997,6 +997,22 @@ python-versions = ">=3.6"
 pyparsing = ">=2.0.2,<3.0.5 || >3.0.5"
 
 [[package]]
+name = "pandas"
+version = "1.5.1"
+description = "Powerful data structures for data analysis, time series, and statistics"
+category = "dev"
+optional = false
+python-versions = ">=3.8"
+
+[package.dependencies]
+numpy = {version = ">=1.21.0", markers = "python_version >= \"3.10\""}
+python-dateutil = ">=2.8.1"
+pytz = ">=2020.1"
+
+[package.extras]
+test = ["hypothesis (>=5.5.3)", "pytest (>=6.0)", "pytest-xdist (>=1.31)"]
+
+[[package]]
 name = "pandocfilters"
 version = "1.5.0"
 description = "Utilities for writing pandoc filters in python"
@@ -1165,6 +1181,17 @@ description = "library with cross-python path, ini-parsing, io, code, log facili
 category = "dev"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+
+[[package]]
+name = "pyarrow"
+version = "10.0.0"
+description = "Python library for Apache Arrow"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+numpy = ">=1.16.6"
 
 [[package]]
 name = "pycodestyle"
@@ -1633,7 +1660,7 @@ docs = ["sphinx-rtd-theme (>=0.5)", "Sphinx (>=3.4)"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "e46bb6ddeaed432f30e0554e82e114a33c5478a891b35da168d1b0978dd17ca0"
+content-hash = "ed1b7ac44b9b379863b97c26c71921ceaa6ed60e43d1a5375dcf09839d7c0ed1"
 
 [metadata.files]
 aiolimiter = []
@@ -1707,6 +1734,7 @@ notebook = []
 notebook-shim = []
 numpy = []
 packaging = []
+pandas = []
 pandocfilters = []
 parso = []
 pathspec = []
@@ -1723,6 +1751,7 @@ psutil = []
 ptyprocess = []
 pure-eval = []
 py = []
+pyarrow = []
 pycodestyle = []
 pycparser = []
 pyflakes = []

@@ -29,9 +29,9 @@ def validate_metadata(values):
             )
         case _:
             values["display_type"] = "string"
-            values["value"] = clean_lower_string(value)
+            values["value"] = clean_lower_string(str(value))
 
-    values["name"] = clean_lower_string(values["name"])
+    values["name"] = clean_lower_string(str(values["name"]))
 
     return values
 
