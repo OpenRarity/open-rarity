@@ -14,28 +14,74 @@ SIMIRARITY_RANKS_URL = (
 # For single token rank
 SIMIRARITY_TOKEN_RANK_URL = "http://localhost:3000/similarity/collections/ranking/{slug}/{id}"
 
+# For checking if a collection slug is supported or not
+SIMIRARITY_SUPPORTED_COLLECTION_URL = "http://localhost:3000/similarity/collections/issupported/{slug}"
+
 USER_AGENT = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"  # noqa: E501
 }
-API_KEY = os.environ.get("TRAIT_SNIPER_API_KEY") or ""
+API_KEY = os.environ.get("SIMI_RARITY_API_KEY") or ""
 
 
 class SimiRarityResolver(RankResolver):
-    @staticmethod
-    def get_all_ranks(slug: str) -> dict[str, int]:
-        """Get all ranks for a contract address
+
+    def is_supported(self, collection_slug: str) -> bool:
+        """Sends a GET request to SimiRarity API to check if a collection
+        slug is supported by the API or not.
+
+        Parameters
+        ----------
+        collection_slug : str
+            collection slug for the collection to be checked.
+
+        Returns
+        -------
+        bool | None
+           Returns boolean for either exists or not.
+
+        Raises
+        ------
+        ValueError
+            If error happens in backend.
+        """
+        if not collection_slug:
+            msg = "Cannot fetch details for an empty slug."
+            logger.exception(msg)
+            raise ValueError(msg)
+
+        url = SIMIRARITY_SUPPORTED_COLLECTION_URL.format(slug=collection_slug)
+        response = requests.request("GET", url)
+        if response.status_code == 200:
+            return bool(response.json()["exists"])
+        else:
+            logger.debug(
+                "[SimiRarity] Failed to resolve slug support "
+                f"{collection_slug}. Received {response.status_code} "
+                f"for {url}: {response.json()}"
+            )
+            return false
+            
+    def get_all_ranks(self, collection_slug: str) -> dict[str, int]:
+        """Get all ranks for a collection slug
 
         Returns
         -------
         dict[str, int]
             A dictionary of token_id to ranks
         """
-        rank_data_page = SimiRarityResolver.get_ranks(contract_address, page=1)
+        slug_supported = self.is_supported(collection_slug=collection_slug)
+
+        if not slug_supported:
+            msg = f"Collection {collection_slug=} is not supported."
+            logger.exception(msg)
+            raise ValueError(msg)
+
+        rank_data_page = SimiRarityResolver.get_ranks(collection_slug, page=1)
         all_rank_data = rank_data_page
         page = 2
 
         while rank_data_page:
-            rank_data_page = SimiRarityResolver.get_ranks(contract_address, page=page)
+            rank_data_page = SimiRarityResolver.get_ranks(collection_slug, page=page)
             all_rank_data.extend(rank_data_page)
             page += 1
             # To avoid any possible rate limits we need to slow things down a bit...
@@ -47,20 +93,19 @@ class SimiRarityResolver(RankResolver):
             if rank_data["rank"]
         }
 
-    @staticmethod
-    def get_ranks(slug: str, page: int, limit: int = 200) -> list[dict]:
+    def get_ranks(self, collection_slug: str, page: int, limit: int = 200) -> list[dict]:
         """
         Parameters
         ----------
-        contract_address: str
-            The contract address of collection you're fetching ranks for
+        collection_slug: str
+            The collection slug of collection you're fetching ranks for
         limit: int
             The number of ranks to fetch. Defaults to 200, and maxes at 200
             due to API limitations.
 
         Returns
         -------
-            List of rarity rank data from trait sniper API with the following
+            List of rarity rank data from SimiRarity API with the following
             data structure for each item in the list:
             {
                 "similairy": float,
@@ -74,12 +119,19 @@ class SimiRarityResolver(RankResolver):
         ------
             ValueError if contract address is None
         """
-        if not slug:
-            msg = f"Failed to fetch traitsniper. {slug=} is invalid."
+        if not collection_slug:
+            msg = f"Failed to fetch SimiRarity details. {collection_slug=} is invalid."
+            logger.exception(msg)
+            raise ValueError(msg)
+        
+        slug_supported = self.is_supported(collection_slug=collection_slug)
+
+        if not slug_supported:
+            msg = f"Collection {collection_slug=} is not supported."
             logger.exception(msg)
             raise ValueError(msg)
 
-        url = SIMIRARITY_RANKS_URL.format(slug=slug)
+        url = SIMIRARITY_RANKS_URL.format(slug=collection_slug)
         # headers = {
         #     **USER_AGENT,
         #     **{"X-TS-API-KEY": API_KEY},
@@ -97,18 +149,17 @@ class SimiRarityResolver(RankResolver):
                 in response.json()["message"]
             ):
                 logger.warning(
-                    f"[SimiRarity] Collection not found: {slug}"
+                    f"[SimiRarity] Collection not found: {collection_slug}"
                 )
             else:
                 logger.debug(
                     "[SimiRarity] Failed to resolve SimiRarity rank for "
-                    f"collection {slug}. Received {response.status_code} "
+                    f"collection {collection_slug}. Received {response.status_code} "
                     f"for {url}: {response.json()}"
                 )
             return []
 
-    @staticmethod
-    def get_rank(collection_slug: str, token_id: int) -> int | None:
+    def get_rank(self, collection_slug: str, token_id: int) -> int | None:
         """Sends a GET request to SimiRarity API to fetch ranking ifno
         for a given token. SimiRarity uses opensea slug as a param.
 
@@ -142,10 +193,15 @@ class SimiRarityResolver(RankResolver):
             logger.exception(msg)
             raise ValueError(msg)
 
+        slug_supported = self.is_supported(collection_slug=collection_slug)
+
+        if not slug_supported:
+            msg = f"Collection {collection_slug=} is not supported."
+            logger.exception(msg)
+            raise ValueError(msg)
+
         url = SIMIRARITY_TOKEN_RANK_URL.format(slug=collection_slug, id=token_id)
-        logger.debug(" sent url {url}")
         response = requests.request("GET", url)
-        logger.debug(" res url {response}")
         if response.status_code == 200:
             return int(response.json()["rank"])
         else:
