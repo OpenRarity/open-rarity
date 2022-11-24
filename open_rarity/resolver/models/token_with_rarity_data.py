@@ -9,6 +9,7 @@ class RankProvider(Enum):
     TRAITS_SNIPER = "traits_sniper"
     RARITY_SNIFFER = "rarity_sniffer"
     RARITY_SNIPER = "rarity_sniper"
+    RARITY_SIMIRARITY = "rarity_simirarity"
 
     # open rarity scoring
     OR_ARITHMETIC = "or_arithmetic"
@@ -16,12 +17,14 @@ class RankProvider(Enum):
     OR_HARMONIC = "or_harmonic"
     OR_SUM = "or_sum"
     OR_INFORMATION_CONTENT = "or_information_content"
+    OR_COSINE = "or_cosine"
 
 
 EXTERNAL_RANK_PROVIDERS = [
     RankProvider.TRAITS_SNIPER,
     RankProvider.RARITY_SNIFFER,
     RankProvider.RARITY_SNIPER,
+    RankProvider.RARITY_SIMIRARITY,
 ]
 
 Rank = int
