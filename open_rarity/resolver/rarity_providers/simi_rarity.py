@@ -76,14 +76,14 @@ class SimiRarityResolver(RankResolver):
             logger.exception(msg)
             raise ValueError(msg)
 
-        rank_data_page = SimiRarityResolver.get_ranks(collection_slug, page=1)
+        rank_data_page = SimiRarityResolver.get_ranks(collection_slug, offset=0, limit=50)
         all_rank_data = rank_data_page
-        page = 2
+        offset += limit
 
         while rank_data_page:
-            rank_data_page = SimiRarityResolver.get_ranks(collection_slug, page=page)
+            rank_data_page = SimiRarityResolver.get_ranks(collection_slug, offset=offset)
             all_rank_data.extend(rank_data_page)
-            page += 1
+            offset += limit
             # To avoid any possible rate limits we need to slow things down a bit...
             time.sleep(10)
 
@@ -93,7 +93,7 @@ class SimiRarityResolver(RankResolver):
             if rank_data["rank"]
         }
 
-    def get_ranks(self, collection_slug: str, page: int, limit: int = 200) -> list[dict]:
+    def get_ranks(self, collection_slug: str, offset: int, limit: int = 50) -> list[dict]:
         """
         Parameters
         ----------
@@ -132,15 +132,11 @@ class SimiRarityResolver(RankResolver):
             raise ValueError(msg)
 
         url = SIMIRARITY_RANKS_URL.format(slug=collection_slug)
-        # headers = {
-        #     **USER_AGENT,
-        #     **{"X-TS-API-KEY": API_KEY},
-        # }
-        # query_params = {
-        #     "limit": max(limit, 200),
-        #     "page": page,
-        # }
-        response = requests.request("GET", url)
+        query_params = {
+            "offset": offset,
+            "limit": limit,
+        }
+        response = requests.request("GET", url, params=query_params)
         if response.status_code == 200:
             return response.json()
         else:
