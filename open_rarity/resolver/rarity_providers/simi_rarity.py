@@ -9,13 +9,13 @@ from .rank_resolver import RankResolver
 logger = logging.getLogger("open_rarity_logger")
 # For fetching ranks for the entire collection
 SIMIRARITY_RANKS_URL = (
-    "http://localhost:3000/similarity/collections/ranking/{slug}"
+    "https://simirarityapi.herokuapp.com/similarity/collections/ranking/{slug}"
 )
 # For single token rank
-SIMIRARITY_TOKEN_RANK_URL = "http://localhost:3000/similarity/collections/ranking/{slug}/{id}"
+SIMIRARITY_TOKEN_RANK_URL = "https://simirarityapi.herokuapp.com/similarity/collections/ranking/{slug}/{id}"
 
 # For checking if a collection slug is supported or not
-SIMIRARITY_SUPPORTED_COLLECTION_URL = "http://localhost:3000/similarity/collections/issupported/{slug}"
+SIMIRARITY_SUPPORTED_COLLECTION_URL = "https://simirarityapi.herokuapp.com/similarity/collections/issupported/{slug}"
 
 USER_AGENT = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"  # noqa: E501
