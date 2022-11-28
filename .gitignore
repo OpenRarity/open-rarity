@@ -44,3 +44,6 @@ cached_data/*.json
 # Local scratch files
 scratch*.ipynb
 *.env
+data/regression*
+data/0.7.1b0
+data/1.0.0a1

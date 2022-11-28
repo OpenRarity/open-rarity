@@ -1,3 +1,4 @@
+from math import isclose
 from typing import Hashable, TypeVar
 
 K = TypeVar("K", bound=Hashable)
@@ -56,20 +57,23 @@ def rank_over(
     """
     # TODO: should generically validate that the key exists for all rows in data
     iter_key = (key,) if not isinstance(key, tuple) else key  # type: ignore
-
+    iter_key_idx = tuple(range(len(iter_key)))
     data = sorted(
         data,
-        key=lambda row: tuple((row[k] for k in iter_key)),  # type: ignore
+        key=lambda row: tuple(row[k] for k in iter_key),  # type: ignore
         reverse=desc,
     )
 
     current_rank = 1
-    prev_value = None
+    prev_value: tuple[T | int | float, ...] = tuple(float("nan") for _ in iter_key_idx)
     for incremental_rank, row in enumerate(data, 1):
         data_index = incremental_rank - 1
         current_value = tuple((row[k] for k in iter_key))  # type: ignore
 
-        if current_value == prev_value or incremental_rank == 1:
+        if (
+            all((isclose(current_value[i], prev_value[i]) for i in iter_key_idx))  # type: ignore
+            or incremental_rank == 1
+        ):
             data[data_index]["rank"] = current_rank
         else:
             data[data_index]["rank"] = current_rank = incremental_rank
