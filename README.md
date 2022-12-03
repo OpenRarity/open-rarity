@@ -13,7 +13,7 @@ With the explosion of new collections, marketplaces and tooling in the NFT ecosy
 
 We are releasing the OpenRarity library in a Beta preview to crowdsource feedback from the community and incorporate it into the library evolution.
 
-See the full announcement in the [blog post](https://mirror.xyz/openrarity.eth/LUoJnybWuNYedIQHD6RRdX1SS9MiowdI6a69X-lefGM).
+See the full announcement in the [blog post](https://mirror.xyz/openrarity.eth/-R8ZA5KCMgqtsueySlruAhB77YBX6fSnS_dT-8clZPQ).
 
 # Developer documentation
 
