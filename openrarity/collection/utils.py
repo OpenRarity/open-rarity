@@ -46,7 +46,28 @@ def flatten_token_data(
     )
 
 
-def aggregate_tokens(tokens: list[TokenStatistic]) -> list[TokenStatistic]:
+def calculate_token_statistics(
+    attributes: list[TokenStatistic], entropy: float
+) -> list[TokenStatistic]:
+    stats = {
+        "metric.probability": prod((t["metric.probability"] for t in attributes)),
+        "metric.max_trait_information": max(
+            (t["metric.information"] for t in attributes)
+        ),
+        "metric.information": sum((t["metric.information"] for t in attributes)),
+        "metric.unique_trait_count": sum(
+            t["attribute.token_count"]
+            for t in attributes
+            if t["attribute.token_count"] == 1
+        ),
+    }
+    stats["metric.information_entropy"] = stats["metric.information"] / entropy
+    return stats  # type: ignore
+
+
+def aggregate_tokens(
+    tokens: list[TokenStatistic], entropy: float | None = None
+) -> list[TokenStatistic]:
     """Aggregate by the token_id and combine desired statistics for eventual ranking.
 
     Parameters
@@ -54,33 +75,13 @@ def aggregate_tokens(tokens: list[TokenStatistic]) -> list[TokenStatistic]:
     tokens : list[TokenStatistic]
         Input token statistics with the following data structure.
 
-        [
-            {
-                token_id: int,
-                name: str,
-                value: str | float | int,
-                count: int,
-                probability: float,
-                ic: float,
-            }
-        ]
-
     Returns
     -------
     list[TokenStatistic]
         Agregated statistics for each token_id.
-
-        [
-            {
-                token_id: int,
-                count: int,
-                probability: float,
-                max_trait_ic: float,
-                ic: float,
-                unique_traits: int,
-            }
-        ]
     """
+    if entropy is None or entropy == 0.0:
+        entropy = 1
     return [
         cast(
             TokenStatistic,
@@ -89,19 +90,6 @@ def aggregate_tokens(tokens: list[TokenStatistic]) -> list[TokenStatistic]:
         for tid, stats in groupapply(
             tokens,
             "token_id",
-            lambda group: {
-                "metric.probability": prod((t["metric.probability"] for t in group)),
-                "metric.max_trait_information": max(
-                    (t["metric.information"] for t in group)
-                ),
-                "metric.information": sum((t["metric.information"] for t in group)),
-                "metric.unique_trait_count": sum(
-                    (
-                        t["attribute.token_count"]
-                        for t in group
-                        if t["attribute.token_count"] == 1
-                    )
-                ),
-            },
+            lambda group: calculate_token_statistics(group, entropy),  # type: ignore
         ).items()
     ]

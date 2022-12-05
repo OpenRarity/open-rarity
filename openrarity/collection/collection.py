@@ -8,7 +8,7 @@ from typing import Literal, TypedDict, cast, overload
 from satchel.aggregate import groupapply
 
 from openrarity.io import read, write
-from openrarity.metrics.ic import information_content
+from openrarity.metrics.ic import calculate_entropy, information_content
 from openrarity.token import (
     AttributeStatistic,
     RankedToken,
@@ -58,6 +58,7 @@ class TokenCollection:
             "number": [],
             "date": [],
         }
+        self._entropy: float | None = None
         self._token_statistics: list[TokenStatistic] = []
         self._string_types: list[ValidatedTokenAttribute] = []
         self._number_types: list[ValidatedTokenAttribute] = []
@@ -90,6 +91,10 @@ class TokenCollection:
         return self._attribute_statistics
 
     @property
+    def entropy(self) -> float | None:
+        return self._entropy
+
+    @property
     def token_statistics(self) -> list[TokenStatistic]:
         if not self._token_statistics:
             raise AttributeError(
@@ -120,12 +125,12 @@ class TokenCollection:
             Literal[
                 "metric.probability",
                 "metric.information",
-                "metric.entropy",
+                "metric.information_entropy",
                 "metric.unique_trait_count",
                 "metric.max_trait_information",
             ],
             ...,
-        ] = ("metric.unique_trait_count", "metric.information"),
+        ] = ("metric.unique_trait_count", "metric.information_entropy"),
         return_ranks: Literal[True] = True,
     ) -> list[RankedToken]:
         ...
@@ -137,12 +142,12 @@ class TokenCollection:
             Literal[
                 "metric.probability",
                 "metric.information",
-                "metric.entropy",
+                "metric.information_entropy",
                 "metric.unique_trait_count",
                 "metric.max_trait_information",
             ],
             ...,
-        ] = ("metric.unique_trait_count", "metric.information"),
+        ] = ("metric.unique_trait_count", "metric.information_entropy"),
         return_ranks: Literal[False] = False,
     ) -> None:
         ...
@@ -153,12 +158,12 @@ class TokenCollection:
             Literal[
                 "metric.probability",
                 "metric.information",
-                "metric.entropy",
+                "metric.information_entropy",
                 "metric.unique_trait_count",
                 "metric.max_trait_information",
             ],
             ...,
-        ] = ("metric.unique_trait_count", "metric.information"),
+        ] = ("metric.unique_trait_count", "metric.information_entropy"),
         return_ranks: bool = True,
     ) -> list[RankedToken] | None:
         """Preprocess tokens then rank the tokens for the collection and set the
@@ -211,8 +216,14 @@ class TokenCollection:
                 for dtype in self._attribute_statistics
             },
         )
+        self._entropy = calculate_entropy(
+            [
+                *self._attribute_statistics["string"],  # type: ignore
+                *self._attribute_statistics["number"],  # type: ignore
+                *self._attribute_statistics["date"],  # type: ignore
+            ],
+        )
 
-        # # TODO: Add token statistics and aggregate
         self._token_statistics = cast(
             list[TokenStatistic],
             merge(
@@ -224,7 +235,7 @@ class TokenCollection:
 
         self._ranks = cast(
             list[RankedToken],
-            rank_over(aggregate_tokens(self._token_statistics), rank_by),  # type: ignore
+            rank_over(aggregate_tokens(self._token_statistics, self._entropy), rank_by),  # type: ignore
         )
         self._ranks_checksum = self._hash_data(self.ranks)  # type: ignore
 

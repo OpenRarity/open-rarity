@@ -25,7 +25,7 @@ def information_content(
         The original attribute statistics augmented with probability and information
         content
     """
-    # TODO: this won't handle semi-fungible
+
     return [
         cast(
             AttributeStatistic,
@@ -39,5 +39,5 @@ def information_content(
     ]
 
 
-def entropy(attr_stats: list[AttributeStatistic]):
-    ...
+def calculate_entropy(attr_stats: list[AttributeStatistic]) -> float:
+    return sum(stat["metric.information"] for stat in attr_stats)  # type: ignore

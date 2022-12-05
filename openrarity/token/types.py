@@ -44,7 +44,6 @@ AttributeStatistic = TypedDict(
         "attribute.supply": int,
         "metric.probability": float,
         "metric.information": float,
-        "metric.entropy": NotRequired[float],
     },
 )
 
@@ -56,7 +55,7 @@ TokenStatistic = TypedDict(
         "attribute.supply": int,
         "metric.probability": float,
         "metric.information": float,
-        "metric.entropy": NotRequired[float],
+        "metric.information_entropy": NotRequired[float],
         "metric.unique_trait_count": NotRequired[int],
         "metric.max_trait_information": NotRequired[float],
     },

@@ -10,6 +10,8 @@ from openrarity.validators.string import clean_lower_string
 
 logger = Logger(__name__)
 
+NULL_TRAIT = "openrarity.null_trait"
+
 
 def validate_metadata(values):
     if "trait_type" in values:
@@ -29,7 +31,11 @@ def validate_metadata(values):
             )
         case _:
             values["display_type"] = "string"
-            values["value"] = clean_lower_string(str(value))
+            values["value"] = (
+                NULL_TRAIT
+                if (string := clean_lower_string(str(value))) in ("none", "")
+                else string
+            )
 
     values["name"] = clean_lower_string(str(values["name"]))
 
@@ -134,7 +140,7 @@ def _create_null_values(
                             {
                                 "token_id": tid,
                                 "name": name,
-                                "value": "openrarity.null_trait",
+                                "value": NULL_TRAIT,
                                 "display_type": dtype,
                                 "token.supply": 1 if is_nft else token_supply[tid],  # type: ignore
                             },
