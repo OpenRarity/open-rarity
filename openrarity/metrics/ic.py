@@ -31,8 +31,8 @@ def information_content(
             AttributeStatistic,
             {
                 **attr,
-                "metric.probability": attr["attribute.supply"] / total,
-                "metric.information": -log2(attr["attribute.supply"] / total),
+                "metric.probability": min(1, attr["attribute.supply"] / total),
+                "metric.information": max(0, -log2(attr["attribute.supply"] / total)),
             },
         )
         for attr in counts
@@ -40,4 +40,7 @@ def information_content(
 
 
 def calculate_entropy(attr_stats: list[AttributeStatistic]) -> float:
-    return sum(stat["metric.information"] for stat in attr_stats)  # type: ignore
+    return sum(
+        stat["metric.probability"] * stat["metric.information"]  # type: ignore
+        for stat in attr_stats
+    )

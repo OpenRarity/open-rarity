@@ -47,3 +47,6 @@ scratch*.ipynb
 data/regression*
 data/0.7.1b0
 data/1.0.0a1
+data/regression-tests/*
+data/regression-tests/1of1change.*
+data/regression-tests/*
