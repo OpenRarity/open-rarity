@@ -31,11 +31,12 @@ def validate_metadata(values):
             )
         case _:
             values["display_type"] = "string"
-            values["value"] = (
-                NULL_TRAIT
-                if (string := clean_lower_string(str(value))) in ("none", "")
-                else string
-            )
+            # values["value"] = (
+            #     NULL_TRAIT
+            #     if (string := clean_lower_string(str(value))) in ("none", "")
+            #     else string
+            # )
+            values["value"] = clean_lower_string(str(value))
 
     values["name"] = clean_lower_string(str(values["name"]))
 

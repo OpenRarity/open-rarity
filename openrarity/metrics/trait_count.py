@@ -36,7 +36,15 @@ def count_traits(
     return attributes + [
         {
             "name": "openrarity.trait_count",
-            "value": int(len(attributes)),
+            "value": int(
+                len(
+                    [
+                        a
+                        for a in attributes
+                        if a["value"] not in ["openrarity.null_trait", "none", ""]
+                    ]
+                )
+            ),
             "display_type": "string",
         }
     ]

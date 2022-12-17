@@ -59,6 +59,8 @@ def calculate_token_statistics(
             t["attribute.token_count"]
             for t in attributes
             if t["attribute.token_count"] == 1
+            # and t["value"] not in ["openrarity.null_trait"]
+            # and t["name"] not in ["openrarity.trait_count"]
         ),
     }
     stats["metric.information_entropy"] = stats["metric.information"] / entropy

@@ -51,6 +51,8 @@ TokenStatistic = TypedDict(
     "TokenStatistic",
     {
         "token_id": str | int,
+        "name": str,
+        "value": str,
         "attribute.token_count": int,
         "attribute.supply": int,
         "metric.probability": float,
