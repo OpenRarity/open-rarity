@@ -33,6 +33,17 @@ ValidatedTokenAttribute = TypedDict(
         "token.supply": int,
     },
 )
+ValidatedTokenNumericAttribute = TypedDict(
+    "ValidatedTokenNumericAttribute",
+    {
+        "token_id": int,
+        "name": str,
+        "value": str | int | float,
+        "display_type": str,
+        "token.supply": int,
+        "bin": float,
+    },
+)
 
 
 AttributeStatistic = TypedDict(
