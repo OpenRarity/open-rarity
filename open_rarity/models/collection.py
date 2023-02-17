@@ -293,7 +293,7 @@ class Collection:
                 str_attr,
             ) in token.metadata.string_attributes.items():
                 normalized_name = normalize_attribute_string(attr_name)
-                if str_attr.value not in attrs_freq_counts[attr_name]:
+                if str_attr.value not in attrs_freq_counts[normalized_name]:
                     attrs_freq_counts[normalized_name][str_attr.value] = 1
                 else:
                     attrs_freq_counts[normalized_name][str_attr.value] += 1
