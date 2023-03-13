@@ -16,15 +16,16 @@ def flatten_token_data(
 
     Parameters
     ----------
-    tokens : list[Token]
-        _description_
+    tokens : dict[TokenId, RawToken]
+        Validated token data.
+    token_supply: int | dict[str | int, int]
+        Token supply value.
 
     Returns
     -------
-    list[TokenAttribute]
-        _description_
+    list[ValidatedTokenAttribute]
+        Flattened list of validated token attributes.
     """
-
     is_nft = isinstance(token_supply, int)
     return list(
         chain(
@@ -49,6 +50,25 @@ def flatten_token_data(
 def calculate_token_statistics(
     attributes: list[TokenStatistic], entropy: float
 ) -> list[TokenStatistic]:
+    """Calculates token statistics such as
+    1. metric.probability
+    2. metric.max_trait_information
+    3. metric.information
+    4. metric.unique_trait_count
+    5. metric.information_entropy
+
+    Parameters
+    ----------
+    attributes : list[TokenStatistic]
+        Input token statistics.
+    entropy : float
+        entrophy value
+
+    Returns
+    -------
+    list[TokenStatistic]
+        Returns token statistics for a given token attributes.
+    """
     stats = {
         "metric.probability": prod((t["metric.probability"] for t in attributes)),
         "metric.max_trait_information": max(
@@ -76,14 +96,18 @@ def aggregate_tokens(
     ----------
     tokens : list[TokenStatistic]
         Input token statistics with the following data structure.
+    entropy : float | None = None, optional
+        entrophy value.
 
     Returns
     -------
     list[TokenStatistic]
         Agregated statistics for each token_id.
     """
+
     if entropy is None or entropy == 0.0:
         entropy = 1
+
     return [
         cast(
             TokenStatistic,

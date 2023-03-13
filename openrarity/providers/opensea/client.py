@@ -16,12 +16,35 @@ from openrarity.utils.aio import ratelimited_gather
 
 from .types import TokenAsset
 
-logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+FORMAT = f"%(message)s"
+logging.basicConfig(format=FORMAT,stream=sys.stderr, level=logging.INFO)
 
 logger = logging.getLogger(__name__)
 
 
+class OpenseaApiRateLimitError(Exception):
+    pass
+
+
 class OpenseaApi:
+    """
+    This is a class to work with `OpenseaApi`.
+
+    Attributes
+    ----------
+    USER_AGENT :
+        user agent
+    COLLECTION_URL : str
+        opensea collection url.
+    ASSETS_URL : str
+        opensea assets url.
+    API_KEY : str
+        opensea api key.
+    RATE_LIMIT_SEMAPHORE : int
+        concurrency limit
+    HEADERS : dict
+        api headers
+    """
     USER_AGENT = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"  # noqa: E501
     }
@@ -29,7 +52,7 @@ class OpenseaApi:
     COLLECTION_URL = "https://api.opensea.io/api/v1/collection/{slug}"
     ASSETS_URL = "https://api.opensea.io/api/v1/assets"
     API_KEY = os.environ.get("OPENSEA_API_KEY", "")
-    RATE_LIMIT_SEMAPHORE = int(os.environ.get("OPENSEA_API_RPS", 2))
+    RATE_LIMIT_SEMAPHORE = int(os.environ.get("OPENSEA_API_RPS", 4))
     HEADERS = {
         "Accept": "application/json",
         "X-API-KEY": API_KEY,
@@ -49,7 +72,7 @@ class OpenseaApi:
         Returns
         -------
         dict[TokenId, RawToken]
-            OpenRarity input format
+            OpenRarity input format.
         """
         return {  # type: ignore
             str(t["token_identifier"]["token_id"]): {  # type: ignore
@@ -67,7 +90,7 @@ class OpenseaApi:
         the given slug.
 
         Raises:
-            Exception: If API request fails
+            Exception: If API request fails.
         """
         response = httpx.get(cls.COLLECTION_URL.format(slug=slug))
 
@@ -85,6 +108,19 @@ class OpenseaApi:
     def transform_assets_response(
         cls, responses: Iterable[TokenAsset]
     ) -> dict[TokenId, RawToken]:
+        """Transform the Opensea Asset api response into the format for OpenRarity's
+        `TokenCollection` class.
+
+        Parameters
+        ----------
+        responses : Iterable[TokenAsset]
+            Assets url response.
+
+        Returns
+        -------
+        dict[TokenId, RawToken]
+            Returns a dict of transformed data.
+        """
         return {  # type: ignore
             asset["token_id"]: {
                 "attributes": [
@@ -116,14 +152,14 @@ class OpenseaApi:
     async def fetch_opensea_assets_data(
         cls, slug: str, token_ids: list[str], limit: int = 30
     ) -> dict[TokenId, RawToken]:
-        """Fetches asset data from Opensea's GET assets endpoint for the given token ids
+        """Fetches asset data from Opensea's GET assets endpoint for the given token ids.
 
         Parameters
         ----------
         slug: str
-            Opensea collection slug
+            Opensea collection slug.
         token_ids: list[int]
-            the token id
+            List of token ids.
         limit: int, optional
             How many to fetch at once. Defaults to 30, with a max of 30, by default 30.
 
@@ -131,15 +167,12 @@ class OpenseaApi:
         -------
         list[dict]
             list of asset data dictionaries, e.g. the response in "assets" field,
-            sorted by token_id asc
+            sorted by token_id asc.
 
         Raises
         ------
-            Exception: If api request fails
-
-
+            Exception: If api request fails.
         """
-
         # Max 30 limit enforced on API
         assert limit <= 30
         async with httpx.AsyncClient(headers=cls.HEADERS, timeout=None) as client:
@@ -177,7 +210,29 @@ class OpenseaApi:
     before_sleep=before_sleep.before_sleep_log(logger, logging.WARN),
 )
 async def _send_request(client: "httpx.AsyncClient", url: str, params: dict[str, Any]):
+    """Sends httpx.asyncclient request to get token assests data.
+
+    Parameters
+    ----------
+    client: "httpx.AsyncClient"
+        HTTPX async client.
+    url: str
+        Https url to get the data.
+    params: dict[str, Any]
+        Necessary parameters to send the request.
+
+    Returns
+    -------
+        Returns https response.
+
+    Raises
+    ------
+        If api request fail, raises the Exception.
+    """
     response = await client.get(url, params=params)
-    if response.status_code != 200:
+    if response.status_code == 429:
+        raise OpenseaApiRateLimitError("Rate Limit Exceeded")
+    elif response.status_code != 200:
         response.raise_for_status()
+
     return response

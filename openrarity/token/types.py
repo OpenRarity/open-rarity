@@ -6,17 +6,20 @@ TokenId = int | str
 
 
 class MetadataAttribute(TypedDict):
+    """A class to represent `MetadataAttribute`."""
     name: str
     value: str | int | float
     display_type: NotRequired[str | None]
 
 
 class RawToken(TypedDict):
+    """A class to represent `RawToken`."""
     attributes: list[MetadataAttribute]
     token_supply: NotRequired[dict[str | int, int]]
 
 
 class TokenAttribute(TypedDict):
+    """A class to represent `TokenAttribute`."""
     token_id: int
     name: str
     value: str | int | float

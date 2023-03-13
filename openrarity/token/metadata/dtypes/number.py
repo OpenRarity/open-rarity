@@ -60,12 +60,12 @@ def process_numeric_dtypes(
     Parameters
     ----------
     token_attrs : list[ValidatedTokenAttribute]
-        _description_
+        Flattened token data to be aggregated.
 
     Returns
     -------
-    _type_
-        _description_
+    list[AttributeStatistic]
+        List of attribute statistics.
     """
     # Find all null_traits and automatically assign them the null bin.
     null_trait_binned = cast(

@@ -34,7 +34,7 @@ def fetch_assets(
         False,
         "-w",
         "--write",
-        help="Boolean flag to write results.",
+        help="Boolean flag to write results into stdout or local specified path.",
     ),
     dir: Path = typer.Option(
         ".", "-d", "--dir", help="Directory to write outputs files."
@@ -46,11 +46,37 @@ def fetch_assets(
         help="Columns to print or write to file.",
     ),
 ):
+    """
+    If we provide token_ids data as a input, using OpenseaApi, it will collect assets data. And based on the 'rank' boolean flag it will calculate ranks. At the end, based on the 'write' flag it will write the data to either stdout or to a file.
+    If we didnt provide token_ids data as a input, it uses 'start_token_id' and 'end_token_id' as a range.Using OpenseaApi, it will collect assets data. And based on the 'rank' boolean flag it will calculate ranks. At the end, based on the 'write' flag it will write the data to either stdout or to a file.
+    Parameters
+    ----------
+    token_ids_file: Path
+        Token ids file.
+    slug: str
+        Collection slug.
+    start_token_id: int,optional
+        start token_id of the collection.
+    end_token_id: int,optional
+        end token_id of the collection.
+    semi_fungible: bool
+        Boolean value whether it is semi_fungible or not.
+    rank: bool
+        A boolean value whether calculate ranks or not.
+    write: bool
+        Boolean flag to write results into stdout or local specified path.
+    dir: Path
+        Directory to write outputs files.
+    columns: str
+        Columns to print or write to file.
+    """
     if token_ids_file is None:
         if start_token_id is None or end_token_id is None:
             raise ValueError(
                 "Either a list of token-ids must be provided or both --start-token-id AND --end-token-id must be set."
             )
+        if start_token_id < 0 or end_token_id < 0:
+            raise ValueError("--start-token-id and --end-token-id must be greater than zero.")
         if end_token_id < start_token_id:
             raise ValueError("--end-token-id must be greater than --start-token-id")
 
@@ -88,19 +114,3 @@ def fetch_assets(
         print_rankings(ranks, column_values)
     else:
         print(json.dumps(tokens))
-
-
-@app.command("transform-assets")
-def transform_assets(
-    input: Path = typer.Argument(..., help="Json file with Opensea assets response."),
-    output: Optional[Path] = typer.Option(
-        None, "--output", "-o", help="Json file to write transformed data."
-    ),
-):
-    transformed = OpenseaApi.transform_assets_response(
-        json.loads(input.read_text())["assets"]
-    )
-    if output:
-        output.write_text(json.dumps(transformed, indent=2))
-    else:
-        print(json.dumps(transformed))

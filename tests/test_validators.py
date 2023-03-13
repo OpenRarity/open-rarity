@@ -11,6 +11,7 @@ _params = [
 
 @pytest.mark.parametrize("params", _params)
 def test_clean_lower_string_succeeds(params):
+    """A method to test for clean_lower_string operation success."""
     assert clean_lower_string(params["input"]) == params["_expected"]
 
 
@@ -21,5 +22,6 @@ _params = [
 
 @pytest.mark.parametrize("params", _params)
 def test_clean_lower_string_fails(params):
+    """A method to test for clean_lower_string operation failure."""
     with pytest.raises(params["_expected"]):
         clean_lower_string(params["input"])

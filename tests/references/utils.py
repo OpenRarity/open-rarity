@@ -3,8 +3,7 @@ from inspect import cleandoc
 MERGE_FAILS = [
     {
         "desc": cleandoc(
-            """
-        """
+            """Left and Right portions of the data to test merge() method failure"""
         ),
         "token_type": "non-fungible",
         "input": {
@@ -29,8 +28,7 @@ MERGE_FAILS = [
 MERGE_SUCCEEDS = [
     {
         "desc": cleandoc(
-            """
-        """
+            """Left and Right portions of the data to test merge() method success"""
         ),
         "token_type": "non-fungible",
         "input": {
@@ -61,8 +59,7 @@ MERGE_SUCCEEDS = [
 RANK_OVER_SUCCEEDS = [
     {
         "desc": cleandoc(
-            """
-        """
+            """Input data to test for rank_over() method."""
         ),
         "token_type": "non-fungible",
         "input": {
@@ -89,8 +86,7 @@ RANK_OVER_SUCCEEDS = [
     },
     {
         "desc": cleandoc(
-            """
-        """
+            """Input data to test for rank_over() method."""
         ),
         "token_type": "non-fungible",
         "input": {

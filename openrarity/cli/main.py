@@ -28,7 +28,21 @@ def rank(
         help="Columns to print or write to file.",
     ),
 ):
+    """
+    For a given collection of tokens, it calculate rarity_ranks by token_id.
+    If we specify output file path, it writes the calculated result into that file. otherwise, it prints the result into stdout.
 
+    Parameters
+    ----------
+    tokens : Path
+        Json file containing token metadata.
+    semi_fungible : bool
+        Boolean value to identify "semi-fungible" or "non-fungible".
+    output : Path, optional
+        Json file to write rank data.
+    columns : str
+        Columns to print or write to file.
+    """
     if tokens.name == "-":
         data = json.loads(sys.stdin.read())
     else:

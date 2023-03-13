@@ -32,27 +32,71 @@ logger = Logger(__name__)
 
 
 class AttributesStatistics(TypedDict):
+    """A class to represent Attribute Statistics."""
     string: list[AttributeStatistic]
     number: list[AttributeStatistic]
     date: list[AttributeStatistic]
 
 
 class TokenCollection:
-    """ """
+    """
+    The TokenCollection class is the entrypoint for the majority of OpenRarity's functionality and handles all the parsing, validation, and ranking of the tokens.
+    """
 
     def __init__(
         self,
         token_type: Literal["non-fungible", "semi-fungible"],
         tokens: dict[TokenId, RawToken],
     ):
+        """
+        Constructs all the necessary attributes for the `TokenCollection` object.
+
+        Parameters
+        ----------
+        token_type :Literal["non-fungible", "semi-fungible"]
+            type of the token.
+        tokens : dict[TokenId, RawToken]
+            a dictionary of individual tokens.
+
+        Attributes
+        ----------
+        _token_type : Literal["non-fungible", "semi-fungible"]
+            Type of the token.
+        _input_checksum : str
+            md5 hash of the tokens.
+        _ranks_checksum : str
+            md5 hash of ranks.
+        _token_supply : int | dict[str | int, int]
+            token supply value.
+            Non-Fungible token_supply value is length of validated tokens.
+            Semi-Fungible token_supply value is a dict of token_ids with their token_supply value.
+        _tokens : dict[TokenId, RawToken]
+            A dict of tokens.
+        _token_attribute_data : list[ValidatedTokenAttribute]
+            list of token attribute data.
+        _attribute_statistics : AttributesStatistics
+            Statistics based on the attributes.
+        _entropy : float | None
+            entrophy value.
+        _token_statistics : list[TokenStatistic]
+            statistics based on the tokens.
+        _string_types : list[ValidatedTokenAttribute]
+            Validated Token attributes of string type.
+        _number_types : list[ValidatedTokenAttribute]
+            Validated Token attributes of number type.
+        _date_types : list[ValidatedTokenAttribute]
+            Validated Token attributes of date type.
+        _ranks : list[RankedToken]
+            Token data with statistics and rank.
+        """
+
         self._token_type = token_type
         self._input_checksum: str = self._hash_data(cast(JsonEncodable, tokens))
         self._ranks_checksum: str | None = None
         self._token_supply: int | dict[str | int, int]
         (self._token_supply, self._tokens) = validate_tokens(token_type, tokens)
 
-        # Derived data
-        self._vertical_attribute_data: list[ValidatedTokenAttribute] = []
+        self._token_attribute_data: list[ValidatedTokenAttribute] = []
         self._attribute_statistics: AttributesStatistics = {
             "string": [],
             "number": [],
@@ -72,10 +116,13 @@ class TokenCollection:
 
     @property
     def tokens(self) -> dict[TokenId, RawToken]:
+        """Get the dictionary of token_ids and their attributes."""
         return self._tokens
 
     @property
     def total_supply(self) -> int:
+        """Get the total_supply value of a collection."""
+        # Non-Fungible `total_supply` value is nothing but length of tokens
         # SemiFungible needs to sum the supply of each token
         if isinstance(self._token_supply, dict):
             return sum(self._token_supply.values())
@@ -84,6 +131,7 @@ class TokenCollection:
 
     @property
     def attribute_statistics(self) -> AttributesStatistics:
+        """Get the attribute_statistics."""
         if not self._attribute_statistics:
             raise AttributeError(
                 f"Please run '{repr(self)}.rank_collection()' to view this property"
@@ -92,10 +140,12 @@ class TokenCollection:
 
     @property
     def entropy(self) -> float | None:
+        """Get the entropy value."""
         return self._entropy
 
     @property
     def token_statistics(self) -> list[TokenStatistic]:
+        """Get the token_statistics."""
         if not self._token_statistics:
             raise AttributeError(
                 f"Please run '{repr(self)}.rank_collection()' to view this property"
@@ -104,6 +154,7 @@ class TokenCollection:
 
     @property
     def ranks(self) -> list[RankedToken]:
+        """For each Token_id, get the ranks along with statistics."""
         if not self._ranks:
             raise AttributeError(
                 f"Please run '{repr(self)}.rank_collection()' to view this property"
@@ -112,6 +163,7 @@ class TokenCollection:
 
     @property
     def checksum(self) -> str:
+        """Get the sum of input_checksum and ranks_checksum."""
         if not self._ranks_checksum:
             raise AttributeError(
                 f"Please run '{repr(self)}.rank_collection()' to view this property"
@@ -133,6 +185,7 @@ class TokenCollection:
         ] = ("metric.unique_trait_count", "metric.information_entropy"),
         return_ranks: Literal[True] = True,
     ) -> list[RankedToken]:
+        """An overloaded `rank_collection` method with `return_ranks` flag is True, which means it returns Ranks."""
         ...
 
     @overload
@@ -150,6 +203,7 @@ class TokenCollection:
         ] = ("metric.unique_trait_count", "metric.information_entropy"),
         return_ranks: Literal[False] = False,
     ) -> None:
+        """An overloaded `rank_collection` method with `return_ranks` flag is False, which means it returns None."""
         ...
 
     def rank_collection(
@@ -169,6 +223,18 @@ class TokenCollection:
         """Preprocess tokens then rank the tokens for the collection and set the
         corresponding cls.ranks attribute. Optionally, return the ranks.
 
+        Notes
+        -----
+        metric.probability : float
+            It is the Product of minimum value of (1,sum of `token.supply` values divided by `total_supply` value)
+        metric.information : float
+            It is the Sum of maximum value of (0, -log2(sum of `token.supply` values divided by `total_supply` value))
+        metric.information_entropy : float
+            It is the division value of `metric.information` and `entropy`
+        metric.unique_trait_count : int
+            It is the sum of unique `token_count` values
+        metric.max_trait_information : float
+            It is the maximum value of attribute statistics `metric.information`
 
         Parameters
         ----------
@@ -183,13 +249,13 @@ class TokenCollection:
             Ranked tokens
         """
 
-        self.token_schema, self._vertical_attribute_data = enforce_schema(
+        self.token_schema, self._token_attribute_data = enforce_schema(
             flatten_token_data(self._tokens, self._token_supply), self._token_supply
         )
 
         dtype_groups = cast(
             dict[Literal["string", "number", "date"], list[ValidatedTokenAttribute]],
-            groupapply(self._vertical_attribute_data, "display_type"),
+            groupapply(self._token_attribute_data, "display_type"),
         )
 
         self._string_types = dtype_groups.setdefault("string", [])  # type: ignore
@@ -227,7 +293,7 @@ class TokenCollection:
         self._token_statistics = cast(
             list[TokenStatistic],
             merge(
-                self._vertical_attribute_data,  # type: ignore
+                self._token_attribute_data,  # type: ignore
                 list(chain(*self._attribute_statistics.values())),  # type: ignore
                 ("name", "value"),
             ),
@@ -247,45 +313,24 @@ class TokenCollection:
     def from_json(
         cls, path: str | Path, token_type: Literal["non-fungible", "semi-fungible"]
     ) -> "TokenCollection":
-        """_summary_
+        """Read TokenCollection class data from a json file.
 
         Parameters
         ----------
         path : str | PathLike
-            _description_
-        token_type : &quot;non-fungible&quot; | &quot;semi-fungible&quot;
-            _description_
+            File path to read the data.
+        token_type : `non-fungible`|`semi-fungible`
+            type of token.
 
         Returns
         -------
         TokenCollection
-            Instantiated collection with tokens from json
+            Instantiated collection with tokens from json.
         """
         return cls(token_type, read.from_json(path))  # type: ignore
 
-    @classmethod
-    def from_csv(
-        cls, path: str | Path, token_type: Literal["non-fungible", "semi-fungible"]
-    ) -> "TokenCollection":
-        """_summary_
-
-        Parameters
-        ----------
-        path : str | PathLike
-            Path to csv of token data
-        token_type : &quot;non-fungible&quot; | &quot;semi-fungible&quot;
-            _description_
-
-        Returns
-        -------
-        TokenCollection
-            Instantiated collection with tokens from csv
-        """
-        raise NotImplementedError()
-        return cls(token_type, read.from_csv(path))
-
     def to_json(self, directory: str | Path, prefix: str, ranks_only: bool = True):
-        """Dump TokenCollection class to json file.
+        """Dump TokenCollection class data into a json file.
 
         Parameters
         ----------
@@ -305,7 +350,7 @@ class TokenCollection:
                     JsonEncodable,
                     {
                         "input": self.tokens,
-                        "verticalData": self._vertical_attribute_data,
+                        "tokenAttributeData": self._token_attribute_data,
                         "attributeStatistics": self.attribute_statistics,
                         "tokenStatistics": self.token_statistics,
                     },
@@ -313,25 +358,21 @@ class TokenCollection:
                 directory / f"{prefix}_artifacts.json",
             )
 
-    def to_csv(self, directory: str | Path, prefix: str, ranks_only: bool = True):
-        directory = directory if isinstance(directory, Path) else Path(directory)
-        write.to_csv(self.ranks, directory / f"{prefix}_ranks.csv")  # type: ignore
-        if not ranks_only:
-            data = {
-                "input": self.tokens,
-                "verticalData": self._vertical_attribute_data,
-                "attributeStatistics": self.attribute_statistics,
-                "tokenStatistics": self.token_statistics,
-            }
-            for key in data:
-                write.to_csv(  # type: ignore
-                    data[key],
-                    directory / f"{prefix}_{key}_artifact.csv",
-                )
 
     @classmethod
     def _hash_data(cls, data: JsonEncodable) -> str:
-        """Simple hash function that first json encodes a data structure then md5 hashes
+        """
+        Simple hash function that first json encodes a data structure then md5 hashes
         the json string.
+
+        Parameters
+        ----------
+        data : JsonEncodable
+            input data.
+
+        Returns
+        -------
+        str :
+            md5 hash.
         """
         return md5(json.dumps(data, sort_keys=True).encode("utf-8")).hexdigest()

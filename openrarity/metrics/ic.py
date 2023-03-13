@@ -15,9 +15,9 @@ def information_content(
     Parameters
     ----------
     counts : list[AttributeStatistic]
-        _description_
+        List of attribute statistics.
     total : int
-        _description_
+        total supply value
 
     Returns
     -------
@@ -25,7 +25,6 @@ def information_content(
         The original attribute statistics augmented with probability and information
         content
     """
-
     return [
         cast(
             AttributeStatistic,
@@ -40,6 +39,19 @@ def information_content(
 
 
 def calculate_entropy(attr_stats: list[AttributeStatistic]) -> float:
+    """
+    Entrophy is calculated using cumulative sum of the products of `metric.probability` and `metric.information`.
+
+    Parameters
+    ----------
+    attr_stats : list[AttributeStatistic]
+        List of attribute statistics.
+
+    Returns
+    -------
+    float
+        Returns the entrophy value.
+    """
     return sum(
         stat["metric.probability"] * stat["metric.information"]  # type: ignore
         for stat in attr_stats

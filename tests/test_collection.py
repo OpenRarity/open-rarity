@@ -19,6 +19,7 @@ _params = SUCCEEDS
 
 @pytest.mark.parametrize("params", _params)
 def test_rank_collection_succeeds(params):
+    """A method to test whether we receive correct ranks or not."""
     tc = TokenCollection(params["token_type"], params["tokens"])
     ranks = tc.rank_collection(return_ranks=True)
     tid_to_rank = {token["token_id"]: token["rank"] for token in ranks}
@@ -27,6 +28,7 @@ def test_rank_collection_succeeds(params):
 
 @pytest.mark.parametrize("params", TEST_TOKENS_PARAMS)
 def test_tokens(params):
+    """A method to test whether we received required token params are not"""
     tc = TokenCollection(params["token_type"], params["tokens"])
     expected_tokens = params["_expected"]
     assert tc.tokens.keys() == expected_tokens.keys()
@@ -41,6 +43,7 @@ def test_tokens(params):
 
 @pytest.mark.parametrize("params", TEST_ATTRIBUTE_STATISTICS_PARAMS)
 def test_attribute_statistics(params):
+    """A method to test attribute statistics."""
     tc = TokenCollection(params["token_type"], params["tokens"])
     tc.rank_collection()
     for key, attr_stat in tc.attribute_statistics.items():
@@ -54,6 +57,7 @@ def test_attribute_statistics(params):
 
 @pytest.mark.parametrize("params", TEST_TOKEN_STATISTICS_PARAMS)
 def test_token_statistics(params):
+    """A method to test for Token statistics."""
     tc = TokenCollection(params["token_type"], params["tokens"])
     tc.rank_collection()
     sorted_stats = sorted(tc.token_statistics, key=lambda s: sorted(s.items()))
@@ -63,6 +67,7 @@ def test_token_statistics(params):
 
 @pytest.mark.parametrize("params", TEST_CHECKSUM_PARAMS)
 def test_checksum(params):
+    """A method to test for collection checksum."""
     def _compute_checksum():
         tc = TokenCollection(
             copy.deepcopy(params["token_type"]), copy.deepcopy(params["tokens"])
@@ -77,6 +82,7 @@ def test_checksum(params):
 
 @pytest.mark.parametrize("params", TEST_TOTAL_SUPPLY_PARAMS)
 def test_total_supply(params):
+    """A method to test for total supply value."""
     tc = TokenCollection(params["token_type"], params["tokens"])
     tc.rank_collection()
     assert tc.total_supply == params["_expected"]

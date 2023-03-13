@@ -14,6 +14,21 @@ NULL_TRAIT = "openrarity.null_trait"
 
 
 def validate_metadata(values):
+    """Validates the metadata of token attributes.
+    1. check for `trait_type`
+    2. if not exists, add a default `display_type` attribute
+    3. clean `name` and `value` attribute values
+
+    Parameters
+    ----------
+    values : dict
+        a dictionary of token_id attributes.
+
+    Returns
+    -------
+    values : dict
+        Returns the validated attributes dict back to calling method.
+    """
     if "trait_type" in values:
         values["name"] = values.pop("trait_type")
 
@@ -44,7 +59,7 @@ def validate_metadata(values):
 
 
 def extract_token_name_key(t: ValidatedTokenAttribute) -> tuple[int | str, str, str]:
-    """Stand in for returning the tuple key for grouping tokenattributes"""
+    """Stand in for returning the tuple key for grouping tokenattributes."""
     return t["token_id"], t["name"], t["display_type"]
 
 
@@ -54,13 +69,13 @@ def _create_token_schema(tokens: list[ValidatedTokenAttribute]) -> TokenSchema:
 
     Parameters
     ----------
-    tokens : list[TokenAttribute]
-        _description_
+    tokens : list[ValidatedTokenAttribute]
+        List of Validated Token attributes.
 
     Returns
     -------
     TokenSchema
-        _description_
+        returns the token schema.
     """
     d: dict[tuple[str, str], int] = defaultdict(int)
 
@@ -80,13 +95,13 @@ def _count_token_attrs(
 
     Parameters
     ----------
-    tokens : list[TokenAttribute]
-        _description_
+    tokens : list[ValidatedTokenAttribute]
+        List of validated token attribute data.
 
     Returns
     -------
-    dict[int, dict[str, int]]
-        _description_
+    dict[int, dict[tuple[str, str], int]]
+        Returns the Aggregate data grouped by token_id then create a count of each attribute on that token.
     """
     # TODO: Double groupapply. This can probably be flattened using a composite key of
     # (token_id, name) which should improve performance
@@ -112,15 +127,17 @@ def _create_null_values(
 
     Parameters
     ----------
-    tokens : list[TokenAttribute]
-        _description_
+    tokens : list[ValidatedTokenAttribute]
+        list of flattened token attributes.
     schema : TokenSchema
-        _description_
+        Schema that is representative of a token containing all possible attribute keys and the correct number of them.
+    token_supply : int | dict[str | int, int]
+        Token Supply Value.
 
     Returns
     -------
-    list[TokenAttribute]
-        _description_
+    list[ValidatedTokenAttribute]
+        Returns a list of token attributes which is having null_trait.
     """
     is_nft = isinstance(token_supply, int)
     itemized_schema = set(schema.items())
@@ -160,15 +177,15 @@ def enforce_schema(
 
     Parameters
     ----------
-    tokens : list[TokenAttribute]
-        _description_
-    schema : TokenSchema
-        _description_
+    tokens : list[ValidatedTokenAttribute]
+        Validated token attribute data.
+    token_supply: int | dict[str | int, int]
+        Token supply value.
 
     Returns
     -------
-    list[TokenAttribute]
-        _description_
+    tuple[TokenSchema, list[ValidatedTokenAttribute]]
+        A tuple consists of token schema and token data(actual token attribute data and null_trait attribute data.
     """
     schema = _create_token_schema(tokens)
     return schema, [*tokens, *_create_null_values(tokens, schema, token_supply)]

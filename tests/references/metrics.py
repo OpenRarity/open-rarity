@@ -6,8 +6,7 @@ from openrarity.metrics.trait_count import count_traits
 SUCCEEDS = [
     {
         "desc": cleandoc(
-            """
-        """
+            """Valid Input Data for init metrics"""
         ),
         "metric": information_content,
         "input": {
@@ -71,8 +70,7 @@ SUCCEEDS = [
 FAILS = [
     {
         "desc": cleandoc(
-            """
-        """
+            """Invalid input data for init metrics"""
         ),
         "metric": information_content,
         "input": {

@@ -12,15 +12,14 @@ def count_attribute_values(
 
     Parameters
     ----------
-    tokens : list[TokenAttribute]
-        Vertical token data to be aggregated.
+    tokens : list[ValidatedTokenAttribute]
+        Flattened token data to be aggregated.
 
     Returns
     -------
-    dict[AttributeName, int]
-
+    list[AttributeStatistic]
+        For each combination of (name, value), it returns attribute statistics(`attribute.token_count` and `attribute.supply`).
     """
-
     return [  # type: ignore
         cast(AttributeStatistic, {"name": k[0], "value": k[1], **counts})  # type: ignore
         for k, counts in groupapply(
@@ -35,4 +34,16 @@ def count_attribute_values(
 
 
 def process_string_dtypes(token_attrs: list[ValidatedTokenAttribute]):
+    """Process String type data by Aggregate and count on the combination of (name, value).
+
+    Parameters
+    ----------
+    token_attrs : list[ValidatedTokenAttribute]
+        Flattened token data to be aggregated.
+
+    Returns
+    -------
+    list[AttributeStatistic]
+        For each combination of (name, value), it returns attribute statistics(`attribute.token_count` and `attribute.supply`)
+    """
     return count_attribute_values(token_attrs)

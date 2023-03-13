@@ -10,6 +10,7 @@ _params = MERGE_FAILS
 
 @pytest.mark.parametrize("params", _params)
 def test_merge_fails(params):
+    """A method to test for merge operation failure"""
     with pytest.raises(params["_expected"]):
         merge(**params["input"])
 
@@ -19,6 +20,7 @@ _params = MERGE_SUCCEEDS
 
 @pytest.mark.parametrize("params", _params)
 def test_merge(params):
+    """A method to test for merge operation success"""
     assert merge(**params["input"]) == params["_expected"]
 
 
@@ -27,4 +29,5 @@ _params = RANK_OVER_SUCCEEDS
 
 @pytest.mark.parametrize("params", _params)
 def test_rank_over(params):
+    """A method to test for rank_over operation success"""
     assert rank_over(**params["input"]) == params["_expected"]
