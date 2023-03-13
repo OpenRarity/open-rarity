@@ -226,9 +226,9 @@ class TokenCollection:
         Notes
         -----
         metric.probability : float
-            It is the Product of minimum value of (1,sum of `token.supply` values divided by `total_supply` value)
+            It is the Product of minimum value of (1,sum of `token.supply` values divided by `total_supply` value) of all tokens
         metric.information : float
-            It is the Sum of maximum value of (0, -log2(sum of `token.supply` values divided by `total_supply` value))
+            It is the Sum of maximum value of (0, -log2(sum of `token.supply` values divided by `total_supply` value)) of all tokens
         metric.information_entropy : float
             It is the division value of `metric.information` and `entropy`
         metric.unique_trait_count : int
