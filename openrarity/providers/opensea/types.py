@@ -2,7 +2,7 @@ from typing import TypedDict
 
 
 class TokenTrait(TypedDict):
-    """A class to represent `TokenTrait`."""
+    """This class shows all the metadata of a trait. Traits are specific properties each NFT has."""
     trait_type: str
     value: str | float | int
     display_type: str | None
@@ -12,6 +12,6 @@ class TokenTrait(TypedDict):
 
 
 class TokenAsset(TypedDict):
-    """A class to represent `TokenAsset`."""
+    """This class represents a list of traits of a token."""
     token_id: str
     traits: list[TokenTrait]

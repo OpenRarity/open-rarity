@@ -6,19 +6,20 @@ from tqdm.asyncio import tqdm_asyncio  # type: ignore
 
 
 async def ratelimited_gather(num: int, coros: Coroutine[Any, Any, Any]) -> list[Any]:
-    """Based on the `AsyncLimiter` value, It will run co-routines asyncroniously.
+    """
+    Runs all coroutines and using a leaky bucket strategy to limit the speed of submission. The rate is configured by the `num` parameter.
 
     Parameters
     ----------
     num : int
-        Async limiter value.
+        The rate limit of coroutines per second to submit.
     coros : Coroutine[Any, Any, Any]
-        List of co-routines
+        List of coroutines.
 
     Returns
     -------
     list[Any]
-        Returns co-routine response.
+        List of return values from the provided coroutines.
     """
     limiter = AsyncLimiter(num, 1)
 

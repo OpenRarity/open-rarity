@@ -15,15 +15,16 @@ def information_content(
     Parameters
     ----------
     counts : list[AttributeStatistic]
-        List of attribute statistics.
+        List of attribute statistics. Attribute Statistics are statistics of a given collection grouped by `name` and `value` attributes.
     total : int
-        total supply value
+        Total supply value.
+        Non-Fungible is the number of tokens in the collection where each token is unique while Semi-Fungible is the total quantity of tokens accounting for multiple of the same token.
 
     Returns
     -------
     list[AttributeStatistic]
         The original attribute statistics augmented with probability and information
-        content
+        content.
     """
     return [
         cast(
@@ -40,17 +41,22 @@ def information_content(
 
 def calculate_entropy(attr_stats: list[AttributeStatistic]) -> float:
     """
-    Entrophy is calculated using cumulative sum of the products of `metric.probability` and `metric.information`.
+    Calculates entropy value.
+    Entropy is a measure of information in terms of uncertainity. Higher uncertainity leads higher entropy.
+    Example: Flipping a coin for Heads
+        - Entropy is a measure of uncertainity before FLIP.
+        - Information is the knowledge you have to gain after the FLIP.
+    Information Entropy is the sum of the product of the probability and information content for each attribute.
 
     Parameters
     ----------
     attr_stats : list[AttributeStatistic]
-        List of attribute statistics.
+        List of attribute statistics. Attribute Statistics are statistics of a given collection grouped by `name` and `value` attributes.
 
     Returns
     -------
     float
-        Returns the entrophy value.
+        Returns the entropy value.
     """
     return sum(
         stat["metric.probability"] * stat["metric.information"]  # type: ignore

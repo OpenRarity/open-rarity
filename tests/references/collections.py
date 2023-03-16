@@ -5,11 +5,10 @@ SUCCEEDS = [
         "desc": cleandoc(
             """
     Collection includes:
-        - A `trait_type` key on one token
-        - Duplicate `name` with different `value`
-        - Missing `name` keys
-        - Missing `display_type` key
-
+        - A `trait_type` key on one token.
+        - Duplicate `name` with different `value`.
+        - Missing `name` keys.
+        - Missing `display_type` key.
     """
         ),
         "token_type": "non-fungible",

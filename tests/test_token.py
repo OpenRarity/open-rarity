@@ -8,7 +8,7 @@ from .references.tokens import FAILS, SUCCEEDS
 
 @pytest.mark.parametrize("params", SUCCEEDS)
 def test_validate_tokens_succeed(params):
-    """A method to test for validated Token success"""
+    """Verify the result of `validate_tokens()` method by passing valid data."""
     token_supply, tokens = validate_tokens(**params["input"])
     assert token_supply == params["_expected"]["token_supply"]
 
@@ -27,6 +27,6 @@ def test_validate_tokens_succeed(params):
 
 @pytest.mark.parametrize("params", FAILS)
 def test_validate_tokens_fail(params):
-    """A method to test for validated Token failures"""
+    """Verify the failure condition of `validate_tokens()` method by passing invalid data."""
     with pytest.raises(**params["_expected"]):
         validate_tokens(**params["input"])

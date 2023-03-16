@@ -6,19 +6,19 @@ from .metadata import validate_metadata
 from .types import RawToken, TokenId
 
 
-def trait_count(values: RawToken) -> RawToken:
+def calculate_trait_count(values: RawToken) -> RawToken:
     """Count the number of traits on a given token and append it as an attribute named
-    openrarity.trait_count.
+    `openrarity.trait_count`.
 
     Parameters
     ----------
     tokens : RawToken
-        Tokens to be augmented with openrarity.trait_count.
+        Token attributes to be augmented with `openrarity.trait_count`.
 
     Returns
     -------
     RawToken
-        RawToken augmented with openrarity.trait_count.
+        Token attributes augmented with `openrarity.trait_count`.
     """
     attrs = [
         dict(deduped)
@@ -31,47 +31,47 @@ def trait_count(values: RawToken) -> RawToken:
 def validate_token(
     token: RawToken, token_type: Literal["non-fungible", "semi-fungible"]
 ) -> RawToken:
-    """Utitily function for validating attributes of individual tokens.
+    """Utitily function for validating attributes a token.
 
     Parameters
     ----------
     token : RawToken
-        a dictionary containing token attributes.
-    token_type :`non-fungible`|`semi-fungible`
-        type of the token.
+        A dictionary of token attributes.
+    token_type : Literal["non-fungible", "semi-fungible"]
+        Type of the token.
 
     Returns
     -------
     RawToken
-        Tokens augmented with openrarity.trait_count.
+        Validated token attributes augmented with `openrarity.trait_count`.
 
     Raises
     ------
     ValueError
-        if we pass `semi-fungible` as a token_type and didn't provide `token_supply` then it will throw ValueError.
+        If we pass `semi-fungible` as a token_type and didn't provide `token_supply` then it will throw ValueError.
     """
     if token_type == "semi-fungible" and "token_supply" not in token:
         raise ValueError("token_supply")
 
     token["attributes"] = [validate_metadata(attr) for attr in token["attributes"]]
 
-    return trait_count(token)
+    return calculate_trait_count(token)
 
 
 def validate_tokens(
     token_type: Literal["non-fungible", "semi-fungible"],
     tokens: dict[TokenId, RawToken],
 ) -> tuple[dict[TokenId, int] | int, dict[TokenId, RawToken]]:
-    """Utitily function for validating a dictionary input of tokens mapped to an id.
-    Non-Fungible token_supply value is length of validated tokens.
-    Semi-Fungible token_supply value is a dict of token_ids with their token_supply value.
+    """
+    Utitily function for validating a dictionary input of tokens mapped to an id. In the same time, it also returns `token_supply` value.
+    Non-Fungible is the number of tokens in the collection where each token is unique while Semi-Fungible is a dict of token_ids with their token_supply value.
 
     Parameters
     ----------
-    token_type : &quot;non-fungible&quot; | &quot;semi-fungible&quot;
-        non-fungible or semi-fungible token type.
+    token_type : Literal["non-fungible", "semi-fungible"]
+        Type of the token.
     tokens : dict[TokenId, RawToken]
-        a dictionary of indivdual tokens.
+        A dictionary of indivdual tokens to validate.
 
     Returns
     -------

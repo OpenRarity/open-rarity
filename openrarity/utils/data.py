@@ -17,7 +17,7 @@ def merge(
     Parameters
     ----------
     left : list[dict]
-        Data to be joined with.
+        Data to be joined with. The left is longer list than right otherwise you will get data loss.
     right : list[dict]
         Data coming into the join.
     key : tuple[Hashable]

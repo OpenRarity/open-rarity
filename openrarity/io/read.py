@@ -7,7 +7,7 @@ def from_json(
     path: str | Path,
 ) -> dict[str | int, dict[Any, Any]]:
     """
-    Reads data from the given path and returns to the calling method.
+    Parses json file at provided path into python object.
 
     Parameters
     ----------
@@ -17,6 +17,6 @@ def from_json(
     Returns
     -------
     dict
-        Returns the data back to calling method as a dict object.
+        Returns Parsed json file at provided path into python object.
     """
     return json.loads(Path(path).read_text())

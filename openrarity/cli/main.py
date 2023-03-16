@@ -25,23 +25,22 @@ def rank(
         DEFAULT_COLUMNS,
         "--columns",
         "-C",
-        help="Columns to print or write to file.",
+        help="Column names of rank data.",
     ),
 ):
     """
-    For a given collection of tokens, it calculate rarity_ranks by token_id.
-    If we specify output file path, it writes the calculated result into that file. otherwise, it prints the result into stdout.
+    For a given collection of tokens, it calculates rarity_ranks by token_id. Optionally, the calculated ranks can be wrriten to a json file by passing `--output` flag. By default, it writes to STDOUT.
 
     Parameters
     ----------
     tokens : Path
         Json file containing token metadata.
     semi_fungible : bool
-        Boolean value to identify "semi-fungible" or "non-fungible".
+        Boolean value to inform ranker that the collection contains Semi-Fungible tokens.
     output : Path, optional
-        Json file to write rank data.
+        Json file path to write rank data.
     columns : str
-        Columns to print or write to file.
+        Column names of rank data.
     """
     if tokens.name == "-":
         data = json.loads(sys.stdin.read())

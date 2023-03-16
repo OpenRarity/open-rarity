@@ -8,7 +8,7 @@ _params = SUCCEEDS
 
 @pytest.mark.parametrize("params", _params)
 def test_init_metric_succeeds(params):
-    """A method to test for init metric success"""
+    """Verify the result of `information_content()` and `count_traits()` methods by passing valid data."""
     assert params["metric"](**params["input"]) == params["_expected"]
 
 
@@ -17,6 +17,6 @@ _params = FAILS
 
 @pytest.mark.parametrize("params", _params)
 def test_init_metric_fails(params):
-    """A method to test for init metric failure"""
+    """Verify the failure case of `information_content()` method by passing invalid data."""
     with pytest.raises(params["_expected"]):
         params["metric"](**params["input"])

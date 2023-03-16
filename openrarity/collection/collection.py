@@ -32,7 +32,17 @@ logger = Logger(__name__)
 
 
 class AttributesStatistics(TypedDict):
-    """A class to represent Attribute Statistics."""
+    """
+    A class to represent Attribute Statistic.
+    AttributeStatistic :
+        Attribute Statistics can be calculated by grouping `name` and `value` attributes.
+        Attribute Statistics include
+            - attribute.token_count
+            - attribute.supply
+            - metric.probability
+            - metric.information
+        For definitions, Please take a look at `rank_collection()` method.
+    """
     string: list[AttributeStatistic]
     number: list[AttributeStatistic]
     date: list[AttributeStatistic]
@@ -53,41 +63,33 @@ class TokenCollection:
 
         Parameters
         ----------
-        token_type :Literal["non-fungible", "semi-fungible"]
-            type of the token.
+        token_type : Literal["non-fungible", "semi-fungible"]
+            Type of the token.
         tokens : dict[TokenId, RawToken]
-            a dictionary of individual tokens.
+            A dictionary of raw token data.
 
         Attributes
         ----------
         _token_type : Literal["non-fungible", "semi-fungible"]
             Type of the token.
         _input_checksum : str
-            md5 hash of the tokens.
+            MD5 hash of the raw token data.
         _ranks_checksum : str
-            md5 hash of ranks.
+            MD5 hash of ranks data.
         _token_supply : int | dict[str | int, int]
-            token supply value.
-            Non-Fungible token_supply value is length of validated tokens.
+            Token supply value.
+            Non-Fungible is the number of tokens in the collection where each token is unique.
             Semi-Fungible token_supply value is a dict of token_ids with their token_supply value.
         _tokens : dict[TokenId, RawToken]
-            A dict of tokens.
-        _token_attribute_data : list[ValidatedTokenAttribute]
-            list of token attribute data.
+            A dictionary of tokens data.
         _attribute_statistics : AttributesStatistics
-            Statistics based on the attributes.
+            Statistics of a given collection grouped by `name` and `value` attributes.
         _entropy : float | None
-            entrophy value.
+            Entropy value. Entropy is a measure of information in terms of uncertainity.
         _token_statistics : list[TokenStatistic]
-            statistics based on the tokens.
-        _string_types : list[ValidatedTokenAttribute]
-            Validated Token attributes of string type.
-        _number_types : list[ValidatedTokenAttribute]
-            Validated Token attributes of number type.
-        _date_types : list[ValidatedTokenAttribute]
-            Validated Token attributes of date type.
+            Statistics of each token in a given collection grouped by `name` and `value` attributes.
         _ranks : list[RankedToken]
-            Token data with statistics and rank.
+            Rarity ranks of each token.
         """
 
         self._token_type = token_type
@@ -116,14 +118,15 @@ class TokenCollection:
 
     @property
     def tokens(self) -> dict[TokenId, RawToken]:
-        """Get the dictionary of token_ids and their attributes."""
+        """Returns the raw input to the TokenCollection class."""
         return self._tokens
 
     @property
     def total_supply(self) -> int:
-        """Get the total_supply value of a collection."""
-        # Non-Fungible `total_supply` value is nothing but length of tokens
-        # SemiFungible needs to sum the supply of each token
+        """
+        Get the total_supply value of a collection.
+        Non-Fungible total_supply is the number of tokens in the collection where each token is unique while Semi-Fungible total_supply is the total quantity of tokens accounting for multiple of the same token.
+        """
         if isinstance(self._token_supply, dict):
             return sum(self._token_supply.values())
 
@@ -131,21 +134,41 @@ class TokenCollection:
 
     @property
     def attribute_statistics(self) -> AttributesStatistics:
-        """Get the attribute_statistics."""
+        """
+        Returns attribute_statistics. The attribute_statistics of a given collection is calculated by grouping `name` and `value` attributes.
+        Attribute_statistics are
+            - attribute.token_count
+            - attribute.supply
+            - metric.probability
+            - metric.information
+        For definitions, Please take a look at `rank_collection()` method.
+        """
         if not self._attribute_statistics:
             raise AttributeError(
-                f"Please run '{repr(self)}.rank_collection()' to view this property"
+                f"Please run '{repr(self)}.rank_collection()' to view this property."
             )
         return self._attribute_statistics
 
     @property
     def entropy(self) -> float | None:
-        """Get the entropy value."""
+        """
+        Returns the entropy value. It is a measure of information in terms of uncertainty.
+        """
         return self._entropy
 
     @property
     def token_statistics(self) -> list[TokenStatistic]:
-        """Get the token_statistics."""
+        """Returns token_statistics. The Statistics of each token in a given collection grouped by `name` and `value` attributes.
+        Token statistics are
+            - attribute.token_count
+            - attribute.supply
+            - metric.probability
+            - metric.information
+            - metric.information_entropy
+            - metric.unique_trait_count
+            - metric.max_trait_information
+        For definitions, Please take a look at `rank_collection()` method.
+        """
         if not self._token_statistics:
             raise AttributeError(
                 f"Please run '{repr(self)}.rank_collection()' to view this property"
@@ -154,7 +177,7 @@ class TokenCollection:
 
     @property
     def ranks(self) -> list[RankedToken]:
-        """For each Token_id, get the ranks along with statistics."""
+        """For a given collection of tokens, returns rarity_ranks."""
         if not self._ranks:
             raise AttributeError(
                 f"Please run '{repr(self)}.rank_collection()' to view this property"
@@ -163,7 +186,7 @@ class TokenCollection:
 
     @property
     def checksum(self) -> str:
-        """Get the sum of input_checksum and ranks_checksum."""
+        """Calculates the checksum of a given collection."""
         if not self._ranks_checksum:
             raise AttributeError(
                 f"Please run '{repr(self)}.rank_collection()' to view this property"
@@ -185,7 +208,6 @@ class TokenCollection:
         ] = ("metric.unique_trait_count", "metric.information_entropy"),
         return_ranks: Literal[True] = True,
     ) -> list[RankedToken]:
-        """An overloaded `rank_collection` method with `return_ranks` flag is True, which means it returns Ranks."""
         ...
 
     @overload
@@ -203,7 +225,6 @@ class TokenCollection:
         ] = ("metric.unique_trait_count", "metric.information_entropy"),
         return_ranks: Literal[False] = False,
     ) -> None:
-        """An overloaded `rank_collection` method with `return_ranks` flag is False, which means it returns None."""
         ...
 
     def rank_collection(
@@ -220,33 +241,40 @@ class TokenCollection:
         ] = ("metric.unique_trait_count", "metric.information_entropy"),
         return_ranks: bool = True,
     ) -> list[RankedToken] | None:
-        """Preprocess tokens then rank the tokens for the collection and set the
-        corresponding cls.ranks attribute. Optionally, return the ranks.
+        """Preprocess tokens then rank the tokens for the collection and set the corresponding `cls.ranks` attribute. Optionally, return the ranks.
 
         Notes
         -----
-        metric.probability : float
-            It is the Product of minimum value of (1,sum of `token.supply` values divided by `total_supply` value) of all tokens
-        metric.information : float
-            It is the Sum of maximum value of (0, -log2(sum of `token.supply` values divided by `total_supply` value)) of all tokens
-        metric.information_entropy : float
-            It is the division value of `metric.information` and `entropy`
-        metric.unique_trait_count : int
-            It is the sum of unique `token_count` values
-        metric.max_trait_information : float
-            It is the maximum value of attribute statistics `metric.information`
+        metric.probability
+            The statistical probability/likelihood that a token exists in a collection.
+            Example : Flipping a coin for Heads
+                        -The likelihood that a coin turn to Heads
+        metric.information
+            The total information we gain from the token attributes.
+            Example : Flipping a coin for Heads
+                        -Knowledge you have to GAIN after the FLIP
+        metric.information_entropy
+            It is a measure of information in terms of uncertainty.
+            Example : Flipping a coin for Heads
+                        -Measure of uncertainty before FLIP
+        metric.unique_trait_count
+            It is the count of unique traits(specific properties each NFT has) in a token.
+        metric.max_trait_information
+            It is the maximum information we gain from the token attributes.
+        attribute.token_count
+            It is the number of tokens by grouping `name` and `value` attributes of a token collection.
 
         Parameters
         ----------
         rank_by : tuple[ Literal[&quot;unique_traits&quot;, &quot;ic&quot;, &quot;probability&quot;, &quot;trait_count&quot;], ... ], optional
-            Metrics to sort by when ranking, by default ("unique_traits", "ic")
+            Metrics to sort by when ranking, by default ("unique_traits", "ic").
         return_ranks : bool, optional
-            Return the set ranks attribute, by default True
+            Return the set ranks attribute, by default True.
 
         Returns
         -------
         list[RankedToken] | None
-            Ranked tokens
+            Returns a list of tokens with its rarity ranks.
         """
 
         self.token_schema, self._token_attribute_data = enforce_schema(
@@ -318,14 +346,14 @@ class TokenCollection:
         Parameters
         ----------
         path : str | PathLike
-            File path to read the data.
-        token_type : `non-fungible`|`semi-fungible`
-            type of token.
+            Json File path to read the data.
+        token_type : Literal["non-fungible", "semi-fungible"]
+            Type of a token.
 
         Returns
         -------
         TokenCollection
-            Instantiated collection with tokens from json.
+            Instantiated collection with tokens from json file.
         """
         return cls(token_type, read.from_json(path))  # type: ignore
 
@@ -337,10 +365,10 @@ class TokenCollection:
         directory : str | PathLike
             Directory to write files.
         prefix : str
-            The prefix to append to the filenames constructed as <prefix>_<data-kind>
+            The prefix to append to the filenames constructed as <prefix>_<data-kind>.
         ranks_only : bool, optional
             A value of `True` only saves the rank data. A value of `False` will write
-            intermediary data as well, by default True
+            intermediary data as well, by default True.
         """
         directory = directory if isinstance(directory, Path) else Path(directory)
         write.to_json(self.ranks, directory / f"{prefix}_ranks.json")  # type: ignore
@@ -368,11 +396,11 @@ class TokenCollection:
         Parameters
         ----------
         data : JsonEncodable
-            input data.
+            Input data.
 
         Returns
         -------
         str :
-            md5 hash.
+            MD5 hash value.
         """
         return md5(json.dumps(data, sort_keys=True).encode("utf-8")).hexdigest()

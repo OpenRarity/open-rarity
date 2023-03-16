@@ -191,7 +191,7 @@ SUCCEEDS = [
         },
     },
     {
-        "desc": cleandoc("""Numeric and date traits"""),
+        "desc": cleandoc("""Numeric and date traits."""),
         "input": {
             "token_type": "non-fungible",
             "tokens": {
@@ -263,7 +263,7 @@ SUCCEEDS = [
 
 FAILS = [
     {
-        "desc": cleandoc("""Semi-fungible missing token supply"""),
+        "desc": cleandoc("""Semi-fungible missing token supply."""),
         "input": {
             "token_type": "semi-fungible",
             "tokens": {1: {"attributes": [{"name": "medal", "value": "gold"}]}},
