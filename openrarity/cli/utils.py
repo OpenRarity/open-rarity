@@ -24,7 +24,7 @@ def print_rankings(ranks: list[RankedToken], columns: list[str]):
     print(tabulate(data, headers=columns))
 
 
-def check_file_existence(file_path: str | Path,rank: bool)->tuple[bool,bool,bool]:
+def check_file_existence(file_path: str | Path, rank: bool) -> tuple[bool, bool, bool]:
     """
     Utility method to check the existence of a file and it sets boolean values to `file_exists`,`overwrite_flag`,`rank_with_existing_assets_flag`.
 
@@ -49,8 +49,9 @@ def check_file_existence(file_path: str | Path,rank: bool)->tuple[bool,bool,bool
         if rank:
             # overwrite/rank-with-existing-assets/no
             answer = None
-            while answer not in ("a","b","c"):
-                answer = input("File path exists. Do you want to: \n A)Overwrite \n B)rank-with-existing-assets \n C) Exit\n pick an option: ").lower()
+            while answer not in ("a", "b", "c"):
+                typer.echo(f"File path exists. Do you want to:\nA)Overwrite\nB)rank-with-existing-assets\nC)Exit\npick an option:")
+                answer = input().lower()
                 if answer == "a":
                     overwrite_flag = True
                 elif answer == "b":
@@ -63,8 +64,9 @@ def check_file_existence(file_path: str | Path,rank: bool)->tuple[bool,bool,bool
         else:
             # if files exist and provide y/n input to overwrite
             answer = None
-            while answer not in ("a","b"):
-                answer = input("File path exists. Do you want to: \n A)Overwrite \n B)No\n pick an option: ").lower()
+            while answer not in ("a", "b"):
+                typer.echo(f"File path exists. Do you want to: \n A)Overwrite \n B)No\npick an option:")
+                answer = input().lower()
                 if answer == "a":
                     overwrite_flag = True
                 elif answer == "b":
@@ -72,4 +74,4 @@ def check_file_existence(file_path: str | Path,rank: bool)->tuple[bool,bool,bool
                 else:
                     typer.echo(f"Please enter any one of these values('a','b').")
 
-    return (file_exists,overwrite_flag,rank_with_existing_assets_flag)
+    return (file_exists, overwrite_flag, rank_with_existing_assets_flag)

@@ -117,7 +117,7 @@ def fetch_assets(
             typer.echo(f"Writing {str(tokens_path)}...")
 
         if ranks is not None:
-            ranks = [[str(row[c]) for c in columns] for row in ranks]  # type: ignore
+            ranks = [[str(row[c]) for c in column_values] for row in ranks]  # type: ignore
             ranks_path = output / f"{slug}_ranks.json"
             ranks_path.write_text(json.dumps(ranks, indent=2))
             typer.echo(f"Writing {str(ranks_path)}...")

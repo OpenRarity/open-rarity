@@ -59,31 +59,6 @@ class OpenseaApi:
     }
     # https://docs.opensea.io/docs/metadata-standards
 
-    @staticmethod
-    def transform(data: list[TokenAsset]) -> dict[TokenId, RawToken]:
-        """Transform the Opensea Asset api response into the format for OpenRarity's
-        `TokenCollection` class.
-
-        Parameters
-        ----------
-        data : list[TokenAsset]
-            Opensea Api response data.
-
-        Returns
-        -------
-        dict[TokenId, RawToken]
-            OpenRarity input format.
-        """
-        return {  # type: ignore
-            str(t["token_identifier"]["token_id"]): {  # type: ignore
-                "attributes": [
-                    {"name": name, "value": value}
-                    for name, value in t["metadata_dict"].items()  # type: ignore
-                ]
-            }
-            for t in data
-        }
-
     @classmethod
     def fetch_opensea_collection_data(cls, slug: str) -> list[TokenAsset]:
         """Fetches collection data from Opensea's GET collection endpoint for
@@ -136,17 +111,6 @@ class OpenseaApi:
             }
             for asset in responses
         }
-
-    @retry(
-        stop=stop.stop_after_attempt(7),
-        wait=wait.wait_exponential(1),
-        before_sleep=before_sleep.before_sleep_log(logger, logging.DEBUG),
-    )
-    @classmethod
-    async def fetch_one(
-        cls, url: str, params: dict[str, Any], client: httpx.AsyncClient
-    ):
-        return await client.get(url, params=params)  # type: ignore
 
     @classmethod
     async def fetch_opensea_assets_data(
