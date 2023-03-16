@@ -50,8 +50,7 @@ def check_file_existence(file_path: str | Path, rank: bool) -> tuple[bool, bool,
             # overwrite/rank-with-existing-assets/no
             answer = None
             while answer not in ("a", "b", "c"):
-                typer.echo(f"File path exists. Do you want to:\nA)Overwrite\nB)rank-with-existing-assets\nC)Exit\npick an option:")
-                answer = input().lower()
+                answer = input(f"File path exists. Do you want to:\nA)Overwrite\nB)rank-with-existing-assets\nC)Exit\npick an option:").lower()
                 if answer == "a":
                     overwrite_flag = True
                 elif answer == "b":
@@ -60,18 +59,17 @@ def check_file_existence(file_path: str | Path, rank: bool) -> tuple[bool, bool,
                     typer.echo("Stopping the program...")
                     exit()
                 else:
-                    typer.echo(f"Please enter any one of these values('a','b','c').")
+                    typer.echo(f"Please enter any one of these values('a','b','c')\n")
         else:
             # if files exist and provide y/n input to overwrite
             answer = None
             while answer not in ("a", "b"):
-                typer.echo(f"File path exists. Do you want to: \n A)Overwrite \n B)No\npick an option:")
-                answer = input().lower()
+                answer = input(f"File path exists. Do you want to: \n A)Overwrite \n B)No\npick an option:").lower()
                 if answer == "a":
                     overwrite_flag = True
                 elif answer == "b":
                     typer.echo(f"Skipped writing...")
                 else:
-                    typer.echo(f"Please enter any one of these values('a','b').")
+                    typer.echo(f"Please enter any one of these values('a','b').\n")
 
     return (file_exists, overwrite_flag, rank_with_existing_assets_flag)
