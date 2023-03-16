@@ -19,7 +19,7 @@ def   flatten_token_data(
     tokens : dict[TokenId, RawToken]
         Validated tokens data.
     token_supply: int | dict[str | int, int]
-        Token supply value.
+        Token supply value. Non-Fungible is the number of tokens in the collection where each token is unique. Semi-Fungible token_supply value is a dict of token_ids with their token_supply value.
 
     Returns
     -------

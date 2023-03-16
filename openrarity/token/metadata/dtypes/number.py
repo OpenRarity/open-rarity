@@ -60,7 +60,7 @@ def process_numeric_dtypes(
     Parameters
     ----------
     token_attrs : list[ValidatedTokenAttribute]
-        Flattened list of token attributes data.
+        Flattened list of token attributes data. All the token attributes appeared in the same level as opposed to nested structure.
 
     Returns
     -------
