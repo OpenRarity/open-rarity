@@ -120,9 +120,8 @@ def fetch_assets(
         typer.echo(f"Writing {str(ranks_path)}...")
     elif ranks:
         print_rankings(ranks, column_values)
-    else:
-        if not output:
-            print(json.dumps(tokens))
+    elif output is None and ranks is None:
+        print(json.dumps(tokens))
 
 
 @app.command("fetch-collections")
