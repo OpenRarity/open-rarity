@@ -121,7 +121,8 @@ def fetch_assets(
     elif ranks:
         print_rankings(ranks, column_values)
     else:
-        print(json.dumps(tokens))
+        if not output:
+            print(json.dumps(tokens))
 
 
 @app.command("fetch-collections")

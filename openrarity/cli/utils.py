@@ -26,7 +26,7 @@ def print_rankings(ranks: list[RankedToken], columns: list[str]):
 
 def check_file_existence(file_path: str | Path, rank: bool) -> bool:
     """
-    Utility method to check the existence of a file and it sets the boolean value for `overwrite_flag`.
+    Utility method to check the existence of a file and it sets the boolean value for `write_flag`.
 
     Parameters
     ----------
@@ -38,9 +38,9 @@ def check_file_existence(file_path: str | Path, rank: bool) -> bool:
     Returns
     -------
     bool
-        Returns boolean status of `overwrite_flag`.
+        Returns boolean status of `write_flag`.
     """
-    overwrite_flag = True
+    write_flag = True
 
     file_exists = Path(file_path).exists()
     if file_exists:
@@ -50,9 +50,9 @@ def check_file_existence(file_path: str | Path, rank: bool) -> bool:
             while answer not in ("1", "2", "3"):
                 answer = input(f"File path exists. Do you want to:\n1)Overwrite\n2)rank-with-existing-assets\n3)Exit\npick an option:").lower()
                 if answer == "1":
-                    overwrite_flag = True
+                    write_flag = True
                 elif answer == "2":
-                    overwrite_flag = False
+                    write_flag = False
                 elif answer == "3":
                     typer.echo("Stopping the program...")
                     exit()
@@ -62,8 +62,9 @@ def check_file_existence(file_path: str | Path, rank: bool) -> bool:
             # if files exist and provide y/N input to overwrite
             answer = input(f"Output file exist. Would you like to overwrite? (y/N)")
             if answer in ["y","Y"]:
-                overwrite_flag = True
+                write_flag = True
             else:
-                overwrite_flag = False
+                write_flag = False
+                typer.echo("Stopped further processing...")
 
-    return overwrite_flag
+    return write_flag
