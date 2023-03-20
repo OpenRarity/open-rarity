@@ -31,17 +31,17 @@ def fetch_assets(
     semi_fungible: bool = typer.Option(False),
     rank: bool = typer.Option(False),
     output: Optional[Path] = typer.Option(
-        None, "--output", "-o", help="Output path to write results."
+        None, "--output", "-o", help="Output directory path to write results."
     ),
     columns: str = typer.Option(
         DEFAULT_COLUMNS,
         "--columns",
         "-C",
-        help="Column names of the result data.",
+        help="Column names of the result data. Available columns are `token_id`,`metric.unique_trait_count`,`metric.information`,`rank`.",
     ),
 ):
     """
-    Given a list of token_ids or start and end token ids for numbered collections, fetch the token metadata from Opensea. Optionally, the fetched tokens can be ranked by passing the `--rank` flag and write to a file by passing the `--output` flag.
+    Given a list of token_ids or start and end token ids for numbered collections, fetch the token metadata from Opensea. Optionally, the fetched tokens can be ranked by passing the `--rank` flag and written to a file by passing the `--output` flag.
 
     Parameters
     ----------
@@ -60,9 +60,12 @@ def fetch_assets(
     rank: bool
         Boolean value informs whether to calculate ranks. By Default it is False.
     output : Path, optional
-        Output path to write token attributes data and calculated ranks data.
+        Output directory path to write token attributes data and calculated ranks data.
+        Output filenames are formated like below
+            - <output>/<slug>_opensea.json
+            - <output>/<slug>_ranks.json
     columns: str
-        Column names of the resultant rank data.
+        Column names of the resultant rank data. Available columns are `token_id`,`metric.unique_trait_count`,`metric.information`,`rank`.
     """
     if token_ids_file is None:
         if start_token_id is None or end_token_id is None:
@@ -85,23 +88,23 @@ def fetch_assets(
             case _:
                 raise ValueError("Input file must be either a .txt or .json file.")
 
-    file_exists = False
-    overwrite_flag = False
-    rank_with_existing_assets_flag = False
     if output:
         tokens_path = output / f"{slug}_opensea.json"
-        # Check the existance of token collection file and populate `file_exists`,`overwrite_flag` and `rank_with_existing_assets_flag` accordingly.
-        file_exists,overwrite_flag,rank_with_existing_assets_flag = check_file_existence(tokens_path,rank)
+        write_flag = check_file_existence(tokens_path,rank)
 
-    # Fetch token collection data from opensea api or read from the tokens path.
-    if output and rank_with_existing_assets_flag:
-        tokens_path = output / f"{slug}_opensea.json"
-        contents = tokens_path.read_text()
-        tokens = json.loads(contents)
+        if write_flag:
+            tokens = aio.run(
+                OpenseaApi.fetch_opensea_assets_data(slug=slug, token_ids=token_ids)
+            )
+            tokens_path.write_text(json.dumps(tokens, indent=2))
+            typer.echo(f"Writing {str(tokens_path)}...")
+        else:
+            contents = tokens_path.read_text()
+            tokens = json.loads(contents)
     else:
         tokens = aio.run(
-            OpenseaApi.fetch_opensea_assets_data(slug=slug, token_ids=token_ids)
-        )
+                OpenseaApi.fetch_opensea_assets_data(slug=slug, token_ids=token_ids)
+            )
 
     ranks = None
     if rank:
@@ -110,18 +113,43 @@ def fetch_assets(
         ).rank_collection()
 
     column_values = columns.split(",")  # type: ignore
-    if output is not None:
-        if overwrite_flag or not file_exists:
-            tokens_path = output / f"{slug}_opensea.json"
-            tokens_path.write_text(json.dumps(tokens, indent=2))
-            typer.echo(f"Writing {str(tokens_path)}...")
-
-        if ranks is not None:
-            ranks = [[str(row[c]) for c in column_values] for row in ranks]  # type: ignore
-            ranks_path = output / f"{slug}_ranks.json"
-            ranks_path.write_text(json.dumps(ranks, indent=2))
-            typer.echo(f"Writing {str(ranks_path)}...")
-    elif ranks is not None:
+    if output and ranks:
+        ranks = [[str(row[c]) for c in column_values] for row in ranks]  # type: ignore
+        ranks_path = output / f"{slug}_ranks.json"
+        ranks_path.write_text(json.dumps(ranks, indent=2))
+        typer.echo(f"Writing {str(ranks_path)}...")
+    elif ranks:
         print_rankings(ranks, column_values)
     else:
         print(json.dumps(tokens))
+
+
+@app.command("fetch-collections")
+def fetch_collections(
+    slug: str = typer.Option(..., help="Collection slug to fetch."),
+    output: Optional[Path] = typer.Option(
+        ".", "--output", "-o", help="Output directory path to write results."
+    )
+):
+    """
+    For a given collection_slug, fetch the collection data from Opensea. And then, it writes to a output path. By default, it writes to current directory.
+
+    Parameters
+    ----------
+    slug: str
+        Collection slug from opensea ie: `boredapeyachtclub`.
+    output : Path, optional
+        Output directory path to write collection data. By default, it writes to current directory.
+        Output filename is formated like below
+            - <output>/<slug>_opensea_collection.json
+    """
+    if output:
+        file_path = output / f"{slug}_opensea_collection.json"
+        write_flag = check_file_existence(file_path,False)
+
+        if write_flag:
+            collection_data = OpenseaApi.fetch_opensea_collection_data(slug=slug)
+            file_path.write_text(json.dumps(collection_data, indent=2))
+            typer.echo(f"Writing {str(file_path)}...")
+        else:
+            typer.echo(f"Skipped Writing {str(file_path)}...")

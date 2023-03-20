@@ -14,8 +14,8 @@ def print_rankings(ranks: list[RankedToken], columns: list[str]):
     Parameters
     ----------
     ranks : list[RankedToken]
-        Ranks data which need to print on STDOUT.
-        Sample list[RankedToken] will be like `[{'token_id': '0', 'metric.probability': 0.0078125, 'metric.max_trait_information': 1.0, 'metric.information': 7.0, 'metric.unique_trait_count': 7,'rank':1}]`
+        Ranks to be printed.
+        Sample list[RankedToken] will be like `[{'token_id': '0', 'metric.probability': 0.0078125, 'metric.max_trait_information': 1.0, 'metric.information': 7.0, 'metric.unique_trait_count': 7,'rank':1}]`.
     columns : list[str]
         A subset of columns to print for the ranks.
         Example : ["token_id","metric.unique_trait_count","metric.information","rank"]
@@ -24,9 +24,9 @@ def print_rankings(ranks: list[RankedToken], columns: list[str]):
     print(tabulate(data, headers=columns))
 
 
-def check_file_existence(file_path: str | Path, rank: bool) -> tuple[bool, bool, bool]:
+def check_file_existence(file_path: str | Path, rank: bool) -> bool:
     """
-    Utility method to check the existence of a file and it sets boolean values to `file_exists`,`overwrite_flag`,`rank_with_existing_assets_flag`.
+    Utility method to check the existence of a file and it sets the boolean value for `overwrite_flag`.
 
     Parameters
     ----------
@@ -37,39 +37,33 @@ def check_file_existence(file_path: str | Path, rank: bool) -> tuple[bool, bool,
 
     Returns
     -------
-    tuple[bool,bool,bool]
-        Returns boolean status of `file_exists`,`overwrite_flag`,`rank_with_existing_assets_flag`.
+    bool
+        Returns boolean status of `overwrite_flag`.
     """
-    file_exists = False
-    overwrite_flag = False
-    rank_with_existing_assets_flag = False
+    overwrite_flag = True
 
     file_exists = Path(file_path).exists()
     if file_exists:
         if rank:
             # overwrite/rank-with-existing-assets/no
             answer = None
-            while answer not in ("a", "b", "c"):
-                answer = input(f"File path exists. Do you want to:\nA)Overwrite\nB)rank-with-existing-assets\nC)Exit\npick an option:").lower()
-                if answer == "a":
+            while answer not in ("1", "2", "3"):
+                answer = input(f"File path exists. Do you want to:\n1)Overwrite\n2)rank-with-existing-assets\n3)Exit\npick an option:").lower()
+                if answer == "1":
                     overwrite_flag = True
-                elif answer == "b":
-                    rank_with_existing_assets_flag = True
-                elif answer == "c":
+                elif answer == "2":
+                    overwrite_flag = False
+                elif answer == "3":
                     typer.echo("Stopping the program...")
                     exit()
                 else:
-                    typer.echo(f"Please enter any one of these values('a','b','c')\n")
+                    typer.echo(f"Please enter any one of these values('1','2','3')\n")
         else:
-            # if files exist and provide y/n input to overwrite
-            answer = None
-            while answer not in ("a", "b"):
-                answer = input(f"File path exists. Do you want to: \n A)Overwrite \n B)No\npick an option:").lower()
-                if answer == "a":
-                    overwrite_flag = True
-                elif answer == "b":
-                    typer.echo(f"Skipped writing...")
-                else:
-                    typer.echo(f"Please enter any one of these values('a','b').\n")
+            # if files exist and provide y/N input to overwrite
+            answer = input(f"Output file exist. Would you like to overwrite? (y/N)")
+            if answer in ["y","Y"]:
+                overwrite_flag = True
+            else:
+                overwrite_flag = False
 
-    return (file_exists, overwrite_flag, rank_with_existing_assets_flag)
+    return overwrite_flag

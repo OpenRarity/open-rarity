@@ -41,7 +41,8 @@ class OpenseaApi:
         Opensea api key. Optionally, we can pass our own api_key using environment variable.
         Example : OPENSEA_API_KEY = <API_KEY>
     RATE_LIMIT : int
-        Api request Concurrency limit.
+        Api request Concurrency limit. we can set this limit value using environment variable.
+        Example : OPENSEA_API_RPS = <RATE_LIMIT>
     HEADERS : dict
         Api headers.
     """
@@ -64,8 +65,20 @@ class OpenseaApi:
         """Fetches collection data from Opensea's GET collection endpoint for
         the given slug.
 
-        Raises:
-            Exception: If API request fails.
+        Parameters
+        ----------
+        slug: str
+            Opensea collection slug. Example : boredapeyachtclub.
+
+        Returns
+        -------
+        list[TokenAsset]
+            Collection data of a given slug.
+
+        Raises
+        ------
+        HTTPError
+            If api request fails, it returns `HTTPError` object with Traceback error and status code.
         """
         response = httpx.get(cls.COLLECTION_URL.format(slug=slug))
 

@@ -42,11 +42,9 @@ def information_content(
 def calculate_entropy(attr_stats: list[AttributeStatistic]) -> float:
     """
     Calculates entropy value.
-    Entropy is a measure of information in terms of uncertainity. Higher uncertainity leads higher entropy.
-    Example: Flipping a coin for Heads
-        - Entropy is a measure of uncertainity before FLIP.
-        - Information is the knowledge you have to gain after the FLIP.
-    Information Entropy is the sum of the product of the probability and information content for each attribute.
+    Entropy can refer to the amount of uncertainty in the distribution of NFTs within a particular ecosystem. Information Entropy is the sum of the product of the probability and information content for each attribute.
+    Example : Token attributes
+        NFTs can have different attributes, such as color, size, shape, or even properties that change over time. The more diverse and unpredictable these attributes are, the higher the entropy of the NFT.
 
     Parameters
     ----------

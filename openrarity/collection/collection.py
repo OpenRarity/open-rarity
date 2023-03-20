@@ -67,29 +67,6 @@ class TokenCollection:
             Type of the token.
         tokens : dict[TokenId, RawToken]
             A dictionary of raw token data.
-
-        Attributes
-        ----------
-        _token_type : Literal["non-fungible", "semi-fungible"]
-            Type of the token.
-        _input_checksum : str
-            MD5 hash of the raw token data.
-        _ranks_checksum : str
-            MD5 hash of ranks data.
-        _token_supply : int | dict[str | int, int]
-            Token supply value.
-            Non-Fungible is the number of tokens in the collection where each token is unique.
-            Semi-Fungible token_supply value is a dict of token_ids with their token_supply value.
-        _tokens : dict[TokenId, RawToken]
-            A dictionary of tokens data.
-        _attribute_statistics : AttributesStatistics
-            Statistics of a given collection grouped by `name` and `value` attributes.
-        _entropy : float | None
-            Entropy value. Entropy is a measure of information in terms of uncertainity.
-        _token_statistics : list[TokenStatistic]
-            Statistics of each token in a given collection grouped by `name` and `value` attributes.
-        _ranks : list[RankedToken]
-            Rarity ranks of each token.
         """
 
         self._token_type = token_type
@@ -118,7 +95,13 @@ class TokenCollection:
 
     @property
     def tokens(self) -> dict[TokenId, RawToken]:
-        """Returns the raw input to the TokenCollection class."""
+        """Returns the raw input to the TokenCollection class.
+
+        Attributes
+        ----------
+        _tokens : dict[TokenId, RawToken]
+            A dictionary of tokens data.
+        """
         return self._tokens
 
     @property
@@ -126,6 +109,13 @@ class TokenCollection:
         """
         Get the total_supply value of a collection.
         Non-Fungible total_supply is the number of tokens in the collection where each token is unique while Semi-Fungible total_supply is the total quantity of tokens accounting for multiple of the same token.
+
+        Attributes
+        ----------
+        _token_supply : int | dict[str | int, int]
+            Token supply value.
+            Non-Fungible is the number of tokens in the collection where each token is unique.
+            Semi-Fungible token_supply value is a dict of token_ids with their token_supply value.
         """
         if isinstance(self._token_supply, dict):
             return sum(self._token_supply.values())
@@ -142,6 +132,11 @@ class TokenCollection:
             - metric.probability
             - metric.information
         For definitions, Please take a look at `rank_collection()` method.
+
+        Attributes
+        ----------
+        _attribute_statistics : AttributesStatistics
+            Statistics of a given collection grouped by `name` and `value` attributes.
         """
         if not self._attribute_statistics:
             raise AttributeError(
@@ -153,6 +148,11 @@ class TokenCollection:
     def entropy(self) -> float | None:
         """
         Returns the entropy value. It is a measure of information in terms of uncertainty.
+
+        Attributes
+        ----------
+        _entropy : float | None
+            Entropy value. Entropy is a measure of information in terms of uncertainity.
         """
         return self._entropy
 
@@ -168,6 +168,11 @@ class TokenCollection:
             - metric.unique_trait_count
             - metric.max_trait_information
         For definitions, Please take a look at `rank_collection()` method.
+
+        Attributes
+        ----------
+        _token_statistics : list[TokenStatistic]
+            Statistics of each token in a given collection grouped by `name` and `value` attributes.
         """
         if not self._token_statistics:
             raise AttributeError(
@@ -177,7 +182,13 @@ class TokenCollection:
 
     @property
     def ranks(self) -> list[RankedToken]:
-        """For a given collection of tokens, returns rarity_ranks."""
+        """For a given collection of tokens, returns rarity_ranks.
+
+        Attributes
+        ----------
+        _ranks : list[RankedToken]
+            Rarity ranks of each token.
+        """
         if not self._ranks:
             raise AttributeError(
                 f"Please run '{repr(self)}.rank_collection()' to view this property"
@@ -186,7 +197,15 @@ class TokenCollection:
 
     @property
     def checksum(self) -> str:
-        """Calculates the checksum of a given collection."""
+        """Calculates the checksum of both input and output data of a given collection.
+
+        Attributes
+        ----------
+        _input_checksum : str
+            MD5 hash of the raw token data.
+        _ranks_checksum : str
+            MD5 hash of ranks data.
+        """
         if not self._ranks_checksum:
             raise AttributeError(
                 f"Please run '{repr(self)}.rank_collection()' to view this property"
@@ -246,23 +265,22 @@ class TokenCollection:
         Notes
         -----
         metric.probability
-            The statistical probability/likelihood that a token exists in a collection.
-            Example : Flipping a coin for Heads
-                        -The likelihood that a coin turn to Heads
+            The statistical probability/likelihood that attributes or traits exists in a token collection.
+            Example : The statistical probability of an orange background and blue eyes appearing in a token collection.
         metric.information
-            The total information we gain from the token attributes.
-            Example : Flipping a coin for Heads
-                        -Knowledge you have to GAIN after the FLIP
+            The total information we gain from the token attributes. This information can be important in establishing the value and authenticity of the token.
+            Example : Token attributes
+                NFTs can have different attributes, such as color, size, or shape, which can be considered as information associated with the token.
         metric.information_entropy
-            It is a measure of information in terms of uncertainty.
-            Example : Flipping a coin for Heads
-                        -Measure of uncertainty before FLIP
+            It is a measure of information in terms of uncertainty. Information Entropy is the sum of the product of probability and information content for each attribute.
+            Example : Token attributes
+                NFTs can have different attributes, such as color, size, shape, or even properties that change over time. The more diverse and unpredictable these attributes are, the higher the entropy of the NFT.
         metric.unique_trait_count
-            It is the count of unique traits(specific properties each NFT has) in a token.
+            It is the count of traits that are unique across the entire collection. Such as a NFT having the only blue hat in the collection.
         metric.max_trait_information
-            It is the maximum information we gain from the token attributes.
+            It is the maximum information we gain from a single attribute of a token.
         attribute.token_count
-            It is the number of tokens by grouping `name` and `value` attributes of a token collection.
+            It is the number of tokens that have a particular name/value attribute pair.
 
         Parameters
         ----------

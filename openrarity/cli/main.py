@@ -25,11 +25,11 @@ def rank(
         DEFAULT_COLUMNS,
         "--columns",
         "-C",
-        help="Column names of rank data.",
+        help="Column names of rank data. Available columns are `token_id`,`metric.unique_trait_count`,`metric.information`,`rank`.",
     ),
 ):
     """
-    For a given collection of tokens, it calculates rarity_ranks by token_id. Optionally, the calculated ranks can be wrriten to a json file by passing `--output` flag. By default, it writes to STDOUT.
+    For a given collection of tokens, it calculates OpenRarity ranks. Optionally, the calculated ranks can be written to a json file by passing `--output` flag. By default, it writes to STDOUT.
 
     Parameters
     ----------
