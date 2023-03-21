@@ -265,8 +265,8 @@ class TokenCollection:
         Notes
         -----
         metric.probability
-            The statistical probability/likelihood that attributes or traits exists in a token collection.
-            Example : The statistical probability of an orange background and blue eyes appearing in a token collection.
+            The statistical probability/likelihood that a token exists in a collection.
+            Example : The statistical probability that a token exists in a collection with orange background and blue eyes is calculated by the number of occurences of a token(orange background and blue eyes) to the total number of a tokens in a collection.
         metric.information
             The total information we gain from the token attributes. This information can be important in establishing the value and authenticity of the token.
             Example : Token attributes
