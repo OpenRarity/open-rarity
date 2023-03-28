@@ -37,7 +37,7 @@ def fetch_assets(
         DEFAULT_COLUMNS,
         "--columns",
         "-C",
-        help="Column names of the result data. Available columns are `token_id`,`metric.unique_trait_count`,`metric.information`,`rank`.",
+        help="Default Column names of rank data. Available columns are `token_id`,`metric.probability`,'metric.max_trait_information',`metric.unique_trait_count`,`metric.information`,`metric.information_entropy`,`rank`",
     ),
 ):
     """
@@ -124,8 +124,8 @@ def fetch_assets(
         print(json.dumps(tokens))
 
 
-@app.command("fetch-collections")
-def fetch_collections(
+@app.command("fetch-collection")
+def fetch_collection(
     slug: str = typer.Option(..., help="Collection slug to fetch."),
     output: Optional[Path] = typer.Option(
         ".", "--output", "-o", help="Output directory path to write results."

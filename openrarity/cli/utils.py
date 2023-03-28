@@ -61,7 +61,7 @@ def check_file_existence(file_path: str | Path, rank: bool) -> bool:
         else:
             # if files exist and provide y/N input to overwrite
             answer = input(f"Output file exist. Would you like to overwrite? (y/N)")
-            if answer in ["y","Y"]:
+            if answer.lower() == "y":
                 write_flag = True
             else:
                 write_flag = False

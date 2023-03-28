@@ -73,7 +73,9 @@ def _create_token_schema(tokens: list[ValidatedTokenAttribute]) -> TokenSchema:
     Returns
     -------
     TokenSchema
-        Returns the token schema.
+        Returns the schema that is representative of a token, containing every available trait name across all tokens in the collection and the correct number of them.
+        Example schema will be {('eyes', 'string'): 1,('hat', 'string'): 1}.
+
     """
     d: dict[tuple[str, str], int] = defaultdict(int)
 
@@ -99,7 +101,7 @@ def _count_token_attrs(
     Returns
     -------
     dict[int, dict[tuple[str, str], int]]
-        Returns the Aggregate data grouped by token_id.
+        Returns the aggregated data grouped by token_id.
     """
     # TODO: Double groupapply. This can probably be flattened using a composite key of
     # (token_id, name) which should improve performance

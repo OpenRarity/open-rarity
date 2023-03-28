@@ -63,8 +63,8 @@ def validate_tokens(
     tokens: dict[TokenId, RawToken],
 ) -> tuple[dict[TokenId, int] | int, dict[TokenId, RawToken]]:
     """
-    Utitily function for validating a dictionary input of tokens mapped to an id. In the same time, it also returns `token_supply` value.
-    Non-Fungible is the number of tokens in the collection where each token is unique while Semi-Fungible is a dict of token_ids with their token_supply value.
+    Utility function for validating a dictionary input of tokens mapped to an id. This function returns validated tokens and `token_supply` value.
+    Non-Fungible token_supply value is the number of tokens in the collection where each token is unique while Semi-Fungible is a dict of token_ids with their token_supply value.
 
     Parameters
     ----------

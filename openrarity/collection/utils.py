@@ -8,7 +8,7 @@ from openrarity.token import RawToken, TokenAttribute, ValidatedTokenAttribute
 from openrarity.token.types import TokenId, TokenStatistic
 
 
-def   flatten_token_data(
+def flatten_token_data(
     tokens: dict[TokenId, RawToken], token_supply: int | dict[str | int, int]
 ) -> list[ValidatedTokenAttribute]:
     """Denormalized and flatten token data. Attributes move to the top level and are

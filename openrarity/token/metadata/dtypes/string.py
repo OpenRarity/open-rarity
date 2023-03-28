@@ -8,7 +8,7 @@ from openrarity.token import AttributeStatistic, ValidatedTokenAttribute
 def count_attribute_values(
     tokens: list[ValidatedTokenAttribute],
 ) -> list[AttributeStatistic]:
-    """Process String type data by Aggregating on the combination of (name, value).
+    """Process String type data by aggregating on the combination of (name, value).
 
     Parameters
     ----------
@@ -35,7 +35,7 @@ def count_attribute_values(
 
 
 def process_string_dtypes(token_attrs: list[ValidatedTokenAttribute]):
-    """Process String type data by Aggregating on the combination of (name, value). It calculates `token_count` and `supply`.
+    """Process String type data by aggregating on the combination of (name, value). It calculates `token_count` and `supply`.
 
     Parameters
     ----------

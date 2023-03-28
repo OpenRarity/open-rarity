@@ -25,7 +25,7 @@ def rank(
         DEFAULT_COLUMNS,
         "--columns",
         "-C",
-        help="Column names of rank data. Available columns are `token_id`,`metric.unique_trait_count`,`metric.information`,`rank`.",
+        help="Default Column names of rank data. Available columns are `token_id`,`metric.probability`,'metric.max_trait_information',`metric.unique_trait_count`,`metric.information`,`metric.information_entropy`,`rank`",
     ),
 ):
     """
