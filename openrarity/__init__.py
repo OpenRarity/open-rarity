@@ -1,5 +1,5 @@
-from importlib.metadata import version
+import importlib.metadata
 
 from .collection import TokenCollection
 
-__version__ = version("openrarity")
+__version__ = importlib.metadata.version("open-rarity")
