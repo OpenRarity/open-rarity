@@ -16,15 +16,17 @@ def flatten_token_data(
 
     Parameters
     ----------
-    tokens : list[Token]
-        _description_
+    tokens : dict[TokenId, RawToken]
+        Validated tokens data.
+    token_supply: int | dict[str | int, int]
+        Token supply value. Non-Fungible is the number of tokens in the collection where each token is unique. Semi-Fungible token_supply value is a dict of token_ids with their token_supply value.
 
     Returns
     -------
-    list[TokenAttribute]
-        _description_
+    list[ValidatedTokenAttribute]
+        Flattened list of token attributes data.
+        Example : [{'token_id': '0', 'name': 'eyes', 'value': 'x eyes', 'token.supply': 1,'display_type':'string'},..]
     """
-
     is_nft = isinstance(token_supply, int)
     return list(
         chain(
@@ -49,6 +51,26 @@ def flatten_token_data(
 def calculate_token_statistics(
     attributes: list[TokenStatistic], entropy: float
 ) -> list[TokenStatistic]:
+    """Calculates token statistics such as
+        - metric.probability
+        - metric.max_trait_information
+        - metric.information
+        - metric.unique_trait_count
+        - metric.information_entropy
+    Please look at the `TokenCollection` class and `rank_collection()` method for definitions.
+
+    Parameters
+    ----------
+    attributes : list[TokenStatistic]
+        List of intermediatery token statistics for a token.
+    entropy : float
+        Entropy value. Entropy is a measure of information in terms of uncertainity.
+
+    Returns
+    -------
+    list[TokenStatistic]
+        Returns aggregated token statistics from intermediatery token statistics.
+    """
     stats = {
         "metric.probability": prod((t["metric.probability"] for t in attributes)),
         "metric.max_trait_information": max(
@@ -75,15 +97,19 @@ def aggregate_tokens(
     Parameters
     ----------
     tokens : list[TokenStatistic]
-        Input token statistics with the following data structure.
+        List of intermediatery token statistics for each token.
+    entropy : float | None = None, optional
+        Entropy value. Entropy is a measure of information in terms of uncertainity.
 
     Returns
     -------
     list[TokenStatistic]
         Agregated statistics for each token_id.
     """
+
     if entropy is None or entropy == 0.0:
         entropy = 1
+
     return [
         cast(
             TokenStatistic,

@@ -6,17 +6,23 @@ TokenId = int | str
 
 
 class MetadataAttribute(TypedDict):
+    """This class represents specific metadata information of a token. This metadata information is also known as trait of a token, traits are the specific properties of each NFT has."""
     name: str
     value: str | int | float
     display_type: NotRequired[str | None]
 
 
 class RawToken(TypedDict):
+    """This represents all the metadata information of a token. In otherwords, it represents a list of properties that each token has."""
     attributes: list[MetadataAttribute]
     token_supply: NotRequired[dict[str | int, int]]
 
 
 class TokenAttribute(TypedDict):
+    """
+    This class is to represent tokens and their attributes in the same level as opposed to nested structure.
+    Example : [{'token_id': '0', 'name': 'eyes', 'value': 'x eyes', 'display_type':string}].
+    """
     token_id: int
     name: str
     value: str | int | float

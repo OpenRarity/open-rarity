@@ -6,13 +6,12 @@ def clean_lower_string(value: str | None) -> str | None:
     Parameters
     ----------
     value : str
-        The string to normalize
-        (this should be either attribute name or a string attribute value)
+        The string to normalize. This should be either attribute name or a string attribute value.
 
     Returns
     -------
     str
-        normalized string
+        Normalized string.
     """
     if value is None:
         return value

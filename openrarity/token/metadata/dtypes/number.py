@@ -24,7 +24,7 @@ def generate_bins(values: list[float | int]) -> np.ndarray:
     Returns
     -------
     np.ndarray
-        Edges
+        Edges.
     """
     return np.histogram_bin_edges(values, len(set(values)))
 
@@ -37,7 +37,7 @@ def pick_bin(name: str, value: float | int, attr_bins: dict[str, np.ndarray]) ->
     name : str
         The trait name.
     value : float | int
-        Numeric value to be binned
+        Numeric value to be binned.
     attr_bins : dict[str, np.ndarray]
         A dictionary of trait name keys and an array of bin edges.
 
@@ -60,12 +60,12 @@ def process_numeric_dtypes(
     Parameters
     ----------
     token_attrs : list[ValidatedTokenAttribute]
-        _description_
+        Flattened list of token attributes data. All the token attributes appeared in the same level as opposed to nested structure.
 
     Returns
     -------
-    _type_
-        _description_
+    list[AttributeStatistic]
+        AttributeStatistic augmented with `token_count` and `supply`.
     """
     # Find all null_traits and automatically assign them the null bin.
     null_trait_binned = cast(

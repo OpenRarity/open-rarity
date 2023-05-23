@@ -17,9 +17,9 @@ def merge(
     Parameters
     ----------
     left : list[dict]
-        Data to be joined with
+        Data to be joined with. The left is longer list than right otherwise you will get data loss.
     right : list[dict]
-        Data coming into the join
+        Data coming into the join.
     key : tuple[Hashable]
         Keys to use during merge. Single value keys must have a trailing comma.
         ie: (<key>,)
@@ -27,7 +27,7 @@ def merge(
     Returns
     -------
     list[dict]
-        List with merged and joined values from both lists
+        List with merged and joined values from both lists.
     """
     right_hashed = {tuple((row[k] for k in key)): row for row in right}
     return [lrow | right_hashed[tuple((lrow[k] for k in key))] for lrow in left]
@@ -44,7 +44,7 @@ def rank_over(
     Parameters
     ----------
     data : list[dict[K, T]]
-        A list of dictionaries to be ranked
+        A list of dictionaries to be ranked.
     key : K | tuple[K, K]
         A single string value or tuple of strings to use for the ranking decision. All
         keys must exist in every internal dictionary. Tuple keys _should_ work and can
@@ -53,7 +53,7 @@ def rank_over(
     Returns
     -------
     list[dict[str, T]]
-        An identical data structure to the passed data with the addition of a 'rank' key
+        An identical data structure to the passed data with the addition of a 'rank' key.
     """
     # TODO: should generically validate that the key exists for all rows in data
     iter_key = (key,) if not isinstance(key, tuple) else key  # type: ignore

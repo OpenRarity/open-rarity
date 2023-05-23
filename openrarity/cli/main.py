@@ -25,10 +25,23 @@ def rank(
         DEFAULT_COLUMNS,
         "--columns",
         "-C",
-        help="Columns to print or write to file.",
+        help="Default Column names of rank data. Available columns are `token_id`,`metric.probability`,'metric.max_trait_information',`metric.unique_trait_count`,`metric.information`,`metric.information_entropy`,`rank`",
     ),
 ):
+    """
+    For a given collection of tokens, it calculates OpenRarity ranks. Optionally, the calculated ranks can be written to a json file by passing `--output` flag. By default, it writes to STDOUT.
 
+    Parameters
+    ----------
+    tokens : Path
+        Json file containing token metadata.
+    semi_fungible : bool
+        Boolean value to inform ranker that the collection contains Semi-Fungible tokens.
+    output : Path, optional
+        Json file path to write rank data.
+    columns : str
+        Column names of rank data.
+    """
     if tokens.name == "-":
         data = json.loads(sys.stdin.read())
     else:
