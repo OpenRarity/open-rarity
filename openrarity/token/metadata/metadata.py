@@ -40,6 +40,7 @@ def validate_metadata(values):
             values["value"] = (
                 value
                 if isinstance(value, (int | float))
+                else float(value) if isinstance(value, str) and value.replace(".", "").isdigit()
                 else datetime.fromisoformat(value).timestamp()
             )
         case _:
