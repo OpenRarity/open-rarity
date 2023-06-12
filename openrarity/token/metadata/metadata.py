@@ -39,10 +39,10 @@ def validate_metadata(values):
         case "date":
             if isinstance(value, (int | float)):
                 values["value"] = value
-            elif  isinstance(value, str) and value.replace(".", "",1).isdigit():
-                values["value"]= float(value)
+            elif isinstance(value, str) and value.replace(".", "", 1).isdigit():
+                values["value"] = float(value)
             else:
-                values["value"]= datetime.fromisoformat(value).timestamp()
+                values["value"] = datetime.fromisoformat(value).timestamp()
         case _:
             values["display_type"] = "string"
             # values["value"] = (
