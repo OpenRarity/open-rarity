@@ -54,7 +54,7 @@ def fetch_opensea_collection_data(slug: str) -> dict:
     Raises:
         Exception: If API request fails
     """
-    response = requests.get(OS_COLLECTION_URL.format(slug=slug))
+    response = requests.get(OS_COLLECTION_URL.format(slug=slug), headers=HEADERS)
 
     if response.status_code != 200:
         logger.debug(
