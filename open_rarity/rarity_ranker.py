@@ -57,7 +57,6 @@ class RarityRanker:
 
         # augment collection tokens with score information
         for idx, token in enumerate(tokens):
-
             # extract features from the token
             token_features = TokenFeatureExtractor.extract_unique_attribute_count(
                 token=token, collection=collection

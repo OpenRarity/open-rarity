@@ -45,7 +45,6 @@ class TestRarityRanker:
         )
 
     def test_rarity_ranker_one_item(self) -> None:
-
         test_collection: Collection = generate_collection_with_token_traits(
             [{"trait1": "value1"}]  # Token 0
         )

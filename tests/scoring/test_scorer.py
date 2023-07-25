@@ -8,7 +8,6 @@ from tests.helpers import create_evm_token, generate_collection_with_token_trait
 
 
 class TestScorer:
-
     scorer = OpenRarityScorer()
 
     def test_init_settings(self):
