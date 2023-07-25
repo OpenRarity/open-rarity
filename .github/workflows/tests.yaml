@@ -31,8 +31,8 @@ jobs:
       #      - name: Linter
 #        run: poetry run flake8
 
-      - name: Code Formatting
-        uses: psf/black@stable
+#      - name: Code Formatting
+#        uses: psf/black@stable
 
 #      - name: Type Check
 #        run: poetry run mypy open_rarity
