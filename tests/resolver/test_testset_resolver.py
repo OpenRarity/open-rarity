@@ -178,6 +178,7 @@ class TestTestsetResolver:
 
         assert len(rows) == 10_000
 
+    @pytest.mark.skip(reason="Needs OpenSea API key to be set up")
     def test_resolve_collection_data_no_external(self):
         # Have the resolver pull in BAYC rarity rankings from various sources
         # Just do a check to ensure the ranks from different providers are
