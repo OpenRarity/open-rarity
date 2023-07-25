@@ -22,8 +22,11 @@ jobs:
       - name: Code Formatting
         uses: psf/black@stable
 
-#      - name: Type Check
-#        run: poetry run mypy open_rarity
+      - name: Type Check
+        run: |
+          pip install poetry
+          poetry install
+          poetry run mypy open_rarity
 
       - name: Unit tests
         run: nox
