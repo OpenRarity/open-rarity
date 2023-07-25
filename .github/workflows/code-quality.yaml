@@ -1,12 +1,8 @@
 name: Code quality
 on: [push]
 jobs:
-  unit-tests:
+  code-quality:
     runs-on: ubuntu-latest
-
-    permissions:
-      id-token: write
-      contents: read
 
     steps:
       - uses: actions/checkout@v2
