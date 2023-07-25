@@ -18,10 +18,6 @@ jobs:
       - name: Setup Python
         uses: ./.github/actions/setup-actions
 
-      - name: Install Pydantic ${{ matrix.pydantic-version }}
-        run: |
-          pip install pydantic==${{ matrix.pydantic-version }}
-
       - name: Linter
         run: poetry run flake8
 
