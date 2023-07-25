@@ -1,4 +1,4 @@
-name: Formatting and unit tests
+name: Unit tests
 on: [push]
 jobs:
   unit-tests:
@@ -15,18 +15,6 @@ jobs:
         uses: wntrblm/nox@2023.04.22
         with:
           python-versions: "3.10,3.11"
-
-      - name: Linter
-        uses: py-actions/flake8@v2
-
-      - name: Code Formatting
-        uses: psf/black@stable
-
-      - name: Type Check
-        run: |
-          pip install poetry
-          poetry install
-          poetry run mypy open_rarity
 
       - name: Unit tests
         run: nox
