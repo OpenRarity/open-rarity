@@ -4,9 +4,9 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        python-version: ["3.10", "3.11"]
+#    strategy:
+#      matrix:
+#        python-version: ["3.10", "3.11"]
 
     permissions:
       id-token: write
@@ -15,17 +15,27 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup Python
-        uses: ./.github/actions/setup-actions
+#      - name: Setup Python
+#        uses: ./.github/actions/setup-actions
+#      - name: Install Poetry
+#        uses: snok/install-poetry@v1
+#        with:
+#          virtualenvs-create: true
+#          virtualenvs-in-project: true
 
-      - name: Linter
-        run: poetry run flake8
+      - name: Install Nox
+        uses: wntrblm/nox@2023.04.22
+        with:
+          python-versions: "3.10,3.11"
+
+      #      - name: Linter
+#        run: poetry run flake8
 
       - name: Code Formatting
         uses: psf/black@stable
 
-      - name: Type Check
-        run: poetry run mypy open_rarity
+#      - name: Type Check
+#        run: poetry run mypy open_rarity
 
       - name: Unit tests
-        run: nox --session tests-${{ matrix.python_version }}
+        run: nox

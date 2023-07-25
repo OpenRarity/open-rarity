@@ -40,7 +40,6 @@ pytest = "^7.1"
 pytest-cov = "^3.0"
 pytest-mock = "^3.10.0"
 types-requests = "^2.28.6"
-nox = "^2023.4.22"
 
 [tool.black]
 line-length = 88
