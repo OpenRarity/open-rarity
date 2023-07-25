@@ -17,6 +17,7 @@ class TestRaritySnifferResolver:
         )
         assert len(token_id_to_ranks) == 10_000
 
+    @pytest.mark.skip(reason="raritysniffer.com domain is down")
     def test_get_all_ranks_no_contract(self):
         token_id_to_ranks = RaritySnifferResolver.get_all_ranks(
             contract_address="0x123"
