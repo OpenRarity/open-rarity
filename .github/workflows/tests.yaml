@@ -7,7 +7,6 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.10", "3.11"]
-        pydantic-version: ["1.9.1", "2.0.3"]
 
     permissions:
       id-token: write
@@ -33,4 +32,4 @@ jobs:
         run: poetry run mypy open_rarity
 
       - name: Unit tests
-        run: poetry run pytest --cov-config=.coveragerc --cov=open_rarity tests/
+        run: nox --session tests-${{ matrix.python_version }}
