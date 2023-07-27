@@ -1,31 +1,16 @@
-name: Formatting and unit tests
+name: Unit tests
 on: [push]
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        python-version: ["3.10", "3.11"]
-
-    permissions:
-      id-token: write
-      contents: read
-
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup Python
-        uses: ./.github/actions/setup-actions
-
-      - name: Linter
-        run: poetry run flake8
-
-      - name: Code Formatting
-        uses: psf/black@stable
-
-      - name: Type Check
-        run: poetry run mypy open_rarity
+      - name: Install Nox
+        uses: wntrblm/nox@2023.04.22
+        with:
+          python-versions: "3.10,3.11"
 
       - name: Unit tests
-        run: poetry run pytest --cov-config=.coveragerc --cov=open_rarity tests/
+        run: nox

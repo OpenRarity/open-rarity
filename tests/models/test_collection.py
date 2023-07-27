@@ -15,7 +15,6 @@ from tests.helpers import (
 
 
 class TestCollection:
-
     evm_token = create_evm_token(
         token_id=1, metadata=TokenMetadata.from_attributes({"hat": "cap"})
     )

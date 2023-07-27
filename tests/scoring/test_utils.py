@@ -201,7 +201,6 @@ class TestScoringUtils:
             [collection_with_null, expected_weights_with_null],
             [collection_without_null, expected_weights_without_null],
         ]:
-
             for i in range(collection.token_total_supply):
                 scores, weights = get_token_attributes_scores_and_weights(
                     collection=collection,
