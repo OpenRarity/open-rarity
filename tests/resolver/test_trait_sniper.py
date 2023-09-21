@@ -40,16 +40,28 @@ class TestTraitSniperResolver:
         )
         assert len(token_ranks) == 200
 
+    @pytest.mark.skipif(
+        "not config.getoption('--run-resolvers')",
+        reason="This requires API key",
+    )
     def test_get_ranks_no_more_data(self):
         token_ranks = TraitSniperResolver.get_ranks(
             contract_address=self.BORED_APE_COLLECTION_ADDRESS, page=51
         )
         assert len(token_ranks) == 0
 
+    @pytest.mark.skipif(
+        "not config.getoption('--run-resolvers')",
+        reason="This requires API key",
+    )
     def test_get_ranks_no_contract(self):
         token_ranks = TraitSniperResolver.get_ranks(contract_address="0x123", page=1)
         assert len(token_ranks) == 0
 
+    @pytest.mark.skipif(
+        "not config.getoption('--run-resolvers')",
+        reason="This requires API key",
+    )
     def test_get_rank(self):
         rank = TraitSniperResolver.get_rank(
             collection_slug="boredapeyachtclub",
