@@ -15,6 +15,7 @@ from .rank_resolver import RankResolver
 from .rarity_sniffer import RaritySnifferResolver
 from .rarity_sniper import RaritySniperResolver
 from .trait_sniper import TraitSniperResolver
+from .simi_rarity import SimiRarityResolver
 
 logger = logging.getLogger("open_rarity_logger")
 
@@ -26,6 +27,8 @@ def get_external_resolver(rank_provider: RankProvider) -> RankResolver:
         return RaritySnifferResolver()
     elif rank_provider == RankProvider.RARITY_SNIPER:
         return RaritySniperResolver()
+    elif rank_provider == RankProvider.SIMI_RARITY:
+        return SimiRarityResolver()
     raise Exception(f"Unknown external rank provider: {rank_provider}")
 
 
@@ -39,6 +42,7 @@ class ExternalRarityProvider:
     _trait_sniper_cache: dict[str, dict[str, int]] = defaultdict(dict)
     _rarity_sniffer_cache: dict[str, dict[str, int]] = defaultdict(dict)
     _rarity_sniper_cache: dict[str, dict[str, int]] = defaultdict(dict)
+    _simi_rarity_cache: dict[str, dict[str, int]] = defaultdict(dict)
 
     def cache_filename(self, rank_provider: RankProvider, slug: str) -> str:
         rank_name = rank_provider.name.lower()
