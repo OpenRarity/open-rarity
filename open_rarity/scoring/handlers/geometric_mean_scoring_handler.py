@@ -1,4 +1,4 @@
-import scipy.stats
+import numpy as np
 
 from open_rarity.models.collection import Collection, CollectionAttribute
 from open_rarity.models.token import Token
@@ -75,4 +75,9 @@ class GeometricMeanScoringHandler:
             collection_null_attributes=collection_null_attributes,
         )
 
-        return scipy.stats.mstats.gmean(attr_scores, weights=attr_weights)
+        return g_mean(attr_scores, weights=attr_weights)
+
+
+def g_mean(x, weights):
+    a = np.log(x)
+    return np.exp(np.average(a, axis=0, weights=weights))
