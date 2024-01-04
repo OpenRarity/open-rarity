@@ -39,5 +39,5 @@ if __name__ == "__main__":
     for ranked_token in ranked_tokens:
         print(
             f"Token {ranked_token.token} has rank {ranked_token.rank} "
-            "and score {ranked_token.score}"
+            f"and score {ranked_token.score}"
         )
