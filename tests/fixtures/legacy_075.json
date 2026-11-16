@@ -1,0 +1,50 @@
+{
+  "fixture_version": "0.7.5",
+  "cases": [
+    {
+      "name": "string normalization, missing values, and trait count",
+      "tokens": [
+        {"id": 42, "attributes": {"Hat": "Cap", "Body": "Blue", "Special": "Yes"}},
+        {"id": 7, "attributes": {"hat": " cap ", "body": "blue", "special": "no"}},
+        {"id": 500, "attributes": {"hat": "Beanie", "body": "Red"}},
+        {"id": 2, "attributes": {"hat": "Beanie", "body": "red", "special": "none"}},
+        {"id": 99, "attributes": {"hat": "none", "body": "blue", "special": ""}}
+      ],
+      "expected": [
+        {"id": 99, "score": 1.2155707988057627, "rank": 1, "unique_traits": 3},
+        {"id": 2, "score": 0.992263760358846, "rank": 2, "unique_traits": 1},
+        {"id": 42, "score": 0.8999508402382727, "rank": 3, "unique_traits": 1},
+        {"id": 7, "score": 0.8999508402382727, "rank": 3, "unique_traits": 1},
+        {"id": 500, "score": 0.992263760358846, "rank": 5, "unique_traits": 0}
+      ]
+    },
+    {
+      "name": "equal scores retain input order for sparse token ids",
+      "tokens": [
+        {"id": 99, "attributes": {"Hat": "Cap"}},
+        {"id": 2, "attributes": {"hat": "cap"}},
+        {"id": 7, "attributes": {"HAT": "CAP"}}
+      ],
+      "expected": [
+        {"id": 99, "score": 0.0, "rank": 1, "unique_traits": 0},
+        {"id": 2, "score": 0.0, "rank": 1, "unique_traits": 0},
+        {"id": 7, "score": 0.0, "rank": 1, "unique_traits": 0}
+      ]
+    },
+    {
+      "name": "unique traits take priority over score",
+      "tokens": [
+        {"id": 18, "attributes": {"trait1": "value1", "trait2": "value1", "trait3": "value2"}},
+        {"id": 4, "attributes": {"trait1": "value1", "trait2": "value2", "trait3": "value2"}},
+        {"id": 72, "attributes": {"trait1": "value1", "trait2": "value2", "trait3": "value3"}},
+        {"id": 1000, "attributes": {"trait1": "value1", "trait2": "value2", "trait3": "value2", "trait4": "value1"}}
+      ],
+      "expected": [
+        {"id": 1000, "score": 1.4884152712048744, "rank": 1, "unique_traits": 2},
+        {"id": 18, "score": 1.0000000000000002, "rank": 2, "unique_traits": 1},
+        {"id": 72, "score": 1.0000000000000002, "rank": 2, "unique_traits": 1},
+        {"id": 4, "score": 0.5115847287951258, "rank": 4, "unique_traits": 0}
+      ]
+    }
+  ]
+}
