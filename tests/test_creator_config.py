@@ -67,3 +67,19 @@ def test_only_first_100_entries_are_used():
 def test_typed_config_rejects_conflicting_or_invalid_modes(kwargs):
     with pytest.raises(ValueError):
         RarityConfig(**kwargs)
+
+
+def test_name_limit_matches_utf16_clients():
+    accepted = "\U0001f600" * 128
+    rejected = "\U0001f600" * 129
+    config = parse_rarity_config(
+        {
+            "traits": [
+                {"trait_type": accepted, "mode": "exclude"},
+                {"trait_type": rejected, "mode": "exclude"},
+            ]
+        }
+    )
+    assert config.excluded == frozenset({accepted})
+    with pytest.raises(ValueError):
+        RarityConfig(excluded=frozenset({rejected}))

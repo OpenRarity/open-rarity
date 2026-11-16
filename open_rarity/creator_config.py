@@ -8,6 +8,11 @@ RarityMode = Literal["exclude", "higher_is_rarer"]
 TRAIT_COUNT_ATTRIBUTE_NAME = "meta_trait:trait_count"
 
 
+def _name_length(name: str) -> int:
+    """Match the UTF-16 length limit used by TypeScript and os2-core."""
+    return len(name.encode("utf-16-le", errors="surrogatepass")) // 2
+
+
 @dataclass(frozen=True)
 class RarityConfig:
     """Typed creator settings. Names are matched case-sensitively after trimming."""
@@ -22,7 +27,7 @@ class RarityConfig:
         if TRAIT_COUNT_ATTRIBUTE_NAME in self.excluded | self.higher_is_rarer:
             raise ValueError("Set the synthetic trait mode with trait_count")
         for name in self.excluded | self.higher_is_rarer:
-            if not name or name != name.strip() or len(name) > 256:
+            if not name or name != name.strip() or _name_length(name) > 256:
                 raise ValueError("Trait names must be trimmed and 1 to 256 characters")
         if self.trait_count not in (None, "exclude", "higher_is_rarer"):
             raise ValueError("Unknown trait_count rarity mode")
@@ -61,7 +66,11 @@ def parse_rarity_config(document_or_rarity: object) -> RarityConfig:
             if not isinstance(name, str) or mode not in ("exclude", "higher_is_rarer"):
                 continue
             name = name.strip()
-            if not name or len(name) > 256 or name == TRAIT_COUNT_ATTRIBUTE_NAME:
+            if (
+                not name
+                or _name_length(name) > 256
+                or name == TRAIT_COUNT_ATTRIBUTE_NAME
+            ):
                 continue
             by_name[name] = mode
 
