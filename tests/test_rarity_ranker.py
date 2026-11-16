@@ -39,6 +39,40 @@ def verify_token_rarities(token_rarities: list[TokenRarity], expected_data: list
 
 
 class TestRarityRanker:
+    def test_equal_scores_sort_large_numeric_token_ids(self) -> None:
+        big_id = 10**30
+        collection = Collection(
+            tokens=[
+                Token.from_erc721("0xabc", token_id, {"hat": "cap"})
+                for token_id in [big_id, 10, 9]
+            ]
+        )
+
+        ranked = RarityRanker.rank_collection(collection)
+
+        assert [item.token.token_identifier.token_id for item in ranked] == [
+            9,
+            10,
+            big_id,
+        ]
+        assert [item.rank for item in ranked] == [1, 1, 1]
+
+    def test_equal_scores_sort_raw_mint_addresses(self) -> None:
+        collection = Collection(
+            tokens=[
+                Token.from_metaplex_non_fungible(mint, {"hat": "cap"})
+                for mint in ["mint-z", "mint-a"]
+            ]
+        )
+
+        ranked = RarityRanker.rank_collection(collection)
+
+        assert [item.token.token_identifier.mint_address for item in ranked] == [
+            "mint-a",
+            "mint-z",
+        ]
+        assert [item.rank for item in ranked] == [1, 1]
+
     def test_rarity_ranker_empty_collection(self) -> None:
         assert RarityRanker.rank_collection(collection=None) == []
         assert (

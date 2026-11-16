@@ -1,5 +1,5 @@
 {
-  "fixture_version": "0.7.5",
+  "fixture_version": "0.7.5 scores, 1.0 tie order",
   "cases": [
     {
       "name": "string normalization, missing values, and trait count",
@@ -13,22 +13,22 @@
       "expected": [
         {"id": 99, "score": 1.2155707988057627, "rank": 1, "unique_traits": 3},
         {"id": 2, "score": 0.992263760358846, "rank": 2, "unique_traits": 1},
-        {"id": 42, "score": 0.8999508402382727, "rank": 3, "unique_traits": 1},
         {"id": 7, "score": 0.8999508402382727, "rank": 3, "unique_traits": 1},
+        {"id": 42, "score": 0.8999508402382727, "rank": 3, "unique_traits": 1},
         {"id": 500, "score": 0.992263760358846, "rank": 5, "unique_traits": 0}
       ]
     },
     {
-      "name": "equal scores retain input order for sparse token ids",
+      "name": "equal scores use numeric order for sparse token ids",
       "tokens": [
         {"id": 99, "attributes": {"Hat": "Cap"}},
         {"id": 2, "attributes": {"hat": "cap"}},
         {"id": 7, "attributes": {"HAT": "CAP"}}
       ],
       "expected": [
-        {"id": 99, "score": 0.0, "rank": 1, "unique_traits": 0},
         {"id": 2, "score": 0.0, "rank": 1, "unique_traits": 0},
-        {"id": 7, "score": 0.0, "rank": 1, "unique_traits": 0}
+        {"id": 7, "score": 0.0, "rank": 1, "unique_traits": 0},
+        {"id": 99, "score": 0.0, "rank": 1, "unique_traits": 0}
       ]
     },
     {
