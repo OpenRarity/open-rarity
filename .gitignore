@@ -44,3 +44,5 @@ cached_data/*.json
 cached_data/*/*.json
 
 poetry.lock
+
+site/test-results/

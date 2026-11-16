@@ -1,0 +1,32 @@
+name: Site preview
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - run: npm ci --prefix typescript
+      - run: npm run build --prefix typescript
+      - run: npm ci --prefix site
+      - run: npm run build --prefix site
+      - run: npx --prefix site playwright install --with-deps chromium
+      - run: npm test --prefix site
+      - uses: actions/upload-artifact@v6
+        with:
+          name: github-pages-preview
+          path: site/dist
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: site-browser-evidence
+          path: site/test-results
