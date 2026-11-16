@@ -47,8 +47,7 @@ def test_invalid_entries_do_not_hide_valid_settings():
 
 def test_only_first_100_entries_are_used():
     traits = [
-        {"trait_type": f"Trait {index}", "mode": "exclude"}
-        for index in range(100)
+        {"trait_type": f"Trait {index}", "mode": "exclude"} for index in range(100)
     ]
     traits.append({"trait_type": "Too late", "mode": "exclude"})
     parsed = parse_rarity_config({"traits": traits})
