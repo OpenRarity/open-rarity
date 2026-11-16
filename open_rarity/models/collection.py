@@ -107,8 +107,10 @@ class Collection:
         return (
             next(
                 filter(
-                    lambda t: len(t.metadata.numeric_attributes)
-                    or len(t.metadata.date_attributes),
+                    lambda t: (
+                        len(t.metadata.numeric_attributes)
+                        or len(t.metadata.date_attributes)
+                    ),
                     self._tokens,
                 ),
                 None,

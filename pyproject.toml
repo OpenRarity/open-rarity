@@ -16,39 +16,38 @@ classifiers = [
   "Typing :: Typed",
   "Topic :: Software Development :: Libraries",
   "Development Status :: 4 - Beta",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
 
 [tool.poetry.dependencies]
 numpy = ">=1.23.1"
-pydantic = ">=1.9.1,<2.3"
-python = ">=3.10,<3.13"
+pydantic = ">=1.10.27,<3"
+python = ">=3.11,<3.14"
 requests = ">=2.28.1"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.7.0"
-flake8 = "^5.0.2"
-flake8-bugbear = "^22.7.1"
-isort = "^5.10.1"
-mypy = "^0.982"
-pep8-naming = "^0.13.1"
-pre-commit = "^2.19.0"
-pytest = "^7.1"
-pytest-cov = "^3.0"
+mypy = "^2.4.1"
+pre-commit = "^4.0.0"
+pytest = "^9.2.0"
+pytest-cov = "^7.0.0"
 pytest-mock = "^3.10.0"
+ruff = "^0.17.5"
 types-requests = ">=2.28.6"
 
-[tool.black]
+[tool.ruff]
 line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+ignore = ["F401"] # Existing public re-exports in __init__.py
+
+[tool.mypy]
+implicit_optional = true # Remove after existing None defaults get explicit Optional types.
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
 requires = ["poetry-core>=1.0.0"]
-
-[tool.isort]
-include_trailing_comma = true
-known_first_party = "open_rarity"
-multi_line_output = 3
-profile = "black"
 

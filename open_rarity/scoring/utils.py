@@ -43,9 +43,9 @@ def get_token_attributes_scores_and_weights(
     else:
         null_attributes = collection_null_attributes
 
-    combined_attributes: dict[
-        str, CollectionAttribute
-    ] = null_attributes | _convert_to_collection_attributes_dict(collection, token)
+    combined_attributes: dict[str, CollectionAttribute] = (
+        null_attributes | _convert_to_collection_attributes_dict(collection, token)
+    )
 
     sorted_attr_names = sorted(list(combined_attributes.keys()))
     sorted_attrs = [combined_attributes[attr_name] for attr_name in sorted_attr_names]
