@@ -20,5 +20,7 @@ jobs:
         run: npm run typecheck --prefix typescript
       - name: Build package
         run: npm run build --prefix typescript
+      - name: Run conformance tests
+        run: npm test --prefix typescript
       - name: Inspect package contents
         run: npm pack --dry-run ./typescript
