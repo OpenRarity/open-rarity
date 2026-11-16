@@ -1,0 +1,24 @@
+name: TypeScript
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - name: Install locked dependencies
+        run: npm ci --prefix typescript
+      - name: Type check
+        run: npm run typecheck --prefix typescript
+      - name: Build package
+        run: npm run build --prefix typescript
+      - name: Inspect package contents
+        run: npm pack --dry-run ./typescript
