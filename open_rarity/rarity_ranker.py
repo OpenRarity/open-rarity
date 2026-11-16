@@ -108,7 +108,11 @@ class RarityRanker:
                 if isinstance(identifier, EVMContractTokenIdentifier)
                 else identifier.mint_address
             )
-            if raw_id.isascii() and raw_id.isdecimal():
+            if (
+                isinstance(identifier, EVMContractTokenIdentifier)
+                and raw_id.isascii()
+                and raw_id.isdecimal()
+            ):
                 return (0, int(raw_id), raw_id)
             return (1, 0, raw_id)
 

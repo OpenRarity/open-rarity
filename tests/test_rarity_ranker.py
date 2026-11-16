@@ -61,17 +61,19 @@ class TestRarityRanker:
         collection = Collection(
             tokens=[
                 Token.from_metaplex_non_fungible(mint, {"hat": "cap"})
-                for mint in ["mint-z", "mint-a"]
+                for mint in ["mint-z", "9", "mint-a", "10"]
             ]
         )
 
         ranked = RarityRanker.rank_collection(collection)
 
         assert [item.token.token_identifier.mint_address for item in ranked] == [
+            "10",
+            "9",
             "mint-a",
             "mint-z",
         ]
-        assert [item.rank for item in ranked] == [1, 1]
+        assert [item.rank for item in ranked] == [1, 1, 1, 1]
 
     def test_rarity_ranker_empty_collection(self) -> None:
         assert RarityRanker.rank_collection(collection=None) == []
