@@ -37,6 +37,8 @@ export interface TokenRarityResult {
   unique_trait_count: number;
 }
 
+export { parseCreatorRarityConfig } from "./config.js";
+
 const TRAIT_COUNT = "meta_trait:trait_count";
 
 interface PreparedToken {
