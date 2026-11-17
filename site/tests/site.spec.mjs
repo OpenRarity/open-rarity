@@ -55,3 +55,21 @@ test('legacy anchors and local documentation links exist', async ({page}) => {
   const response=await page.request.get('/'+path);expect(response.status()).toBe(200);
  }
 });
+test('numeric example and reset keep creator settings', async ({page}) => {
+ await page.goto('/');
+ await page.locator('#sample').selectOption('numeric');
+ await expect(page.locator('#results tr')).toHaveCount(3);
+ await expect(page.locator('#results tr').first().locator('td').nth(1)).toHaveText('2');
+ await page.locator('#collection').fill('{'); await page.locator('#score').click();
+ await page.locator('#reset').click();
+ await expect(page.locator('#results tr')).toHaveCount(3);
+ await page.locator('#sample').selectOption('categorical');
+ await expect(page.locator('#results tr')).toHaveCount(4);
+});
+test('install command copies to clipboard', async ({page,context}) => {
+ await context.grantPermissions(['clipboard-read','clipboard-write']);
+ await page.goto('/');
+ await page.locator('#copy-install').click();
+ await expect(page.locator('#copy-install')).toHaveText('Copied');
+ expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe('pip install open-rarity');
+});

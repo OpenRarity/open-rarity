@@ -24,3 +24,11 @@ checks across five pages, exact large-number scoring with creator settings,
 legacy anchors, file upload/download, errors, and text-only rendering.
 Horizontal code blocks are keyboard focusable. The earlier Lighthouse results
 were for the preview; they are not a new measurement of this layout.
+
+## Design pass
+
+The install card now sits beside the introduction on desktop, with resources in a
+compact row and a cleaner editor/results panel. The desktop page is about 1,300px
+tall at 1440px width. Mobile stacks the same content without horizontal overflow.
+Eighteen browser tests pass, including the new example selector and clipboard copy.
+Light/dark accessibility checks and all existing scorer assertions are retained.
