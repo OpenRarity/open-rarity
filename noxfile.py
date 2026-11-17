@@ -2,10 +2,7 @@ import nox
 from nox import Session
 
 
-@nox.session(python=["3.11", "3.12", "3.13"], reuse_venv=True)
-@nox.parametrize("pydantic", ["1.10.27", "2.14.2"])
-def tests(session: Session, pydantic):
-    session.install(
-        "-e", ".[opensea]", "pytest", "pytest-mock", f"pydantic=={pydantic}"
-    )
+@nox.session(python=["3.12", "3.13", "3.14", "3.15"], reuse_venv=True)
+def tests(session: Session):
+    session.install("-e", ".[opensea]", "pytest", "pytest-mock")
     session.run("pytest", "-q")
