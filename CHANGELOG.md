@@ -5,6 +5,7 @@
 ### Added
 
 - The TypeScript package can score and rank categorical collections using the 0.7.5 compatibility rules and deterministic token ID order.
+- The TypeScript package can parse creator rarity settings from a contractURI document or a direct rarity object.
 
 ### Changed
 
