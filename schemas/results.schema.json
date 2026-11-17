@@ -1,0 +1,38 @@
+{
+  "$defs": {
+    "TokenRarityResult": {
+      "properties": {
+        "rank": {
+          "title": "Rank",
+          "type": "integer"
+        },
+        "score": {
+          "title": "Score",
+          "type": "number"
+        },
+        "token_id": {
+          "title": "Token Id",
+          "type": "string"
+        },
+        "unique_trait_count": {
+          "title": "Unique Trait Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "token_id",
+        "score",
+        "rank",
+        "unique_trait_count"
+      ],
+      "title": "TokenRarityResult",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "OpenRarity 1.0 development structural schema. Scoring performs additional semantic validation; see docs/api.md.",
+  "items": {
+    "$ref": "#/$defs/TokenRarityResult"
+  },
+  "type": "array"
+}

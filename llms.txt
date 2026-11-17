@@ -1,0 +1,23 @@
+# OpenRarity
+
+> Open source NFT rarity scoring for complete collections. Python reference, TypeScript scorer, and local browser playground.
+
+PyPI 0.7.5 is the released API. This site's ordered inputs, schemas, creator settings,
+and TypeScript APIs describe 1.0 development. TypeScript is not published to npm.
+Scoring runs locally; there is no hosted scoring HTTP API. Preserve original numeric
+JSON text and string token IDs. Rarity does not measure market value.
+
+## Start here
+
+- [Agent guide](https://openrarity.github.io/open-rarity/agents.md): version selection and scoring steps.
+- [API reference](https://openrarity.github.io/open-rarity/api.md): functions, input and result contracts.
+- [Python guide](https://openrarity.github.io/open-rarity/python.md): released API and optional fetching.
+- [Migration examples](https://openrarity.github.io/open-rarity/migration.md): Python and TypeScript ordered input examples.
+- [Scoring specification](https://openrarity.github.io/open-rarity/SPEC.md): normalization, numeric scoring, and tie rules.
+
+## Data and source
+
+- [Collection schema](https://openrarity.github.io/open-rarity/schemas/collection.schema.json): generated structural input schema.
+- [Results schema](https://openrarity.github.io/open-rarity/schemas/results.schema.json): generated serialized result schema.
+- [Repository](https://github.com/OpenRarity/open-rarity): source, fixtures, and contribution instructions in AGENTS.md.
+- [Releases](https://github.com/OpenRarity/open-rarity/releases): published versions and release notes.

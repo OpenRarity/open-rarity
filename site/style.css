@@ -87,6 +87,8 @@ footer>span{margin-right:auto;color:var(--muted)}
 .document h2{font-size:28px;margin-top:36px}
 .document pre{overflow:auto;padding:18px;background:var(--code);border:1px solid var(--line);border-radius:6px;font-size:12px}
 .document img{max-width:100%}
+.document-table{overflow:auto}
+.document code{overflow-wrap:anywhere}
 .document table{font-size:13px}
 .skip{position:absolute;top:-80px;left:20px;background:var(--ink);color:var(--bg);padding:10px;z-index:10}
 .skip:focus{top:10px}

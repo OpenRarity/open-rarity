@@ -1,0 +1,94 @@
+{
+  "$defs": {
+    "TokenInput": {
+      "properties": {
+        "token_id": {
+          "title": "Token Id",
+          "type": "string"
+        },
+        "token_id_kind": {
+          "default": "evm",
+          "enum": [
+            "evm",
+            "raw"
+          ],
+          "title": "Token Id Kind",
+          "type": "string"
+        },
+        "traits": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/TraitInput"
+          },
+          "title": "Traits",
+          "type": "array"
+        }
+      },
+      "required": [
+        "token_id",
+        "traits"
+      ],
+      "title": "TokenInput",
+      "type": "object"
+    },
+    "TraitInput": {
+      "properties": {
+        "display_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Display Type"
+        },
+        "trait_type": {
+          "title": "Trait Type",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "trait_type",
+        "value"
+      ],
+      "title": "TraitInput",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "OpenRarity 1.0 development structural schema. Scoring performs additional semantic validation; see docs/api.md.",
+  "properties": {
+    "tokens": {
+      "items": {
+        "$ref": "#/$defs/TokenInput"
+      },
+      "title": "Tokens",
+      "type": "array"
+    }
+  },
+  "required": [
+    "tokens"
+  ],
+  "title": "CollectionInput",
+  "type": "object"
+}

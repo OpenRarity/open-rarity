@@ -17,3 +17,8 @@ Relative URLs support both the project URL and a future custom domain.
 Set `SITE_URL` to the final origin when building for the custom domain.
 
 See [DNS cutover](../docs/DNS-CUTOVER.md) for the domain-owner handoff.
+
+Agent documentation lives in `docs/agents.md` and `docs/api.md`; the root `llms.txt`
+is published with URLs adapted to `SITE_URL`. The build also publishes raw Markdown
+and `schemas/`. After changing Python models, run `python -m scripts.generate_schemas`
+and commit the results. CI checks freshness before building.
