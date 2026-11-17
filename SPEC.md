@@ -45,7 +45,7 @@ The optional config is the `rarity` object from contract-level metadata, or the 
 }
 ```
 
-Supported modes are `exclude` and `higher_is_rarer`. Parse only the first 100 `traits` entries. Skip entries whose `trait_type` or `mode` is not a string, whose trimmed name is blank or exceeds 256 characters, whose mode is unknown, or whose name is `meta_trait:trait_count`. Trim names without changing case. The last valid entry for an identical name wins. An invalid entry must not invalidate another entry. The top-level `trait_count` mode sets the synthetic trait's mode; an invalid value is ignored. An empty or wholly invalid config has no effect and uses the compatibility path. A typed constructor must express the same modes without JSON parsing.
+Supported modes are `exclude` and `higher_is_rarer`. Parse only the first 100 `traits` entries. Skip entries whose `trait_type` or `mode` is not a string, whose trimmed name is blank or exceeds 256 UTF-16 code units, whose mode is unknown, or whose name is `meta_trait:trait_count`. Trim names without changing case. The last valid entry for an identical name wins. An invalid entry must not invalidate another entry. The top-level `trait_count` mode sets the synthetic trait's mode; an invalid value is ignored. An empty or wholly invalid config has no effect and uses the compatibility path. A typed constructor must express the same modes without JSON parsing.
 
 ## Ranking and numeric tolerance
 
