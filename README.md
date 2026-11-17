@@ -89,3 +89,21 @@ Apache 2.0 , OpenSea, ICY, Curio, PROOF
 [ci-link]: https://github.com/ProjectOpenSea/open-rarity/actions/workflows/tests.yaml
 [version-badge]: https://img.shields.io/github/v/release/ProjectOpenSea/open-rarity
 [version-link]: https://github.com/ProjectOpenSea/open-rarity/releases?display_name=tag
+
+### Fetching with OpenSea v2 (development version)
+
+Install `open-rarity[opensea]` and set `OPENSEA_API_KEY` in your environment.
+The helper follows collection cursors, including sparse token IDs, and uses the
+fetched items as supply. It rejects incomplete or duplicate snapshots.
+
+```python
+from open_rarity.resolver.opensea_api_helpers import get_collection_from_opensea
+collection = get_collection_from_opensea("your-collection", chain="arbitrum")
+```
+
+Use `testnet=True` for the testnet API. Multi-chain collections require `chain`;
+ambiguous cross-chain contract addresses are rejected. Only ERC721 is supported.
+The old v1 disk cache is retired; `use_cache` is accepted but does not reuse it.
+`OpenSeaClient` also exposes `collection`, `iter_nfts`, and `nft` for explicit fetching.
+Network errors propagate instead of returning a partial collection. Each request
+has a timeout and at most three attempts for rate limits or transient server errors.
