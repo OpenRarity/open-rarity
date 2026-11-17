@@ -1,6 +1,7 @@
 import math
 
 from open_rarity.models.collection import Collection
+from open_rarity.models.token_identifier import EVMContractTokenIdentifier
 from open_rarity.models.token_rarity import TokenRarity
 from open_rarity.scoring.scorer import Scorer
 from open_rarity.scoring.token_feature_extractor import TokenFeatureExtractor
@@ -99,13 +100,29 @@ class RarityRanker:
             ordered by rank ascending and score descending
 
         """
+
+        def token_id_key(item: TokenRarity) -> tuple[int, int, str]:
+            identifier = item.token.token_identifier
+            raw_id = (
+                str(identifier.token_id)
+                if isinstance(identifier, EVMContractTokenIdentifier)
+                else identifier.mint_address
+            )
+            if (
+                isinstance(identifier, EVMContractTokenIdentifier)
+                and raw_id.isascii()
+                and raw_id.isdecimal()
+            ):
+                return (0, int(raw_id), raw_id)
+            return (1, 0, raw_id)
+
         sorted_token_rarities: list[TokenRarity] = sorted(
             token_rarities,
-            key=lambda k: (
-                k.token_features.unique_attribute_count,
-                k.score,
+            key=lambda item: (
+                -item.token_features.unique_attribute_count,
+                -item.score,
+                *token_id_key(item),
             ),
-            reverse=True,
         )
 
         # Perform ranking of each token in collection
