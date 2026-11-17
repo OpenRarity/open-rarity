@@ -1,3 +1,12 @@
+![OpenRarity](img/OR_Github_banner_wide.png)
+
+[![GitHub release](https://img.shields.io/github/v/release/OpenRarity/open-rarity)](https://github.com/OpenRarity/open-rarity/releases/latest)
+[![PyPI](https://img.shields.io/pypi/v/open-rarity)](https://pypi.org/project/open-rarity/)
+[![Python tests](https://github.com/OpenRarity/open-rarity/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/OpenRarity/open-rarity/actions/workflows/tests.yaml)
+[![TypeScript and parity](https://github.com/OpenRarity/open-rarity/actions/workflows/typescript.yaml/badge.svg?branch=main)](https://github.com/OpenRarity/open-rarity/actions/workflows/typescript.yaml)
+[![Docs and demo](https://img.shields.io/badge/docs-live-643d70)](https://openrarity.github.io/open-rarity/)
+[![License](https://img.shields.io/github/license/OpenRarity/open-rarity)](LICENSE)
+
 # OpenRarity
 
 An open standard and library for reproducible NFT rarity. Rank a complete collection
