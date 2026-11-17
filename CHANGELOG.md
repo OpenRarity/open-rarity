@@ -1,6 +1,7 @@
 # Changelog
 
 - Add TypeScript creator-config scoring and shared Python/TypeScript conformance fixtures. Preserve exact JSON decimals, support numeric/date inputs in the ordered API, and match Unicode and token-ID tie ordering.
+- Replace the retired OpenSea v1 helper with v2 cursor pagination, explicit chain/testnet selection, bounded retries, and sparse-ID support. Retire incomplete v1 disk caches and reject partial snapshots.
 
 ## Unreleased
 
