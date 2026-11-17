@@ -462,12 +462,18 @@ def read_collection_data_from_file(expected_supply: int, slug: str) -> list[Toke
 # https://docs.opensea.io/docs/metadata-standards
 def is_string_trait(trait: dict) -> bool:
     """Helper method to verify string trait"""
-    return trait[OS_METADATA_TRAIT_TYPE] is None
+    return trait.get(OS_METADATA_TRAIT_TYPE) is None and isinstance(
+        trait.get("value"), str
+    )
 
 
 def is_numeric_trait(trait: dict) -> bool:
     """Helper method to verify numeric trait"""
-    return trait[OS_METADATA_TRAIT_TYPE] in [
+    display_type = trait.get(OS_METADATA_TRAIT_TYPE)
+    if display_type is None:
+        value = trait.get("value")
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    return display_type in [
         "number",
         "boost_percentage",
         "boost_number",
@@ -476,4 +482,4 @@ def is_numeric_trait(trait: dict) -> bool:
 
 def is_date_trait(trait: dict) -> bool:
     """Helper method to verify date trait"""
-    return trait[OS_METADATA_TRAIT_TYPE] in ["date"]
+    return trait.get(OS_METADATA_TRAIT_TYPE) == "date"
