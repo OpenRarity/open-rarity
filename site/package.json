@@ -1,0 +1,1 @@
+{"name":"openrarity-site","private":true,"type":"module","scripts":{"build":"node build.mjs","test":"playwright test"},"devDependencies":{"@axe-core/playwright":"4.14.0","@playwright/test":"1.65.1","marked":"18.2.1"}}
