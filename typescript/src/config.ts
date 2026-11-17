@@ -1,4 +1,9 @@
-import type { CreatorRarityConfig, CreatorTraitSetting, RarityMode } from "./index.js";
+import { trim } from "./text.js";
+import type {
+  CreatorRarityConfig,
+  CreatorTraitSetting,
+  RarityMode,
+} from "./index.js";
 
 const TRAIT_COUNT = "meta_trait:trait_count";
 
@@ -19,11 +24,16 @@ export function parseCreatorRarityConfig(input: unknown): CreatorRarityConfig {
   const byName = new Map<string, CreatorTraitSetting>();
   if (Array.isArray(rarity.traits)) {
     for (const entry of rarity.traits.slice(0, 100)) {
-      if (!isRecord(entry) || typeof entry.trait_type !== "string" || !isMode(entry.mode)) {
+      if (
+        !isRecord(entry) ||
+        typeof entry.trait_type !== "string" ||
+        !isMode(entry.mode)
+      ) {
         continue;
       }
-      const name = entry.trait_type.trim();
-      if (name.length === 0 || name.length > 256 || name === TRAIT_COUNT) continue;
+      const name = trim(entry.trait_type);
+      if (name.length === 0 || name.length > 256 || name === TRAIT_COUNT)
+        continue;
       byName.delete(name);
       byName.set(name, { trait_type: name, mode: entry.mode });
     }

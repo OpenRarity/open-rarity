@@ -1,5 +1,13 @@
+import { trim } from "./text.js";
+import { ExactDecimal } from "./decimal.js";
+import {
+  scoreConfigured,
+  validateCollection,
+  compareText,
+} from "./configured.js";
+import { parseCreatorRarityConfig } from "./config.js";
 /** Inputs and results shared by the Python and TypeScript conformance fixtures. */
-export type TraitValue = string | number | null;
+export type TraitValue = string | number | ExactDecimal | null;
 
 export interface TraitInput {
   trait_type: string;
@@ -48,20 +56,37 @@ interface PreparedToken {
 }
 
 /** Score a complete categorical collection using the 0.7.5 compatibility rules. */
-export function scoreCollection(collection: CollectionInput): TokenRarityResult[] {
+export function scoreCollection(
+  collection: CollectionInput,
+  config?: CreatorRarityConfig,
+): TokenRarityResult[] {
+  validateCollection(collection);
+  const parsed = parseCreatorRarityConfig(config);
+  if (
+    parsed.trait_count ||
+    parsed.traits?.length ||
+    collection.tokens.some((t) =>
+      t.traits.some((a) => typeof a.value !== "string"),
+    )
+  ) {
+    return scoreConfigured(collection, parsed);
+  }
   const tokens = collection.tokens.map((input, index): PreparedToken => {
     const values = new Map<string, string>();
     for (const trait of input.traits) {
       if (typeof trait.value !== "string") {
-        throw new TypeError("Numeric and null traits require creator config support");
+        throw new TypeError(
+          "Numeric and null traits require creator config support",
+        );
       }
-      const name = trait.trait_type.trim().toLowerCase();
-      const value = trait.value.trim().toLowerCase();
+      const name = trim(trait.trait_type).toLowerCase();
+      const value = trim(trait.value).toLowerCase();
       values.set(name, value);
     }
     let traitCount = 0;
     for (const [name, value] of values) {
-      if (name !== TRAIT_COUNT && value !== "" && value !== "none") traitCount++;
+      if (name !== TRAIT_COUNT && value !== "" && value !== "none")
+        traitCount++;
     }
     values.set(TRAIT_COUNT, String(traitCount));
     return { input, index, values };
@@ -112,7 +137,8 @@ export function scoreCollection(collection: CollectionInput): TokenRarityResult[
     let unique = 0;
     for (const [name, counts] of frequencies) {
       const value = token.values.get(name);
-      const count = value === undefined ? missingCounts.get(name) : counts.get(value);
+      const count =
+        value === undefined ? missingCounts.get(name) : counts.get(value);
       if (count === undefined || count <= 0) {
         throw new Error(`Invalid frequency for trait ${name}`);
       }
@@ -129,20 +155,26 @@ export function scoreCollection(collection: CollectionInput): TokenRarityResult[
     };
   });
 
-  results.sort((a, b) =>
-    b.unique_trait_count - a.unique_trait_count ||
-    b.score - a.score ||
-    compareTokenIds(a, b) ||
-    a.index - b.index,
+  results.sort(
+    (a, b) =>
+      b.unique_trait_count - a.unique_trait_count ||
+      b.score - a.score ||
+      compareTokenIds(a, b) ||
+      a.index - b.index,
   );
   for (let index = 0; index < results.length; index++) {
     const previous = results[index - 1];
-    results[index].rank = previous !== undefined && nearlyEqual(results[index].score, previous.score)
-      ? previous.rank
-      : index + 1;
+    results[index].rank =
+      previous !== undefined &&
+      nearlyEqual(results[index].score, previous.score)
+        ? previous.rank
+        : index + 1;
   }
   return results.map(({ token_id, score, rank, unique_trait_count }) => ({
-    token_id, score, rank, unique_trait_count,
+    token_id,
+    score,
+    rank,
+    unique_trait_count,
   }));
 }
 
@@ -162,5 +194,24 @@ function compareTokenIds(
     const right = BigInt(b.token_id);
     if (left !== right) return left < right ? -1 : 1;
   }
-  return a.token_id < b.token_id ? -1 : a.token_id > b.token_id ? 1 : 0;
+  return compareText(a.token_id, b.token_id);
 }
+
+/** Parse numeric trait values from their original JSON spelling, without rounding. */
+export function parseCollectionJson(text: string): CollectionInput {
+  const result = JSON.parse(text, ((
+    key: string,
+    value: unknown,
+    context?: { source?: string },
+  ) => {
+    if (typeof value !== "number") return value;
+    if (!context?.source)
+      throw new TypeError(
+        "Exact JSON parsing requires a runtime with JSON reviver source support",
+      );
+    return new ExactDecimal(context.source);
+  }) as Parameters<typeof JSON.parse>[1]);
+  validateCollection(result);
+  return result;
+}
+export { ExactDecimal } from "./decimal.js";

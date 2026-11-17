@@ -48,7 +48,7 @@ test("numeric EVM IDs and raw mint IDs sort independently", () => {
   );
 });
 
-test("duplicate IDs and unsupported values fail clearly", () => {
+test("duplicate IDs fail and numeric traits are supported", () => {
   assert.throws(
     () => scoreCollection({ tokens: [
       { token_id: "1", traits: [] },
@@ -56,10 +56,5 @@ test("duplicate IDs and unsupported values fail clearly", () => {
     ] }),
     /Duplicate token ID/,
   );
-  assert.throws(
-    () => scoreCollection({ tokens: [
-      { token_id: "1", traits: [{ trait_type: "Level", value: 5 }] },
-    ] }),
-    /Numeric and null traits require creator config support/,
-  );
+  assert.equal(scoreCollection({tokens:[{token_id:"1",traits:[{trait_type:"Level",value:5}]}]})[0].score, 0);
 });

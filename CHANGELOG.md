@@ -1,5 +1,7 @@
 # Changelog
 
+- Add TypeScript creator-config scoring and shared Python/TypeScript conformance fixtures. Preserve exact JSON decimals, support numeric/date inputs in the ordered API, and match Unicode and token-ID tie ordering.
+
 ## Unreleased
 
 ### Added
