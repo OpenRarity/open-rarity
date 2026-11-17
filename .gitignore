@@ -4,6 +4,8 @@ __pycache__/
 *$py.class
 
 # Distribution / packaging
+node_modules/
+*.tsbuildinfo
 .Python
 build/
 develop-eggs/
