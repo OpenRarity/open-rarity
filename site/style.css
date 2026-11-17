@@ -97,3 +97,4 @@ footer span{width:100%;order:4}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}
 }
 
+.demo-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:16px 0;font-size:12px}.demo-actions button{font:inherit;padding:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}.file-label input{display:block;max-width:220px;font:inherit;margin-top:4px}

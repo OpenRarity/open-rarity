@@ -25,3 +25,19 @@ test('token IDs are rendered as text', async ({page}, testInfo) => {
  await expect(page.locator('#results img')).toHaveCount(0);
  await expect(page.locator('#results')).toContainText('<img');
 });
+test('local file upload and result download', async ({page}) => {
+ await page.goto('/');
+ await page.locator('#upload').setInputFiles({name:'collection.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({tokens:[{token_id:'7',traits:[]}]}))});
+ await expect(page.locator('#results tr')).toHaveCount(1);
+ await expect(page.locator('#results')).toContainText('7');
+ const pending = page.waitForEvent('download');
+ await page.locator('#download').click();
+ const download = await pending;
+ expect(download.suggestedFilename()).toBe('openrarity-results.json');
+ const stream = await download.createReadStream();
+ const chunks=[]; for await (const chunk of stream) chunks.push(chunk);
+ const results=JSON.parse(Buffer.concat(chunks).toString());
+ expect(results[0].token_id).toBe('7');
+ await page.locator('#collection').fill('{'); await page.locator('#score').click();
+ await expect(page.locator('#download')).toBeDisabled();
+});

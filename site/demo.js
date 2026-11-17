@@ -8,7 +8,9 @@ const sample = {tokens: [
 const input = document.querySelector('#collection');
 const status = document.querySelector('#status');
 const body = document.querySelector('#results');
+let latestResults = null;
 function run() {
+ latestResults = null; document.querySelector('#download').disabled = true;
  body.replaceChildren(); document.querySelector('#count').textContent = 'No results';
  try {
   if (input.value.length > 500000) throw Error('Please use a smaller JSON file (under 500 KB).');
@@ -19,6 +21,7 @@ function run() {
    for (const trait of token.traits) if (!trait || typeof trait.trait_type !== 'string' || typeof trait.value !== 'string') throw Error('This preview accepts string trait names and values.');
   }
   const results = scoreCollection(data);
+  latestResults = results; document.querySelector('#download').disabled = false;
   for (const result of results) {
    const row = document.createElement('tr');
    for (const value of [result.rank, result.token_id, result.score.toFixed(6), result.unique_trait_count]) {
@@ -35,3 +38,15 @@ function reset() { input.value = JSON.stringify(sample, null, 2); run(); }
 document.querySelector('#score').addEventListener('click', run);
 document.querySelector('#reset').addEventListener('click', reset);
 reset();
+
+document.querySelector('#upload').addEventListener('change', async (event) => {
+ const file = event.target.files[0]; if (!file) return;
+ if (file.size > 500000) { status.textContent = 'Please use a file under 500 KB.'; status.className = 'error'; return; }
+ input.value = await file.text(); run();
+});
+document.querySelector('#download').addEventListener('click', () => {
+ if (!latestResults) return;
+ const url = URL.createObjectURL(new Blob([JSON.stringify(latestResults, null, 2)], {type:'application/json'}));
+ const link = document.createElement('a'); link.href = url; link.download = 'openrarity-results.json'; link.click();
+ setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
