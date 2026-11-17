@@ -98,6 +98,7 @@ fetched items as supply. It rejects incomplete or duplicate snapshots.
 
 ```python
 from open_rarity.resolver.opensea_api_helpers import get_collection_from_opensea
+
 collection = get_collection_from_opensea("your-collection", chain="arbitrum")
 ```
 
