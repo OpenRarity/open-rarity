@@ -1,4 +1,4 @@
-import { scoreCollection } from './scorer/index.js';
+import { scoreCollection, parseCollectionJson, parseCreatorRarityConfig } from './scorer/index.js';
 const sample = {tokens: [
  {token_id:'1',traits:[{trait_type:'Shape',value:'Circle'},{trait_type:'Color',value:'Plum'}]},
  {token_id:'2',traits:[{trait_type:'Shape',value:'Circle'},{trait_type:'Color',value:'Sand'}]},
@@ -14,13 +14,14 @@ function run() {
  body.replaceChildren(); document.querySelector('#count').textContent = 'No results';
  try {
   if (input.value.length > 500000) throw Error('Please use a smaller JSON file (under 500 KB).');
-  const data = JSON.parse(input.value);
+  const data = parseCollectionJson(input.value);
+  const config = parseCreatorRarityConfig(JSON.parse(input.value));
   if (!Array.isArray(data?.tokens) || data.tokens.length > 1000) throw Error('Provide a tokens array with at most 1,000 items.');
   for (const token of data.tokens) {
    if (!token || typeof token.token_id !== 'string' || !token.token_id || !Array.isArray(token.traits) || token.traits.length > 100) throw Error('Each token needs a string token_id and at most 100 traits.');
-   for (const trait of token.traits) if (!trait || typeof trait.trait_type !== 'string' || typeof trait.value !== 'string') throw Error('This preview accepts string trait names and values.');
+
   }
-  const results = scoreCollection(data);
+  const results = scoreCollection(data, config);
   latestResults = results; document.querySelector('#download').disabled = false;
   for (const result of results) {
    const row = document.createElement('tr');

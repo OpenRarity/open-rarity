@@ -14,3 +14,13 @@ These are local preview measurements. Repeat against the deployed URL to include
 Twelve browser tests pass, including axe checks for the home page and all three generated document pages in light and dark themes, mobile/desktop overflow, invalid input, safe rendering, local upload, and result download.
 
 The accessibility audit found empty links left by removed external badges; the build now retains their accessible text. The initial Lighthouse console error came from a missing favicon; a local SVG icon fixes it.
+
+## Condensed site and Pages launch, November 17, 2026
+
+The landing page now contains a short introduction, package and guide links, and
+the browser scorer. Long explanations moved to separate guides. Desktop/mobile
+screenshots were refreshed. Sixteen browser tests pass, including light/dark axe
+checks across five pages, exact large-number scoring with creator settings,
+legacy anchors, file upload/download, errors, and text-only rendering.
+Horizontal code blocks are keyboard focusable. The earlier Lighthouse results
+were for the preview; they are not a new measurement of this layout.

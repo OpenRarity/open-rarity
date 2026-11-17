@@ -1,110 +1,46 @@
-![OpenRarity](img/OR_Github_banner.jpg)
-
-[![Version][version-badge]][version-link]
-[![Test CI][ci-badge]][ci-link]
-[![License][license-badge]][license-link]
-
-
 # OpenRarity
 
-We’re excited to announce OpenRarity, a new rarity protocol we’re building for the NFT community. Our objective is to provide a transparent rarity calculation that is entirely open-source, objective, and reproducible.
+An open standard and library for reproducible NFT rarity. Rank a complete collection
+from its traits, with public scoring rules and matching Python/TypeScript fixtures.
 
-With the explosion of new collections, marketplaces and tooling in the NFT ecosystem, we realized that rarity ranks often differed across platforms which could lead to confusion for buyers, sellers and creators. We believe it’s important to find a way to provide a unified and consistent set of rarity rankings across all platforms to help build more trust and transparency in the industry.
+[Try the scorer](https://openrarity.github.io/open-rarity/) ·
+[Releases](https://github.com/OpenRarity/open-rarity/releases) ·
+[Scoring specification](SPEC.md) · [Report an issue](https://github.com/OpenRarity/open-rarity/issues)
 
-We are releasing the OpenRarity library in a Beta preview to crowdsource feedback from the community and incorporate it into the library evolution.
+## Install
 
-See the full announcement in the [blog post](https://mirror.xyz/openrarity.eth/-R8ZA5KCMgqtsueySlruAhB77YBX6fSnS_dT-8clZPQ).
-
-# Developer documentation
-
-Read [developer documentation](https://openrarity.gitbook.io/developers/) on how to integrate with OpenRarity.
-
-# Setup and run tests locally
-
-```
-poetry install # install dependencies locally
-poetry run pytest # run tests
-```
-
-Some tests are skipped by default due to it being more integration/slow tests.
-To run resolver tests:
-```
-poetry run pytest -k test_testset_resolver --run-resolvers
-```
-
-# Library usage
-You can install open rarity as a [python package](https://pypi.org/project/open-rarity/) to use OpenRarity in your project:
-```
+```sh
 pip install open-rarity
 ```
-For the existing OpenSea and external rarity helpers, install the HTTP extra:
-```
-pip install 'open-rarity[opensea]'
-```
-Please refer to the [scripts/](/scripts/) folder for an example of how to use the library.
 
-If you have downloaded the repo, you can use OpenRarity shell tool to generate json or csv outputs of OpenRarity scoring and ranks for any collections:
-```
-python -m scripts.score_real_collections boredapeyachtclub proof-moonbirds
-```
-Read [developer documentation](https://openrarity.gitbook.io/developers/) for advanced library usage
+[PyPI 0.7.5](https://pypi.org/project/open-rarity/) is the current release. This
+repository contains 1.0 development work, including the v2 OpenSea helper and
+[TypeScript scorer](typescript/). TypeScript is not yet published to npm.
 
-
-
-# Contributions guide and governance
-
-OpenRarity is a community effort to improve rarity computation for NFTs (Non-Fungible Tokens). The core collaboration group consists of four primary contributors: [Curio](https://curio.tools), [icy.tools](https://icy.tools), [OpenSea](https://opensea.io) and [Proof](https://www.proof.xyz/)
-
-OpenRarity is an open-source project and all contributions are welcome. Consider following steps when you request/propose contribution:
-
-- Have a question? Submit it on OpenRarity GitHub  [discussions](https://github.com/ProjectOpenSea/open-rarity/discussions) page
-- Create GitHub issue/bug with description of the problem [link](https://github.com/ProjectOpenSea/open-rarity/issues/new?assignees=impreso&labels=bug&template=bug_report.md&title=)
-- Submit Pull Request with proposed changes
-- To merge the change in the `main` branch you required to get at least 2 approvals from the project maintainer list
-- Always add a unit test with your changes
-
-We use git-precommit hooks in OpenRarity repo. Install it with the following command
-```
-poetry run pre-commit install
-```
-
-# Project Setup and Core technologies
-
-We used the following core technologies in OpenRarity:
-
-- Python 3.12 through 3.15
-- Poetry for dependency management
-- Numpy ≥2.5.5
-- PyTest for unit tests
-
-# License
-
-Apache 2.0 , OpenSea, ICY, Curio, PROOF
-
-
-
-[license-badge]: https://img.shields.io/github/license/ProjectOpenSea/open-rarity
-[license-link]: https://github.com/ProjectOpenSea/open-rarity/blob/main/LICENSE
-[ci-badge]: https://github.com/ProjectOpenSea/open-rarity/actions/workflows/tests.yaml/badge.svg
-[ci-link]: https://github.com/ProjectOpenSea/open-rarity/actions/workflows/tests.yaml
-[version-badge]: https://img.shields.io/github/v/release/ProjectOpenSea/open-rarity
-[version-link]: https://github.com/ProjectOpenSea/open-rarity/releases?display_name=tag
-
-### Fetching with OpenSea v2 (development version)
-
-Install `open-rarity[opensea]` and set `OPENSEA_API_KEY` in your environment.
-The helper follows collection cursors, including sparse token IDs, and uses the
-fetched items as supply. It rejects incomplete or duplicate snapshots.
+## Quick start
 
 ```python
-from open_rarity.resolver.opensea_api_helpers import get_collection_from_opensea
+from open_rarity import Collection, Token
+from open_rarity.rarity_ranker import RarityRanker
 
-collection = get_collection_from_opensea("your-collection", chain="arbitrum")
+tokens = [
+    Token.from_erc721("0x0", 1, {"Hat": "Cap"}),
+    Token.from_erc721("0x0", 2, {"Hat": "Crown"}),
+    Token.from_erc721("0x0", 3, {"Hat": "Cap"}),
+]
+for result in RarityRanker.rank_collection(Collection(tokens=tokens)):
+    print(result.token.token_identifier, result.rank, result.score)
 ```
 
-Use `testnet=True` for the testnet API. Multi-chain collections require `chain`;
-ambiguous cross-chain contract addresses are rejected. Only ERC721 is supported.
-The old v1 disk cache is retired; `use_cache` is accepted but does not reuse it.
-`OpenSeaClient` also exposes `collection`, `iter_nfts`, and `nft` for explicit fetching.
-Network errors propagate instead of returning a partial collection. Each request
-has a timeout and at most three attempts for rate limits or transient server errors.
+Unique traits take priority, then score. Supply every token you want compared.
+Rarity measures trait frequency, not market value.
+
+## Guides
+
+- [Python and OpenSea fetching](docs/python.md)
+- [Migrating to 1.0](docs/migration.md)
+- [Scoring rules](SPEC.md) and [changelog](CHANGELOG.md)
+- [Contributing and validation](AGENTS.md)
+- [Release process](docs/RELEASING.md)
+
+Licensed under [Apache 2.0](LICENSE).

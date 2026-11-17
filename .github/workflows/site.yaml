@@ -3,6 +3,8 @@ on:
   pull_request:
   push:
     branches: [main]
+  release:
+    types: [published]
   workflow_dispatch:
 permissions:
   contents: read
@@ -11,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.event_name == 'release' && 'main' || github.ref }}
       - uses: actions/setup-node@v7.1.0
         with:
           node-version: '24'
@@ -19,14 +23,36 @@ jobs:
       - run: npm run build --prefix typescript
       - run: npm ci --prefix site
       - run: npm run build --prefix site
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://openrarity.github.io/open-rarity' }}
       - run: npx --prefix site playwright install --with-deps chromium
       - run: npm test --prefix site
       - uses: actions/upload-artifact@v7.0.2
         with:
           name: github-pages-preview
           path: site/dist
+      - uses: actions/upload-pages-artifact@v5.0.0
+        if: github.ref == 'refs/heads/main' || github.event_name == 'release'
+        with:
+          path: site/dist
       - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: site-browser-evidence
           path: site/test-results
+  deploy:
+    if: (github.ref == 'refs/heads/main' || github.event_name == 'release') && github.event_name != 'pull_request'
+    needs: site
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages-deploy
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v5.0.1
+        id: deployment

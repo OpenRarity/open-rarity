@@ -1,17 +1,19 @@
-# Site preview
+# Website
 
-Build the TypeScript package, then the static site:
+The concise landing page links the scorer, packages, releases, and longer guides.
 
 ```sh
 npm ci --prefix typescript
 npm run build --prefix typescript
 npm ci --prefix site
 npm run build --prefix site
-python3 -m http.server 4173 --directory site/dist
+npm exec --prefix site -- playwright install chromium
+npm test --prefix site
 ```
 
-The site uses relative URLs so the same build works at the repository's GitHub Pages path or a custom domain. CI builds and tests a downloadable preview artifact. Publishing is a separate step after the preview is approved; this workflow does not deploy.
+CI tests pull requests and deploys successful main builds to GitHub Pages.
+Pull requests cannot deploy. The browser scorer never sends metadata to a server.
+Relative URLs support both the project URL and a future custom domain.
+Set `SITE_URL` to the final origin when building for the custom domain.
 
-The browser demo imports the compiled TypeScript scorer and supports its current categorical input subset. It sends no metadata to a server. The spec, changelog, and Python guide are generated from repository Markdown.
-
-Still needed before the full 1.0 site launch: configured scoring and per-trait explanations in the browser, final API quickstarts, the reviewed adopter/community list, social preview artwork, and deployment configuration. Automated accessibility tests and a local mobile Lighthouse audit now pass; see evidence/AUDIT.md. Set SITE_URL when building for a custom domain so the sitemap uses its final address. DNS and the existing site are outside this preview PR.
+See [DNS cutover](../docs/DNS-CUTOVER.md) for the domain-owner handoff.
