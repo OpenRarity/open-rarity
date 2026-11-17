@@ -98,3 +98,22 @@ footer span{width:100%;order:4}
 }
 
 .demo-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:16px 0;font-size:12px}.demo-actions button{font:inherit;padding:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}.file-label input{display:block;max-width:220px;font:inherit;margin-top:4px}
+
+/* Keep the overview short; detailed explanations live in the guides. */
+.hero{display:block;padding:42px 5% 38px}
+h1{font-size:clamp(42px,5vw,64px);letter-spacing:-2px;margin-bottom:16px}
+.hero .intro{max-width:720px;margin:0}
+.hero .eyebrow{margin-bottom:14px}
+.actions{margin-top:20px}
+.release-note{max-width:none;margin-top:18px}
+.section{padding:34px 5%}
+.section-heading{margin-bottom:20px}
+h2{font-size:34px;margin-bottom:12px}
+.resource-links{font-size:14px;margin-bottom:0}
+
+.links>a{padding:16px}
+.links h3{font-size:18px;margin:8px 0}
+.links p{margin:8px 0 0}
+.links .eyebrow{margin-bottom:6px}
+.three.links{gap:16px}
+@media(max-width:760px){.hero{padding-top:28px;padding-bottom:24px}.intro{font-size:16px}.section{padding-top:24px;padding-bottom:24px}.section-heading .eyebrow{margin-bottom:10px}}

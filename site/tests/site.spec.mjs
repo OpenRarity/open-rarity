@@ -41,3 +41,17 @@ test('local file upload and result download', async ({page}) => {
  await page.locator('#collection').fill('{'); await page.locator('#score').click();
  await expect(page.locator('#download')).toBeDisabled();
 });
+test('creator settings preserve exact JSON numbers', async ({page}) => {
+ await page.goto('/');
+ await page.locator('#collection').fill('{"tokens":[{"token_id":"1","traits":[{"trait_type":"Level","value":9007199254740992}]},{"token_id":"2","traits":[{"trait_type":"Level","value":9007199254740993}]}],"rarity":{"trait_count":"exclude","traits":[{"trait_type":"Level","mode":"higher_is_rarer"}]}}');
+ await page.locator('#score').click();
+ await expect(page.locator('#results tr').first().locator('td').nth(1)).toHaveText('2');
+ await expect(page.locator('#results tr').first().locator('td').nth(2)).toHaveText('1.000000');
+});
+test('legacy anchors and local documentation links exist', async ({page}) => {
+ await page.goto('/');
+ for (const id of ['Dev-docs','Community','FAQ']) await expect(page.locator(`[id="${id}"]`)).toHaveCount(1);
+ for (const path of ['readme.html','migration.html','spec.html','changelog.html']) {
+  const response=await page.request.get('/'+path);expect(response.status()).toBe(200);
+ }
+});
