@@ -37,6 +37,10 @@ You can install open rarity as a [python package](https://pypi.org/project/open-
 ```
 pip install open-rarity
 ```
+For the existing OpenSea and external rarity helpers, install the HTTP extra:
+```
+pip install 'open-rarity[opensea]'
+```
 Please refer to the [scripts/](/scripts/) folder for an example of how to use the library.
 
 If you have downloaded the repo, you can use OpenRarity shell tool to generate json or csv outputs of OpenRarity scoring and ranks for any collections:
