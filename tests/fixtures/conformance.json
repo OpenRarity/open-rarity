@@ -1,0 +1,1223 @@
+{
+  "cases": [
+    {
+      "name": "large integers",
+      "collection": {
+        "tokens": [
+          {
+            "token_id": "0",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": 9007199254740992
+              }
+            ]
+          },
+          {
+            "token_id": "1",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": 9007199254740993
+              }
+            ]
+          },
+          {
+            "token_id": "2",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": null
+              }
+            ]
+          }
+        ]
+      },
+      "config": {
+        "trait_count": "exclude",
+        "traits": [
+          {
+            "trait_type": "Level",
+            "mode": "higher_is_rarer"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "token_id": "1",
+          "score": 1.0000000000000002,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "0",
+          "score": 0.36907024642854264,
+          "rank": 2,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "2",
+          "score": 0.0,
+          "rank": 3,
+          "unique_trait_count": 0
+        }
+      ]
+    },
+    {
+      "name": "signed exponents",
+      "collection": {
+        "tokens": [
+          {
+            "token_id": "0",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "-1e20"
+              }
+            ]
+          },
+          {
+            "token_id": "1",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "-2"
+              }
+            ]
+          },
+          {
+            "token_id": "2",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "0"
+              }
+            ]
+          },
+          {
+            "token_id": "3",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "1.01e-2"
+              }
+            ]
+          },
+          {
+            "token_id": "4",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "1.02e-2"
+              }
+            ]
+          },
+          {
+            "token_id": "5",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "bad"
+              }
+            ]
+          }
+        ]
+      },
+      "config": {
+        "trait_count": "exclude",
+        "traits": [
+          {
+            "trait_type": "Level",
+            "mode": "higher_is_rarer"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "token_id": "4",
+          "score": 1.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "3",
+          "score": 0.6131471927654585,
+          "rank": 2,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "2",
+          "score": 0.38685280723454163,
+          "rank": 3,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "1",
+          "score": 0.22629438553091688,
+          "rank": 4,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "0",
+          "score": 0.10175559829607281,
+          "rank": 5,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "5",
+          "score": 0.0,
+          "rank": 6,
+          "unique_trait_count": 0
+        }
+      ]
+    },
+    {
+      "name": "decimal equivalence",
+      "collection": {
+        "tokens": [
+          {
+            "token_id": "0",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "1"
+              }
+            ]
+          },
+          {
+            "token_id": "1",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "1.0"
+              }
+            ]
+          },
+          {
+            "token_id": "2",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "1e0"
+              }
+            ]
+          },
+          {
+            "token_id": "3",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "2"
+              }
+            ]
+          }
+        ]
+      },
+      "config": {
+        "trait_count": "exclude",
+        "traits": [
+          {
+            "trait_type": "Level",
+            "mode": "higher_is_rarer"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "token_id": "3",
+          "score": 1.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "0",
+          "score": 0.0,
+          "rank": 2,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "1",
+          "score": 0.0,
+          "rank": 2,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "2",
+          "score": 0.0,
+          "rank": 2,
+          "unique_trait_count": 0
+        }
+      ]
+    },
+    {
+      "name": "invalid numbers",
+      "collection": {
+        "tokens": [
+          {
+            "token_id": "0",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "Infinity"
+              }
+            ]
+          },
+          {
+            "token_id": "1",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "NaN"
+              }
+            ]
+          },
+          {
+            "token_id": "2",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "1_0"
+              }
+            ]
+          },
+          {
+            "token_id": "3",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "0x10"
+              }
+            ]
+          },
+          {
+            "token_id": "4",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": ""
+              }
+            ]
+          },
+          {
+            "token_id": "5",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": null
+              }
+            ]
+          },
+          {
+            "token_id": "6",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": " none "
+              }
+            ]
+          }
+        ]
+      },
+      "config": {
+        "trait_count": "exclude",
+        "traits": [
+          {
+            "trait_type": "Level",
+            "mode": "higher_is_rarer"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "token_id": "0",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "1",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "2",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "3",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "4",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "5",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "6",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        }
+      ]
+    },
+    {
+      "name": "identical values",
+      "collection": {
+        "tokens": [
+          {
+            "token_id": "0",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "token_id": "1",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "token_id": "2",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": 7
+              }
+            ]
+          }
+        ]
+      },
+      "config": {
+        "trait_count": "exclude",
+        "traits": [
+          {
+            "trait_type": "Level",
+            "mode": "higher_is_rarer"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "token_id": "0",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "1",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "2",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        }
+      ]
+    },
+    {
+      "name": "negative zero",
+      "collection": {
+        "tokens": [
+          {
+            "token_id": "0",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "-0"
+              }
+            ]
+          },
+          {
+            "token_id": "1",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "0"
+              }
+            ]
+          },
+          {
+            "token_id": "2",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "+0.00"
+              }
+            ]
+          }
+        ]
+      },
+      "config": {
+        "trait_count": "exclude",
+        "traits": [
+          {
+            "trait_type": "Level",
+            "mode": "higher_is_rarer"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "token_id": "0",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "1",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "2",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        }
+      ]
+    },
+    {
+      "name": "date integer validation",
+      "collection": {
+        "tokens": [
+          {
+            "token_id": "0",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "123",
+                "display_type": "date"
+              }
+            ]
+          },
+          {
+            "token_id": "1",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "123.5",
+                "display_type": "date"
+              }
+            ]
+          },
+          {
+            "token_id": "2",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "124",
+                "display_type": "date"
+              }
+            ]
+          },
+          {
+            "token_id": "3",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": null,
+                "display_type": "date"
+              }
+            ]
+          },
+          {
+            "token_id": "4",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "bad",
+                "display_type": "date"
+              }
+            ]
+          }
+        ]
+      },
+      "config": {
+        "trait_count": "exclude",
+        "traits": [
+          {
+            "trait_type": "Level",
+            "mode": "higher_is_rarer"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "token_id": "2",
+          "score": 1.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "0",
+          "score": 0.5693234419266069,
+          "rank": 2,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "1",
+          "score": 0.0,
+          "rank": 3,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "3",
+          "score": 0.0,
+          "rank": 3,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "4",
+          "score": 0.0,
+          "rank": 3,
+          "unique_trait_count": 0
+        }
+      ]
+    },
+    {
+      "name": "numeric categorical",
+      "collection": {
+        "tokens": [
+          {
+            "token_id": "0",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "token_id": "1",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": 1.0
+              }
+            ]
+          },
+          {
+            "token_id": "2",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "token_id": "3",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": null
+              }
+            ]
+          }
+        ]
+      },
+      "config": null,
+      "expected": [
+        {
+          "token_id": "3",
+          "score": 1.7306441650920088,
+          "rank": 1,
+          "unique_trait_count": 1
+        },
+        {
+          "token_id": "2",
+          "score": 1.0448926391513318,
+          "rank": 2,
+          "unique_trait_count": 1
+        },
+        {
+          "token_id": "0",
+          "score": 0.6122315978783297,
+          "rank": 3,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "1",
+          "score": 0.6122315978783297,
+          "rank": 3,
+          "unique_trait_count": 0
+        }
+      ]
+    },
+    {
+      "name": "numeric categorical configured",
+      "collection": {
+        "tokens": [
+          {
+            "token_id": "0",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "token_id": "1",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": 1.0
+              }
+            ]
+          },
+          {
+            "token_id": "2",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "token_id": "3",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": null
+              }
+            ]
+          }
+        ]
+      },
+      "config": {
+        "trait_count": "exclude"
+      },
+      "expected": [
+        {
+          "token_id": "2",
+          "score": 1.3333333333333333,
+          "rank": 1,
+          "unique_trait_count": 1
+        },
+        {
+          "token_id": "3",
+          "score": 1.3333333333333333,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "0",
+          "score": 0.6666666666666666,
+          "rank": 3,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "1",
+          "score": 0.6666666666666666,
+          "rank": 3,
+          "unique_trait_count": 0
+        }
+      ]
+    },
+    {
+      "name": "missing configured",
+      "collection": {
+        "tokens": [
+          {
+            "token_id": "0",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "none"
+              }
+            ]
+          },
+          {
+            "token_id": "1",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "None"
+              }
+            ]
+          },
+          {
+            "token_id": "2",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": ""
+              }
+            ]
+          },
+          {
+            "token_id": "3",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": null
+              }
+            ]
+          },
+          {
+            "token_id": "4",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "A"
+              }
+            ]
+          }
+        ]
+      },
+      "config": {
+        "trait_count": "exclude"
+      },
+      "expected": [
+        {
+          "token_id": "4",
+          "score": 3.216287205514058,
+          "rank": 1,
+          "unique_trait_count": 1
+        },
+        {
+          "token_id": "0",
+          "score": 0.4459281986214854,
+          "rank": 2,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "1",
+          "score": 0.4459281986214854,
+          "rank": 2,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "2",
+          "score": 0.4459281986214854,
+          "rank": 2,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "3",
+          "score": 0.4459281986214854,
+          "rank": 2,
+          "unique_trait_count": 0
+        }
+      ]
+    },
+    {
+      "name": "trait count exclude",
+      "collection": {
+        "tokens": [
+          {
+            "token_id": "0",
+            "traits": []
+          },
+          {
+            "token_id": "1",
+            "traits": [
+              {
+                "trait_type": "0",
+                "value": "A"
+              }
+            ]
+          },
+          {
+            "token_id": "2",
+            "traits": [
+              {
+                "trait_type": "0",
+                "value": "A"
+              },
+              {
+                "trait_type": "1",
+                "value": "A"
+              }
+            ]
+          },
+          {
+            "token_id": "3",
+            "traits": [
+              {
+                "trait_type": "0",
+                "value": "A"
+              },
+              {
+                "trait_type": "1",
+                "value": "A"
+              },
+              {
+                "trait_type": "2",
+                "value": "A"
+              }
+            ]
+          }
+        ]
+      },
+      "config": {
+        "trait_count": "exclude"
+      },
+      "expected": [
+        {
+          "token_id": "3",
+          "score": 1.302178933507129,
+          "rank": 1,
+          "unique_trait_count": 1
+        },
+        {
+          "token_id": "0",
+          "score": 1.302178933507129,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "1",
+          "score": 0.6978210664928711,
+          "rank": 3,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "2",
+          "score": 0.6978210664928711,
+          "rank": 3,
+          "unique_trait_count": 0
+        }
+      ]
+    },
+    {
+      "name": "trait count higher_is_rarer",
+      "collection": {
+        "tokens": [
+          {
+            "token_id": "0",
+            "traits": []
+          },
+          {
+            "token_id": "1",
+            "traits": [
+              {
+                "trait_type": "0",
+                "value": "A"
+              }
+            ]
+          },
+          {
+            "token_id": "2",
+            "traits": [
+              {
+                "trait_type": "0",
+                "value": "A"
+              },
+              {
+                "trait_type": "1",
+                "value": "A"
+              }
+            ]
+          },
+          {
+            "token_id": "3",
+            "traits": [
+              {
+                "trait_type": "0",
+                "value": "A"
+              },
+              {
+                "trait_type": "1",
+                "value": "A"
+              },
+              {
+                "trait_type": "2",
+                "value": "A"
+              }
+            ]
+          }
+        ]
+      },
+      "config": {
+        "trait_count": "higher_is_rarer"
+      },
+      "expected": [
+        {
+          "token_id": "3",
+          "score": 1.1714378814851691,
+          "rank": 1,
+          "unique_trait_count": 1
+        },
+        {
+          "token_id": "0",
+          "score": 0.738776840212167,
+          "rank": 2,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "2",
+          "score": 0.6122315978783297,
+          "rank": 3,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "1",
+          "score": 0.48568635554449235,
+          "rank": 4,
+          "unique_trait_count": 0
+        }
+      ]
+    },
+    {
+      "name": "unicode duplicate choice",
+      "collection": {
+        "tokens": [
+          {
+            "token_id": "2",
+            "traits": [
+              {
+                "trait_type": "Hat",
+                "value": "😀"
+              },
+              {
+                "trait_type": "Hat",
+                "value": ""
+              }
+            ]
+          },
+          {
+            "token_id": "1",
+            "traits": [
+              {
+                "trait_type": "Hat",
+                "value": ""
+              }
+            ]
+          }
+        ]
+      },
+      "config": {
+        "traits": [
+          {
+            "trait_type": "Ignored",
+            "mode": "exclude"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "token_id": "1",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "2",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        }
+      ]
+    },
+    {
+      "name": "id ties None",
+      "collection": {
+        "tokens": [
+          {
+            "token_id": "01",
+            "token_id_kind": "evm",
+            "traits": []
+          },
+          {
+            "token_id": "1",
+            "token_id_kind": "evm",
+            "traits": []
+          },
+          {
+            "token_id": "😀",
+            "token_id_kind": "raw",
+            "traits": []
+          },
+          {
+            "token_id": "",
+            "token_id_kind": "raw",
+            "traits": []
+          },
+          {
+            "token_id": "9007199254740993",
+            "token_id_kind": "evm",
+            "traits": []
+          }
+        ]
+      },
+      "config": null,
+      "expected": [
+        {
+          "token_id": "01",
+          "score": -0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "1",
+          "score": -0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "9007199254740993",
+          "score": -0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "",
+          "score": -0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "😀",
+          "score": -0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        }
+      ]
+    },
+    {
+      "name": "id ties {'trait_count': 'exclude'}",
+      "collection": {
+        "tokens": [
+          {
+            "token_id": "01",
+            "token_id_kind": "evm",
+            "traits": []
+          },
+          {
+            "token_id": "1",
+            "token_id_kind": "evm",
+            "traits": []
+          },
+          {
+            "token_id": "😀",
+            "token_id_kind": "raw",
+            "traits": []
+          },
+          {
+            "token_id": "",
+            "token_id_kind": "raw",
+            "traits": []
+          },
+          {
+            "token_id": "9007199254740993",
+            "token_id_kind": "evm",
+            "traits": []
+          }
+        ]
+      },
+      "config": {
+        "trait_count": "exclude"
+      },
+      "expected": [
+        {
+          "token_id": "01",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "1",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "9007199254740993",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "😀",
+          "score": 0.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        }
+      ]
+    },
+    {
+      "name": "duplicate first on normalized equality",
+      "collection": {
+        "tokens": [
+          {
+            "token_id": "1",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "1.5",
+                "display_type": "date"
+              },
+              {
+                "trait_type": "Level",
+                "value": "1.5"
+              }
+            ]
+          },
+          {
+            "token_id": "2",
+            "traits": [
+              {
+                "trait_type": "Level",
+                "value": "2"
+              }
+            ]
+          }
+        ]
+      },
+      "config": {
+        "trait_count": "exclude",
+        "traits": [
+          {
+            "trait_type": "Level",
+            "mode": "higher_is_rarer"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "token_id": "2",
+          "score": 1.0,
+          "rank": 1,
+          "unique_trait_count": 0
+        },
+        {
+          "token_id": "1",
+          "score": 0.0,
+          "rank": 2,
+          "unique_trait_count": 0
+        }
+      ]
+    }
+  ]
+}

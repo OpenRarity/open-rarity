@@ -24,3 +24,9 @@ jobs:
         run: npm test --prefix typescript
       - name: Inspect package contents
         run: npm pack --dry-run ./typescript
+      - uses: actions/setup-python@v7.1.0
+        with:
+          python-version: "3.15"
+      - run: python -m pip install -e .
+      - name: Compare Python and TypeScript
+        run: python -m scripts.check_scoring_parity

@@ -61,3 +61,28 @@ Assign competition ranks, such as `1, 2, 2, 4`. Equal scores receive the same ra
 - The 1.0 input model retains duplicate traits before reduction. The 0.7.5 dictionary model silently overwrites them.
 
 Every future change to these rules requires a spec edit, a conformance fixture update, and a changelog entry in the same behavior PR.
+
+## Exact JSON input and conformance
+
+Use `parse_collection_json` (Python) or `parseCollectionJson` (TypeScript) before
+scoring JSON containing numeric traits. Both preserve the original decimal value;
+TypeScript requires a runtime supporting the JSON reviver source argument. Typed
+TypeScript callers can use `ExactDecimal` for values beyond safe integer precision.
+Numeric literals are normalized to plain decimal strings for frequency scoring;
+strings retain their spelling. Numeric/date support applies to the new ordered
+input API. The legacy model/scorer API remains unchanged.
+
+The ordered input API treats numeric values categorically unless configured as
+`higher_is_rarer`. Nulls are absent. Dates used in higher-is-rarer scoring must be
+integral Unix seconds; invalid dates contribute zero but retain their categorical
+entropy entry. Numeric parsing accepts at most 1,024 characters and an absolute
+base-10 exponent of 10,000. Unsupported typed values and nonfinite numbers fail.
+Unicode lexical comparisons use code points in both implementations. Names and
+values use Python's Unicode whitespace set, including U+001C through U+001F and
+excluding the byte-order mark. The shared `conformance.json` fixtures complement
+the unchanged 0.7.5 golden fixtures.
+
+The configured scorer uses the same binary64 logarithm series and sequential
+entropy accumulation in both languages. This avoids platform logarithm rounding
+and Python compensated-sum differences changing exact-score ties. Legacy 0.7.5
+calculations keep their existing implementation.
