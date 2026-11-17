@@ -7,6 +7,11 @@
 
 ### Added
 
+- Add Python/TypeScript per-trait explanations and expandable playground details without changing score/rank calculations.
+- Add a local JSON/CSV CLI, creator-config and explanation schemas, and repeatable 10k/100k benchmarks.
+- Validate actual wheel, sdist and npm installations in CI; label source packages as 1.0 development builds.
+
+
 - Python ordered collection inputs support creator-config exclusions and exact-decimal higher-is-rarer scoring while retaining source duplicate traits.
 
 - The TypeScript package can score and rank categorical collections using the 0.7.5 compatibility rules and deterministic token ID order.

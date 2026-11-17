@@ -6,6 +6,13 @@ from bisect import bisect_left
 from collections import Counter
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
+from typing import Literal
+
+import numpy as np
+
+from open_rarity.scoring.handlers.information_content_scoring_handler import (
+    InformationContentScoringHandler,
+)
 
 from open_rarity.collection_input import CollectionInput, TokenInput
 from open_rarity.creator_config import RarityConfig, TRAIT_COUNT_ATTRIBUTE_NAME
@@ -20,6 +27,74 @@ class TokenRarityResult:
     score: float
     rank: int
     unique_trait_count: int
+
+
+@dataclass(frozen=True)
+class SourceTrait:
+    trait_type: str
+    value: str | None
+    value_kind: Literal["string", "number", "null"]
+    display_type: str | None
+
+
+@dataclass(frozen=True)
+class TraitExplanation:
+    trait_type: str
+    value: str | None
+    mode: Literal["frequency", "higher_is_rarer", "exclude"]
+    count: int | None
+    probability: float | None
+    information: float
+    contribution: float
+    unique: bool
+
+
+@dataclass(frozen=True)
+class ExplainedToken:
+    result: TokenRarityResult
+    normalization: float
+    traits: list[TraitExplanation]
+    source_traits: list[SourceTrait]
+
+
+def explain_collection(
+    collection: CollectionInput, config: RarityConfig | None = None
+) -> list[ExplainedToken]:
+    """Score once and expose selected values and per-trait contributions."""
+    details: dict[str, tuple[float, list[TraitExplanation]]] = {}
+    results = _score_collection(collection, config, details)
+    sources = {token.token_id: token for token in collection.tokens}
+    return [
+        ExplainedToken(
+            result,
+            *details[result.token_id],
+            [
+                SourceTrait(
+                    t.trait_type,
+                    None
+                    if t.value is None
+                    else t.value
+                    if isinstance(t.value, str)
+                    else _number_text(t.value),
+                    "null"
+                    if t.value is None
+                    else "string"
+                    if isinstance(t.value, str)
+                    else "number",
+                    t.display_type,
+                )
+                for t in sources[result.token_id].traits
+            ],
+        )
+        for result in results
+    ]
+
+
+def _number_text(value: int | float | Decimal) -> str:
+    text = format(Decimal(str(value)), "f")
+    if "." in text:
+        text = text.rstrip("0").rstrip(".")
+    return "0" if Decimal(text) == 0 else text
 
 
 def _decimal(value: str | None) -> Decimal | None:
@@ -46,6 +121,14 @@ def score_collection(
     collection: CollectionInput, config: RarityConfig | None = None
 ) -> list[TokenRarityResult]:
     """Rank a complete collection without changing its source metadata."""
+    return _score_collection(collection, config)
+
+
+def _score_collection(
+    collection: CollectionInput,
+    config: RarityConfig | None = None,
+    details: dict[str, tuple[float, list[TraitExplanation]]] | None = None,
+) -> list[TokenRarityResult]:
     tokens = collection.tokens
     if not tokens:
         return []
@@ -98,7 +181,48 @@ def score_collection(
                 else Token.from_metaplex_non_fungible(token.token_id, attributes)
             )
         originals = {id(t): source for t, source in zip(legacy, tokens)}
-        ranked = RarityRanker.rank_collection(Collection(legacy))
+        legacy_collection = Collection(legacy)
+        ranked = RarityRanker.rank_collection(legacy_collection)
+        if details is not None:
+            normalization = (
+                float(
+                    InformationContentScoringHandler()._get_collection_entropy(
+                        legacy_collection
+                    )
+                )
+                or 1.0
+            )
+            legacy_frequencies = legacy_collection.attributes_frequency_counts
+            missing = {
+                name: len(tokens) - sum(legacy_counts.values())
+                for name, legacy_counts in legacy_frequencies.items()
+            }
+            for token, source in zip(legacy, tokens):
+                traits = []
+                for name in sorted(legacy_frequencies):
+                    attribute = token.metadata.string_attributes.get(name)
+                    value = attribute.value if attribute else None
+                    legacy_count = (
+                        legacy_frequencies[name][value]
+                        if value is not None
+                        else missing[name]
+                    )
+                    information = float(
+                        -np.log2(np.reciprocal(float(len(tokens) / legacy_count)))
+                    )
+                    traits.append(
+                        TraitExplanation(
+                            name,
+                            value,
+                            "frequency",
+                            legacy_count,
+                            legacy_count / len(tokens),
+                            information,
+                            information / normalization,
+                            value is not None and legacy_count == 1,
+                        )
+                    )
+                details[source.token_id] = (normalization, traits)
         ranked.sort(
             key=lambda r: (
                 -r.token_features.unique_attribute_count,
@@ -118,6 +242,7 @@ def score_collection(
 
     selected: list[dict[str, str]] = []
     invalid_dates: list[set[str]] = []
+    excluded_values: list[dict[str, str]] = []
     for token in tokens:
         values: dict[str, str] = {}
         invalid_date: set[str] = set()
@@ -126,11 +251,7 @@ def score_collection(
             if trait.value is None or name == TRAIT_COUNT_ATTRIBUTE_NAME:
                 continue
             if isinstance(trait.value, (int, float, Decimal)):
-                value = format(Decimal(str(trait.value)), "f")
-                if "." in value:
-                    value = value.rstrip("0").rstrip(".")
-                if Decimal(value) == 0:
-                    value = "0"
+                value = _number_text(trait.value)
             else:
                 value = trait.value.strip()
             if configured:
@@ -151,6 +272,10 @@ def score_collection(
         )
         if config.trait_count != "exclude":
             values[TRAIT_COUNT_ATTRIBUTE_NAME] = str(count)
+        if details is not None:
+            excluded_values.append(
+                {k: v for k, v in values.items() if config.mode_for(k) == "exclude"}
+            )
         invalid_dates.append(invalid_date)
         selected.append(
             {k: v for k, v in values.items() if config.mode_for(k) != "exclude"}
@@ -179,20 +304,65 @@ def score_collection(
     for index, values in enumerate(selected):
         points = 0.0
         unique = 0
+        explanations = []
         for name in names:
+            match_count: int | None = None
+            information = 0.0
+            is_unique = False
             selected_value = values.get(name)
             if name in numeric:
                 number = (
                     None if name in invalid_dates[index] else _decimal(selected_value)
                 )
                 if number is not None:
-                    count = len(numeric[name]) - bisect_left(numeric[name], number)
-                    points -= _log2(count / total)
+                    match_count = len(numeric[name]) - bisect_left(
+                        numeric[name], number
+                    )
+                    information = -_log2(match_count / total)
+                    points += information
             else:
-                count = frequencies[name][selected_value]
-                points -= _log2(count / total)
-                unique += selected_value is not None and count == 1
+                match_count = frequencies[name][selected_value]
+                information = -_log2(match_count / total)
+                points += information
+                is_unique = selected_value is not None and match_count == 1
+                unique += is_unique
+            if details is not None:
+                explanations.append(
+                    TraitExplanation(
+                        name,
+                        selected_value,
+                        "higher_is_rarer" if name in numeric else "frequency",
+                        match_count,
+                        match_count / total if match_count is not None else None,
+                        information,
+                        information / entropy,
+                        is_unique,
+                    )
+                )
         token = tokens[index]
+        if details is not None:
+            for name in sorted(
+                config.excluded
+                | (
+                    {TRAIT_COUNT_ATTRIBUTE_NAME}
+                    if config.trait_count == "exclude"
+                    else set()
+                )
+            ):
+                explanations.append(
+                    TraitExplanation(
+                        name,
+                        excluded_values[index].get(name),
+                        "exclude",
+                        None,
+                        None,
+                        0.0,
+                        0.0,
+                        False,
+                    )
+                )
+            explanations.sort(key=lambda t: t.trait_type)
+            details[token.token_id] = (entropy, explanations)
         key = (
             (0, int(token.token_id), token.token_id)
             if token.token_id_kind == "evm"

@@ -4,7 +4,7 @@ Status: draft for conformance work. The `1.0.0rc1` release will freeze this docu
 
 ## Scope and input
 
-The core scores a complete collection supplied by the caller. Fetching metadata, discovering supply, refreshing a marketplace, and assigning display colors belong outside the core. The collection contains an ordered list of tokens. Each token has a unique identifier and an ordered list of traits. A trait has a string `trait_type` and a string, number, or null `value`; `display_type` may identify a numeric or date value. The JSON Schema will define the exact field names and limits.
+The core scores a complete collection supplied by the caller. Fetching metadata, discovering supply, refreshing a marketplace, and assigning display colors belong outside the core. The collection contains an ordered list of tokens. Each token has a unique identifier and an ordered list of traits. A trait has a string `trait_type` and a string, number, or null `value`; `display_type` may identify a numeric or date value. Generated JSON Schemas describe structural fields; the scorer validates semantic limits.
 
 Token identifiers are carried as strings in shared JSON so large integers do not lose precision. EVM token IDs use unsigned base-10 digits. Other identifiers remain strings. A collection must not contain the same identifier twice. ERC1155 quantities are outside 1.0: each input token contributes one item to supply.
 
@@ -86,3 +86,26 @@ The configured scorer uses the same binary64 logarithm series and sequential
 entropy accumulation in both languages. This avoids platform logarithm rounding
 and Python compensated-sum differences changing exact-score ties. Legacy 0.7.5
 calculations keep their existing implementation.
+
+## Explanations
+
+`explain_collection` and `explainCollection` return ranked entries with the unchanged
+`result`, entropy divisor `normalization`, selected `traits`, and ordered
+`source_traits`. Each selected trait reports its normalized value, mode, count,
+probability, information bits, normalized contribution, and unique-trait flag.
+Trait explanations are sorted by Unicode code point; source entries retain input
+order, including duplicates. Source numbers serialize as canonical decimal strings
+with `value_kind: "number"`; source strings retain their original text and carry
+`value_kind: "string"`. Null has `value_kind: "null"` and a null value.
+
+For frequency scoring, count includes tokens sharing the selected value or its
+absence. For higher-is-rarer, count is the number of valid values at least as large
+as the selected value. Missing or invalid numeric values have null count/probability
+and zero contribution. Explicit exclusions appear with null count/probability and
+zero contribution, including synthetic trait count when excluded. Their value is
+the selected value before exclusion, or null if absent. Types absent from every
+token do not have a frequency distribution and are omitted unless explicitly excluded.
+
+Contributions sum to the score within binary64 rounding tolerance (`1e-12` for
+conformance fixtures); unique flags sum to the unique-trait count. Explanations do
+not change normalization, ranking, or the compatibility path's arithmetic.

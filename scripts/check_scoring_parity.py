@@ -39,10 +39,12 @@ actual = json.loads(
         ["node", "--input-type=module", "-e", js], input=json.dumps(cases), text=True
     )
 )
+assert len(actual) == len(cases)
 for i, (case, rows) in enumerate(zip(cases, actual)):
     expected = score_collection(
         parse_collection_json(case["source"]), parse_rarity_config(case["config"])
     )
+    assert len(rows) == len(expected)
     for a, b in zip(rows, expected):
         assert (a["token_id"], a["rank"], a["unique_trait_count"]) == (
             b.token_id,

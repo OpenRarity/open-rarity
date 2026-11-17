@@ -10,6 +10,8 @@ import type {
   CollectionInput,
   CreatorRarityConfig,
   TokenRarityResult,
+  ExplanationDetails,
+  TraitExplanation,
 } from "./index.js";
 const COUNT = "meta_trait:trait_count";
 import { trim, compareText } from "./text.js";
@@ -57,11 +59,13 @@ export function validateCollection(collection: CollectionInput): void {
 export function scoreConfigured(
   collection: CollectionInput,
   input?: CreatorRarityConfig,
+  details?: ExplanationDetails,
 ): TokenRarityResult[] {
   const config = parseCreatorRarityConfig(input);
   const configured = Boolean(config.trait_count || config.traits?.length);
   const modes = new Map(config.traits?.map((t) => [t.trait_type, t.mode]));
   if (config.trait_count) modes.set(COUNT, config.trait_count);
+  const excludedValues: Map<string, string>[] = [];
   const invalidDates: Set<string>[] = [];
   const selected = collection.tokens.map((token) => {
     const invalidDate = new Set<string>();
@@ -101,6 +105,9 @@ export function scoreConfigured(
       if (!modes.has(name) && value !== "" && value.toLowerCase() !== "none")
         count++;
     if (config.trait_count !== "exclude") values.set(COUNT, String(count));
+    if (details) excludedValues.push(new Map(
+      [...values].filter(([name]) => modes.get(name) === "exclude"),
+    ));
     for (const [name, mode] of modes)
       if (mode === "exclude") values.delete(name);
     return values;
@@ -140,7 +147,11 @@ export function scoreConfigured(
   const results = selected.map((v, index) => {
     let points = 0,
       unique = 0;
+    const traits: TraitExplanation[] = [];
     for (const name of names) {
+      let count: number | null = null;
+      let information = 0;
+      let isUnique = false;
       const value = v.get(name),
         nums = numeric.get(name);
       if (nums) {
@@ -153,13 +164,34 @@ export function scoreConfigured(
             if (compareDecimals(nums[mid], d) < 0) lo = mid + 1;
             else hi = mid;
           }
-          points -= log2((nums.length - lo) / total);
+          count = nums.length - lo;
+          information = -log2(count / total);
+          points += information;
         }
       } else {
-        const count = counts.get(name)!.get(value)!;
-        points -= log2(count / total);
-        if (value !== undefined && count === 1) unique++;
+        count = counts.get(name)!.get(value)!;
+        information = -log2(count / total);
+        points += information;
+        isUnique = value !== undefined && count === 1;
+        if (isUnique) unique++;
       }
+      if (details) traits.push({
+        trait_type: name, value: value ?? null,
+        mode: nums ? "higher_is_rarer" : "frequency", count,
+        probability: count === null ? null : count / total,
+        information, contribution: information / entropy, unique: isUnique,
+      });
+    }
+    if (details) {
+      for (const [name, mode] of modes) {
+        if (mode === "exclude") traits.push({
+          trait_type: name, value: excludedValues[index].get(name) ?? null,
+          mode, count: null, probability: null,
+          information: 0, contribution: 0, unique: false,
+        });
+      }
+      traits.sort((a, b) => compareText(a.trait_type, b.trait_type));
+      details.set(collection.tokens[index].token_id, {normalization: entropy, traits});
     }
     return {
       token_id: collection.tokens[index].token_id,

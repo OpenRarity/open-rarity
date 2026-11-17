@@ -1,0 +1,192 @@
+{
+  "$defs": {
+    "ExplainedToken": {
+      "properties": {
+        "normalization": {
+          "title": "Normalization",
+          "type": "number"
+        },
+        "result": {
+          "$ref": "#/$defs/TokenRarityResult"
+        },
+        "source_traits": {
+          "items": {
+            "$ref": "#/$defs/SourceTrait"
+          },
+          "title": "Source Traits",
+          "type": "array"
+        },
+        "traits": {
+          "items": {
+            "$ref": "#/$defs/TraitExplanation"
+          },
+          "title": "Traits",
+          "type": "array"
+        }
+      },
+      "required": [
+        "result",
+        "normalization",
+        "traits",
+        "source_traits"
+      ],
+      "title": "ExplainedToken",
+      "type": "object"
+    },
+    "SourceTrait": {
+      "properties": {
+        "display_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Display Type"
+        },
+        "trait_type": {
+          "title": "Trait Type",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "value_kind": {
+          "enum": [
+            "string",
+            "number",
+            "null"
+          ],
+          "title": "Value Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "trait_type",
+        "value",
+        "value_kind",
+        "display_type"
+      ],
+      "title": "SourceTrait",
+      "type": "object"
+    },
+    "TokenRarityResult": {
+      "properties": {
+        "rank": {
+          "title": "Rank",
+          "type": "integer"
+        },
+        "score": {
+          "title": "Score",
+          "type": "number"
+        },
+        "token_id": {
+          "title": "Token Id",
+          "type": "string"
+        },
+        "unique_trait_count": {
+          "title": "Unique Trait Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "token_id",
+        "score",
+        "rank",
+        "unique_trait_count"
+      ],
+      "title": "TokenRarityResult",
+      "type": "object"
+    },
+    "TraitExplanation": {
+      "properties": {
+        "contribution": {
+          "title": "Contribution",
+          "type": "number"
+        },
+        "count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Count"
+        },
+        "information": {
+          "title": "Information",
+          "type": "number"
+        },
+        "mode": {
+          "enum": [
+            "frequency",
+            "higher_is_rarer",
+            "exclude"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "probability": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Probability"
+        },
+        "trait_type": {
+          "title": "Trait Type",
+          "type": "string"
+        },
+        "unique": {
+          "title": "Unique",
+          "type": "boolean"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "trait_type",
+        "value",
+        "mode",
+        "count",
+        "probability",
+        "information",
+        "contribution",
+        "unique"
+      ],
+      "title": "TraitExplanation",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "OpenRarity 1.0 development structural schema. Scoring performs additional semantic validation; see docs/api.md.",
+  "items": {
+    "$ref": "#/$defs/ExplainedToken"
+  },
+  "type": "array"
+}

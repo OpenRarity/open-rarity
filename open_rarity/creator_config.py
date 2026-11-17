@@ -2,10 +2,20 @@
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import Literal, TypedDict, NotRequired
 
 RarityMode = Literal["exclude", "higher_is_rarer"]
 TRAIT_COUNT_ATTRIBUTE_NAME = "meta_trait:trait_count"
+
+
+class CreatorTraitSetting(TypedDict):
+    trait_type: str
+    mode: RarityMode
+
+
+class CreatorConfigDocument(TypedDict):
+    trait_count: NotRequired[RarityMode]
+    traits: NotRequired[list[CreatorTraitSetting]]
 
 
 def _name_length(name: str) -> int:

@@ -1,5 +1,5 @@
 import { trim } from "./text.js";
-import { ExactDecimal } from "./decimal.js";
+import { ExactDecimal, decimalText } from "./decimal.js";
 import {
   scoreConfigured,
   validateCollection,
@@ -45,6 +45,57 @@ export interface TokenRarityResult {
   unique_trait_count: number;
 }
 
+export interface SourceTrait {
+  trait_type: string;
+  value: string | null;
+  value_kind: "string" | "number" | "null";
+  display_type: string | null;
+}
+export interface TraitExplanation {
+  trait_type: string;
+  value: string | null;
+  mode: "frequency" | "higher_is_rarer" | "exclude";
+  count: number | null;
+  probability: number | null;
+  information: number;
+  contribution: number;
+  unique: boolean;
+}
+export interface ExplainedToken {
+  result: TokenRarityResult;
+  normalization: number;
+  traits: TraitExplanation[];
+  source_traits: SourceTrait[];
+}
+export type ExplanationDetails = Map<
+  string,
+  Pick<ExplainedToken, "normalization" | "traits">
+>;
+
+/** Score once, retaining source entries and explaining each selected trait. */
+export function explainCollection(
+  collection: CollectionInput,
+  config?: CreatorRarityConfig,
+): ExplainedToken[] {
+  const details: ExplanationDetails = new Map();
+  const results = scoreCollectionInternal(collection, config, details);
+  const sources = new Map(collection.tokens.map(t => [t.token_id, t]));
+  return results.map(result => ({
+    result,
+    ...details.get(result.token_id)!,
+    source_traits: sources.get(result.token_id)!.traits.map(t => ({
+      trait_type: t.trait_type,
+      value: t.value === null
+        ? null
+        : typeof t.value === "string"
+          ? t.value
+          : decimalText(t.value instanceof ExactDecimal ? t.value.source : String(t.value)),
+      value_kind: t.value === null ? "null" : typeof t.value === "string" ? "string" : "number",
+      display_type: t.display_type ?? null,
+    })),
+  }));
+}
+
 export { parseCreatorRarityConfig } from "./config.js";
 
 const TRAIT_COUNT = "meta_trait:trait_count";
@@ -60,6 +111,14 @@ export function scoreCollection(
   collection: CollectionInput,
   config?: CreatorRarityConfig,
 ): TokenRarityResult[] {
+  return scoreCollectionInternal(collection, config);
+}
+
+function scoreCollectionInternal(
+  collection: CollectionInput,
+  config?: CreatorRarityConfig,
+  details?: ExplanationDetails,
+): TokenRarityResult[] {
   validateCollection(collection);
   const parsed = parseCreatorRarityConfig(config);
   if (
@@ -69,7 +128,7 @@ export function scoreCollection(
       t.traits.some((a) => typeof a.value !== "string"),
     )
   ) {
-    return scoreConfigured(collection, parsed);
+    return scoreConfigured(collection, parsed, details);
   }
   const tokens = collection.tokens.map((input, index): PreparedToken => {
     const values = new Map<string, string>();
@@ -135,6 +194,7 @@ export function scoreCollection(
   const results = tokens.map((token) => {
     let points = 0;
     let unique = 0;
+    const traits: TraitExplanation[] = [];
     for (const [name, counts] of frequencies) {
       const value = token.values.get(name);
       const count =
@@ -142,9 +202,20 @@ export function scoreCollection(
       if (count === undefined || count <= 0) {
         throw new Error(`Invalid frequency for trait ${name}`);
       }
-      points += Math.log2(total / count);
+      const information = Math.log2(total / count);
+      points += information;
+      if (details) traits.push({
+        trait_type: name, value: value ?? null, mode: "frequency", count,
+        probability: count / total, information,
+        contribution: information / entropy,
+        unique: value !== undefined && count === 1,
+      });
       if (value !== undefined && count === 1) unique++;
     }
+    if (details) details.set(token.input.token_id, {
+      normalization: entropy,
+      traits: traits.sort((a, b) => compareText(a.trait_type, b.trait_type)),
+    });
     return {
       token_id: token.input.token_id,
       score: points / entropy,

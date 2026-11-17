@@ -15,9 +15,14 @@ JSON text and string token IDs. Rarity does not measure market value.
 - [Migration examples](https://openrarity.github.io/open-rarity/migration.md): Python and TypeScript ordered input examples.
 - [Scoring specification](https://openrarity.github.io/open-rarity/SPEC.md): normalization, numeric scoring, and tie rules.
 
+- [Local CLI](https://openrarity.github.io/open-rarity/cli.md): JSON/CSV rankings and per-trait explanations.
+- [Benchmarks](https://openrarity.github.io/open-rarity/benchmarks.md): reproducible 10k/100k local scoring.
+
 ## Data and source
 
 - [Collection schema](https://openrarity.github.io/open-rarity/schemas/collection.schema.json): generated structural input schema.
 - [Results schema](https://openrarity.github.io/open-rarity/schemas/results.schema.json): generated serialized result schema.
+- [Creator-config schema](https://openrarity.github.io/open-rarity/schemas/creator-config.schema.json): well-formed creator settings.
+- [Explanation schema](https://openrarity.github.io/open-rarity/schemas/explanations.schema.json): per-trait contributions and source entries.
 - [Repository](https://github.com/OpenRarity/open-rarity): source, fixtures, and contribution instructions in AGENTS.md.
 - [Releases](https://github.com/OpenRarity/open-rarity/releases): published versions and release notes.

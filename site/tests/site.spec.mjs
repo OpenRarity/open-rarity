@@ -101,3 +101,16 @@ for (const width of [390, 1440]) for (const theme of ['light', 'dark']) {
   }
  });
 }
+
+test('explanations show numeric contributions and clear with invalid input', async ({page}) => {
+ await page.goto('/');
+ await page.locator('#sample').selectOption('numeric');
+ const first = page.locator('#results tr').first();
+ await first.locator('summary').click();
+ await expect(first.locator('details')).toContainText('1/3 tokens at or above this value');
+ await expect(first.locator('details')).toContainText('contributes 1.000000');
+ await expect(first.locator('details')).toContainText('excluded');
+ await page.locator('#collection').fill('{');
+ await page.locator('#score').click();
+ await expect(page.locator('#results details')).toHaveCount(0);
+});
