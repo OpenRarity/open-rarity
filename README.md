@@ -72,9 +72,9 @@ poetry run pre-commit install
 
 We used the following core technologies in OpenRarity:
 
-- Python 3.11 through 3.13
+- Python 3.12 through 3.15
 - Poetry for dependency management
-- Numpy ≥1.23.1
+- Numpy ≥2.5.5
 - PyTest for unit tests
 
 # License

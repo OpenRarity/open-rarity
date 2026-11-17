@@ -10,8 +10,8 @@ jobs:
   site:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version: '24'
           package-manager-cache: false
@@ -21,11 +21,11 @@ jobs:
       - run: npm run build --prefix site
       - run: npx --prefix site playwright install --with-deps chromium
       - run: npm test --prefix site
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7.0.2
         with:
           name: github-pages-preview
           path: site/dist
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: site-browser-evidence

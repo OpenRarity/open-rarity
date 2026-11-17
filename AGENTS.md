@@ -18,7 +18,7 @@ Python reference library, TypeScript scorer, and static documentation site.
 
 ## Validation
 
-Use Python 3.11–3.13 in a virtual environment. Install the package with `python -m pip install -e '.[opensea]'` and the test/quality tools listed in `pyproject.toml`.
+Use Python 3.12–3.15 in a virtual environment. Install the package with `python -m pip install -e '.[opensea]'` and the test/quality tools listed in `pyproject.toml`.
 
 - Python: `python -m pytest -q`, `ruff check .`, `ruff format --check .`, `mypy open_rarity`.
 - TypeScript: `npm ci --prefix typescript`, then `npm run build --prefix typescript` and `npm test --prefix typescript`.

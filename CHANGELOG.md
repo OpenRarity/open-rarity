@@ -12,6 +12,8 @@
 
 ### Changed
 
+- Require Python 3.12 or newer, NumPy 2.5.5 or newer, and Pydantic 2.14.3 or newer. Python 3.11 and Pydantic 1 compatibility are removed. CI covers Python 3.12 through 3.15.
+
 - Equal unique-count and score ties now use numeric token ID order, then raw ID order. Scores and equal-score ranks are unchanged. This changes the order of tied tokens compared with 0.7.5.
 
 ### Fixed
