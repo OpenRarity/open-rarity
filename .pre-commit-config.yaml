@@ -11,30 +11,11 @@ repos:
       - id: end-of-file-fixer
       - id: mixed-line-ending
       - id: trailing-whitespace
-  - repo: https://github.com/pycqa/isort
-    rev: 5.10.1
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.5
     hooks:
-      - id: isort
-        name: isort (python)
-        additional_dependencies: [toml]
-      - id: isort
-        name: isort (cython)
-        types: [cython]
-      - id: isort
-        name: isort (pyi)
-        types: [pyi]
-  # Black
-  - repo: https://github.com/psf/black
-    rev: 22.3.0
-    hooks:
-      - id: black
-        types: [python]
-  # Flake8
-  - repo: https://gitlab.com/pycqa/flake8
-    rev: 4.0.1
-    hooks:
-      - id: flake8
-        additional_dependencies: [flake8-bugbear, pep8-naming]
+      - id: ruff-check
+      - id: ruff-format
 
   # Mypy
   # run locally to ensure

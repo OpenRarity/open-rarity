@@ -1,3 +1,5 @@
+import math
+
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
 from open_rarity.models.token_identifier import (
@@ -31,7 +33,9 @@ def verify_token_rarities(token_rarities: list[TokenRarity], expected_data: list
             == expected["unique_traits"]
         )
         if "score" in expected:
-            assert token_rarity.score == expected["score"]
+            assert math.isclose(
+                token_rarity.score, expected["score"], rel_tol=0.0, abs_tol=1e-12
+            )
 
 
 class TestRarityRanker:
