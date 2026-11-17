@@ -9,26 +9,26 @@
 </head>
 <body>
 <a class="skip" href="#content">Skip to content</a>
-<header><a class="brand" href="./"><span class="brand-mark" aria-hidden="true">◇</span> OpenRarity</a><nav aria-label="Main"><a href="#demo">Playground</a><a href="readme.html">Docs</a><a href="https://github.com/OpenRarity/open-rarity">GitHub <span aria-hidden="true">↗</span></a></nav></header>
+<header><a class="brand" href="./"><span class="brand-mark" aria-hidden="true">◇</span> OpenRarity</a><nav aria-label="Main"><a href="#demo">Playground</a><a href="readme.html">Docs</a><a href="https://github.com/OpenRarity/open-rarity">GitHub</a></nav></header>
 <main id="content">
 <section class="hero" aria-labelledby="hero-title">
-<div class="hero-copy"><p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> OPEN SOURCE. OPEN STANDARD.</p><h1 id="hero-title">A clear view<br>of rarity.</h1><p class="intro">Reproducible NFT ranks, calculated from a collection's traits. One open method for Python, TypeScript, and your browser.</p><div class="actions"><a class="button" href="#demo">Try the scorer <span aria-hidden="true">↓</span></a><a class="text-link" href="spec.html">How scoring works <span aria-hidden="true">↗</span></a></div></div>
+<div class="hero-copy"><p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> OPEN SOURCE. OPEN STANDARD.</p><h1 id="hero-title">A clear view<br>of rarity.</h1><p class="intro">Reproducible NFT ranks, calculated from a collection's traits. One open method for Python, TypeScript, and your browser.</p><div class="actions"><a class="button" href="#demo">Try the scorer <span aria-hidden="true">↓</span></a><a class="text-link" href="spec.html">How scoring works</a></div></div>
 <aside class="install-card" aria-label="Get OpenRarity">
-<div class="card-heading"><span class="eyebrow">BUILD WITH OPENRARITY</span><a class="version" href="https://github.com/OpenRarity/open-rarity/releases/latest">v0.7.5 <span aria-hidden="true">↗</span></a></div>
+<div class="card-heading"><span class="eyebrow">BUILD WITH OPENRARITY</span><a class="version" href="https://github.com/OpenRarity/open-rarity/releases/latest">v0.7.5</a></div>
 <h2>Start with Python.</h2><p>Install the current release from PyPI.</p>
 <div class="command"><code>pip install open-rarity</code><button id="copy-install" type="button" aria-label="Copy Python install command">Copy</button></div><p id="copy-status" class="sr-only" role="status"></p>
-<div class="card-links"><a href="https://pypi.org/project/open-rarity/">PyPI <span aria-hidden="true">↗</span></a><a href="readme.html">Quick start <span aria-hidden="true">↗</span></a></div>
-<div class="preview-row"><div><strong>TypeScript</strong><span>Available from source. npm coming with 1.0.</span></div><a href="https://github.com/OpenRarity/open-rarity/tree/main/typescript" aria-label="View TypeScript source">Source ↗</a></div>
+<div class="card-links"><a href="https://pypi.org/project/open-rarity/">PyPI</a><a href="readme.html">Quick start</a></div>
+<div class="preview-row"><div><strong>TypeScript</strong><span>Available from source. npm coming with 1.0.</span></div><a href="https://github.com/OpenRarity/open-rarity/tree/main/typescript" aria-label="View TypeScript source">Source</a></div>
 </aside>
 </section>
 <span id="Dev-docs"></span><span id="Community"></span><span id="FAQ"></span>
-<nav id="docs" class="resource-strip" aria-label="Resources"><a href="spec.html">The scoring standard <span aria-hidden="true">↗</span></a><a href="migration.html">What's coming in 1.0 <span aria-hidden="true">↗</span></a><a href="https://github.com/OpenRarity/open-rarity/releases">Release notes <span aria-hidden="true">↗</span></a><a href="https://github.com/OpenRarity/open-rarity/issues">Feedback &amp; issues <span aria-hidden="true">↗</span></a></nav>
+<nav id="docs" class="resource-strip" aria-label="Resources"><a href="spec.html">The scoring standard</a><a href="migration.html">What's coming in 1.0</a><a href="https://github.com/OpenRarity/open-rarity/releases">Release notes</a><a href="https://github.com/OpenRarity/open-rarity/issues">Feedback &amp; issues</a></nav>
 <section id="demo" class="section demo" aria-labelledby="demo-title">
 <div class="demo-heading"><div><p class="eyebrow">THE PLAYGROUND</p><h2 id="demo-title">See the method in action.</h2><p>Edit a sample or load your collection. Nothing leaves your browser.</p></div><span class="local-badge"><span class="status-dot" aria-hidden="true"></span> Runs locally</span></div>
 <div class="playground">
 <div class="editor"><div class="panel-heading"><label for="collection">Collection JSON</label><button id="reset" type="button">Reset</button></div>
 <div class="sample-picker"><label for="sample">Example</label><select id="sample"><option value="categorical">Trait frequency</option><option value="numeric">Higher is rarer</option></select></div>
-<textarea id="collection" spellcheck="false" aria-describedby="demo-help"></textarea>
+<textarea id="collection" wrap="off" spellcheck="false" aria-describedby="demo-help"></textarea>
 <div class="editor-actions"><button class="button" id="score" type="button">Calculate rarity <span aria-hidden="true">→</span></button><label class="file-label">Load JSON<input class="sr-only" type="file" id="upload" accept=".json,application/json"></label></div>
 <p id="demo-help">Up to 1,000 tokens. <a href="migration.html">Input format and creator settings</a>.</p></div>
 <div class="results"><div class="panel-heading"><span>Ranked results <span id="count" class="count">Ready</span></span><button id="download" type="button">Download JSON <span aria-hidden="true">↓</span></button></div><p id="status" role="status" aria-live="polite"></p><div class="table-wrap" tabindex="0" role="region" aria-label="Rarity results"><table><caption class="sr-only">Collection rarity results</caption><thead><tr><th scope="col">Rank</th><th scope="col">Token ID</th><th scope="col">Score</th><th scope="col"><abbr title="Number of traits that appear on only one token">Unique traits</abbr></th><th scope="col">Explanation</th></tr></thead><tbody id="results"></tbody></table></div><div class="result-note"><span aria-hidden="true">↳</span><p>Unique traits first, then score. Tied results share a rank.<br><a href="spec.html">Understand the result</a></p></div></div>
