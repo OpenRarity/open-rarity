@@ -21,6 +21,10 @@ See the [API reference and schemas](api.md) for input and output shapes, and the
 The [playground](https://openrarity.github.io/open-rarity/#demo) accepts local JSON
 and exports results without uploading collection data.
 
+For local files, use the [CLI](cli.md). For per-trait diagnostics, use
+`explain_collection` or `explainCollection`; each entry includes the normal result
+and its contributions.
+
 ## Work on the repository
 
 Read [AGENTS.md](https://github.com/OpenRarity/open-rarity/blob/main/AGENTS.md)

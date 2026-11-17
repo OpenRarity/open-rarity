@@ -40,10 +40,16 @@ def parse_collection_json(text: str) -> CollectionInput:
     for token in data["tokens"]:
         if not isinstance(token, dict) or not isinstance(token.get("traits"), list):
             raise ValueError("Expected a token with a traits array")
+        if "token_id" not in token:
+            raise ValueError("Expected a token_id")
         traits = []
         for trait in token["traits"]:
-            if not isinstance(trait, dict) or "value" not in trait:
-                raise ValueError("Expected a trait with a value")
+            if (
+                not isinstance(trait, dict)
+                or "value" not in trait
+                or "trait_type" not in trait
+            ):
+                raise ValueError("Expected a trait_type and value")
             traits.append(
                 TraitInput(
                     trait["trait_type"], trait["value"], trait.get("display_type")

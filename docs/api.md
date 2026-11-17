@@ -26,7 +26,7 @@ precision in your JSON decoder. Always use the exact-number parsers in the
 [migration examples](migration.md).
 
 An optional `rarity` object may accompany `tokens`. It is parsed separately and is
-not described by the generated collection schema. Its `traits` array contains
+described by the separate [creator-config schema](../schemas/creator-config.schema.json). That schema describes well-formed settings; runtime parsing remains tolerant of malformed entries. Its `traits` array contains
 `{ "trait_type": "Level", "mode": "higher_is_rarer" }` entries; the other mode is
 `exclude`. `trait_count` accepts either mode. The parser considers the first 100
 entries, skips malformed settings, and retains the last valid setting per name.
@@ -61,6 +61,24 @@ application boundary. Creator settings deliberately tolerate malformed entries.
 
 Results arrive in ranking order. See the [scoring specification](../SPEC.md) for
 unique-trait priority and deterministic token-ID tie ordering.
+
+## Explanations and CLI
+
+Use Python `explain_collection(collection, config)` or TypeScript
+`explainCollection(collection, config)` to receive the same ranking with per-trait
+contributions. Python imports the function from `open_rarity.collection_scorer`.
+See the [explanation schema](../schemas/explanations.schema.json) for the result,
+normalization divisor, selected traits, and ordered source traits. Source numbers
+are encoded as strings with a `value_kind` tag to retain precision in output JSON.
+
+Each trait reports `count`, `probability`, `information` (bits), `contribution`
+(normalized score), and `unique`. Excluded traits and invalid numeric inputs
+contribute zero; their count and probability are null. Explanations preserve all
+source entries while identifying the reduced value used for scoring. The playground
+shows the selected contributions under each token's Explain control.
+
+The [local CLI](cli.md) exports rankings as JSON/CSV and explanations as JSON.
+See [benchmarks](benchmarks.md) for reproducible 10k/100k scoring measurements.
 
 ## Regenerate
 

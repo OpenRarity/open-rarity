@@ -1,6 +1,6 @@
 {
   "name": "open-rarity",
-  "version": "0.0.0-dev.0",
+  "version": "1.0.0-dev.0",
   "private": true,
   "description": "OpenRarity scoring for browser and Node.js",
   "type": "module",
@@ -10,10 +10,14 @@
     "url": "https://github.com/OpenRarity/open-rarity"
   },
   "engines": {
-    "node": ">=22.14.0"
+    "node": ">=24"
   },
   "sideEffects": false,
-  "files": ["dist"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -25,7 +29,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "prepack": "npm run build && node prepare-package.mjs"
   },
   "devDependencies": {
     "typescript": "7.0.2"

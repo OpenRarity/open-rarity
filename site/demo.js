@@ -1,4 +1,4 @@
-import { scoreCollection, parseCollectionJson, parseCreatorRarityConfig } from './scorer/index.js';
+import { explainCollection, parseCollectionJson, parseCreatorRarityConfig } from './scorer/index.js';
 const sample = {tokens: [
  {token_id:'1',traits:[{trait_type:'Shape',value:'Circle'},{trait_type:'Color',value:'Plum'}]},
  {token_id:'2',traits:[{trait_type:'Shape',value:'Circle'},{trait_type:'Color',value:'Sand'}]},
@@ -21,13 +21,28 @@ function run() {
    if (!token || typeof token.token_id !== 'string' || !token.token_id || !Array.isArray(token.traits) || token.traits.length > 100) throw Error('Each token needs a string token_id and at most 100 traits.');
 
   }
-  const results = scoreCollection(data, config);
+  const explained = explainCollection(data, config);
+  const results = explained.map(row => row.result);
+  const byId = new Map(explained.map(row => [row.result.token_id, row]));
   latestResults = results; document.querySelector('#download').disabled = false;
   for (const result of results) {
    const row = document.createElement('tr');
    for (const value of [result.rank, result.token_id, result.score.toFixed(6), result.unique_trait_count]) {
     const cell = document.createElement('td'); cell.textContent = String(value); row.append(cell);
    }
+   const cell = document.createElement('td');
+   const details = document.createElement('details');
+   const summary = document.createElement('summary'); summary.textContent = 'Explain';
+   details.append(summary);
+   const explanation = byId.get(result.token_id);
+   const list = document.createElement('ul');
+   for (const trait of explanation.traits) {
+    const item = document.createElement('li');
+    const frequency = trait.count === null ? (trait.mode === 'exclude' ? 'excluded' : 'no numeric contribution') : `${trait.count}/${data.tokens.length} tokens${trait.mode === 'higher_is_rarer' ? ' at or above this value' : ''}`;
+    item.textContent = `${trait.trait_type}: ${trait.value ?? '(missing)'}; ${frequency}; contributes ${trait.contribution.toFixed(6)}${trait.unique ? '; unique trait' : ''}`;
+    list.append(item);
+   }
+   details.append(list); cell.append(details); row.append(cell);
    body.append(row);
   }
   document.querySelector('#count').textContent = `${results.length} tokens`;

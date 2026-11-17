@@ -47,7 +47,7 @@ Rarity measures trait frequency, not market value.
 ## Guides
 
 - [Python and OpenSea fetching](docs/python.md)
-- [Migrating to 1.0](docs/migration.md)
+- [Migrating to 1.0](docs/migration.md) and [local CLI](docs/cli.md)
 - [Scoring rules](SPEC.md) and [changelog](CHANGELOG.md)
 - [Agent guide](docs/agents.md), [API and schemas](docs/api.md), and [llms.txt](llms.txt)
 - [Contributing and validation](AGENTS.md)

@@ -1,0 +1,47 @@
+{
+  "$defs": {
+    "CreatorTraitSetting": {
+      "properties": {
+        "mode": {
+          "enum": [
+            "exclude",
+            "higher_is_rarer"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "trait_type": {
+          "title": "Trait Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "trait_type",
+        "mode"
+      ],
+      "title": "CreatorTraitSetting",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "OpenRarity 1.0 development structural schema. Scoring performs additional semantic validation; see docs/api.md.",
+  "properties": {
+    "trait_count": {
+      "enum": [
+        "exclude",
+        "higher_is_rarer"
+      ],
+      "title": "Trait Count",
+      "type": "string"
+    },
+    "traits": {
+      "items": {
+        "$ref": "#/$defs/CreatorTraitSetting"
+      },
+      "title": "Traits",
+      "type": "array"
+    }
+  },
+  "title": "CreatorConfigDocument",
+  "type": "object"
+}

@@ -6,8 +6,9 @@ from pathlib import Path
 
 from pydantic import TypeAdapter
 
+from open_rarity.creator_config import CreatorConfigDocument
 from open_rarity.collection_input import CollectionInput
-from open_rarity.collection_scorer import TokenRarityResult
+from open_rarity.collection_scorer import TokenRarityResult, ExplainedToken
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -21,6 +22,10 @@ def schemas() -> dict[str, dict]:
         required.append("traits")
     return {
         "collection": collection,
+        "creator-config": TypeAdapter(CreatorConfigDocument).json_schema(),
+        "explanations": TypeAdapter(list[ExplainedToken]).json_schema(
+            mode="serialization"
+        ),
         "results": TypeAdapter(list[TokenRarityResult]).json_schema(
             mode="serialization"
         ),
