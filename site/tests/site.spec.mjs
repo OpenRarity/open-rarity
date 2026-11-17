@@ -73,3 +73,31 @@ test('install command copies to clipboard', async ({page,context}) => {
  await expect(page.locator('#copy-install')).toHaveText('Copied');
  expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe('pip install open-rarity');
 });
+
+test('agent index links to published Markdown and generated schemas', async ({request}) => {
+ const response = await request.get('/llms.txt');
+ expect(response.status()).toBe(200);
+ const text = await response.text();
+ expect(text).toContain('1.0 development');
+ for (const [, url] of text.matchAll(/\]\((https:\/\/openrarity.github.io\/open-rarity\/[^)]+)\)/g)) {
+  const path = new URL(url).pathname.replace('/open-rarity', '');
+  expect((await request.get(path)).status(), path).toBe(200);
+ }
+ const schema = await (await request.get('/schemas/collection.schema.json')).json();
+ expect(schema.$schema).toContain('2020-12');
+ expect(schema.$defs.TokenInput.required).toContain('traits');
+});
+for (const width of [390, 1440]) for (const theme of ['light', 'dark']) {
+ test(`agent documentation layout: ${width}px ${theme}`, async ({page}, testInfo) => {
+  await page.setViewportSize({width, height:1000});
+  await page.emulateMedia({colorScheme:theme});
+  for (const path of ['/agents.html', '/api.html']) {
+   await page.goto(path);
+   await page.screenshot({path:testInfo.outputPath(path.slice(1)+'.png'),fullPage:true});
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+   for (const href of await page.locator('main a[href]').evaluateAll(links=>links.map(a=>a.getAttribute('href')))) {
+    if (!href.startsWith('http')) expect((await page.request.get(new URL(href, page.url()).href)).status(), href).toBe(200);
+   }
+  }
+ });
+}

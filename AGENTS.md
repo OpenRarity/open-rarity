@@ -7,6 +7,8 @@ Python reference library, TypeScript scorer, and static documentation site.
 - `site/`: static site and browser tests; see `site/README.md`.
 - `SPEC.md`: scoring contract. `tests/fixtures/legacy_075.json`: compatibility goldens.
 
+Integration guidance: [docs/agents.md](docs/agents.md). Machine-readable entry point: [llms.txt](llms.txt).
+
 ## Changes
 
 - Keep scoring pure; fetching belongs in optional helpers. Mock HTTP/RPC in tests.
