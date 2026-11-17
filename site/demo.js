@@ -35,7 +35,19 @@ function run() {
   status.className = '';
  } catch (error) { status.textContent = error.message; status.className = 'error'; }
 }
-function reset() { input.value = JSON.stringify(sample, null, 2); run(); }
+const numericSample = {tokens:[
+ {token_id:'1',traits:[{trait_type:'Level',value:10}]},
+ {token_id:'2',traits:[{trait_type:'Level',value:50}]},
+ {token_id:'3',traits:[{trait_type:'Level',value:20}]}
+],rarity:{trait_count:'exclude',traits:[{trait_type:'Level',mode:'higher_is_rarer'}]}};
+function reset() { input.value = JSON.stringify(document.querySelector('#sample').value === 'numeric' ? numericSample : sample, null, 2); run(); }
+document.querySelector('#sample').addEventListener('change', reset);
+document.querySelector('#copy-install').addEventListener('click', async () => {
+ const button = document.querySelector('#copy-install');
+ try { await navigator.clipboard.writeText('pip install open-rarity'); button.textContent = 'Copied'; document.querySelector('#copy-status').textContent = 'Install command copied.'; }
+ catch { document.querySelector('#copy-status').textContent = 'Select and copy the install command above.'; }
+ setTimeout(()=>{button.textContent='Copy';},2000);
+});
 document.querySelector('#score').addEventListener('click', run);
 document.querySelector('#reset').addEventListener('click', reset);
 reset();
