@@ -1,5 +1,7 @@
 # Changelog
 
+- Replace the retired OpenSea v1 helper with v2 cursor pagination, explicit chain/testnet selection, bounded retries, and sparse-ID support. Retire incomplete v1 disk caches and reject partial snapshots.
+
 ## Unreleased
 
 ### Added

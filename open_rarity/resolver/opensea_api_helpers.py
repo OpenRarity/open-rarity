@@ -1,10 +1,12 @@
-import json
+"""OpenSea v2 fetching, separate from the pure scoring library."""
+
 import logging
-import math
 import os
+import time
+from collections.abc import Iterator
+from urllib.parse import quote
 
 import requests
-from requests.models import HTTPError
 
 from open_rarity.models.collection import Collection
 from open_rarity.models.token import Token
@@ -19,104 +21,213 @@ from open_rarity.models.token_standard import TokenStandard
 from open_rarity.resolver.models.collection_with_metadata import CollectionWithMetadata
 
 logger = logging.getLogger("open_rarity_logger")
-
-# https://docs.opensea.io/reference/retrieving-a-single-collection
-OS_COLLECTION_URL = "https://api.opensea.io/api/v1/collection/{slug}"
-OS_ASSETS_URL = "https://api.opensea.io/api/v1/assets"
-
-HEADERS = {
-    "Accept": "application/json",
-    # Note: API key not required but will help rate limiting
-    "X-API-KEY": os.environ.get("OS_API_KEY") or "",
-}
-
-# https://docs.opensea.io/docs/metadata-standards
 OS_METADATA_TRAIT_TYPE = "display_type"
 
-# Reads from a local cache of format:
-# "cached_data/{slug}_cached_os_trait_data.json"
-# which must contain a list of tokens in Token.to_dict() format.
-# See cached_data/boredapeyachtclub_cached_os_trait_data.json for example.
-OS_CACHE_FILENAME_FORMAT: str = "cached_data/%s_cached_os_trait_data.json"
 
-
-# Error is thrown if computatation is requested on a non-ERC721/1155
-# token or collection. This is due to library only working for these
-# standards currently.
 class ERCStandardError(ValueError):
     pass
 
 
-def fetch_opensea_collection_data(slug: str) -> dict:
-    """Fetches collection data from Opensea's GET collection endpoint for
-    the given slug.
+class OpenSeaClient:
+    """Bounded, read-only v2 client. Keys are read when the client is created."""
 
-    Raises:
-        Exception: If API request fails
-    """
-    response = requests.get(OS_COLLECTION_URL.format(slug=slug), headers=HEADERS)
-
-    if response.status_code != 200:
-        logger.debug(
-            f"[Opensea] Failed to resolve collection {slug}."
-            f"Received {response.status_code}: {response.reason}. {response.json()}"
+    def __init__(
+        self,
+        api_key: str | None = None,
+        *,
+        testnet: bool = False,
+        session: requests.Session | None = None,
+        timeout: float = 30,
+    ):
+        self._key = (
+            api_key
+            if api_key is not None
+            else os.environ.get("OPENSEA_API_KEY", os.environ.get("OS_API_KEY", ""))
+        )
+        self._session = session or requests.Session()
+        self._owns_session = session is None
+        self.timeout = timeout
+        self.base_url = (
+            "https://testnets-api.opensea.io/api/v2"
+            if testnet
+            else "https://api.opensea.io/api/v2"
         )
 
-        response.raise_for_status()
+    def __enter__(self):
+        return self
 
-    return response.json()["collection"]
+    def __exit__(self, *args):
+        if self._owns_session:
+            self._session.close()
+
+    def _get(self, path: str, params: dict | None = None) -> dict:
+        for attempt in range(3):
+            response = self._session.get(
+                self.base_url + path,
+                params=params,
+                headers={"Accept": "application/json", "X-API-KEY": self._key},
+                timeout=self.timeout,
+                allow_redirects=False,
+            )
+            if response.status_code in (429, 500, 502, 503, 504) and attempt < 2:
+                try:
+                    delay = min(
+                        30.0,
+                        max(
+                            0.0, float(response.headers.get("Retry-After", 2**attempt))
+                        ),
+                    )
+                except ValueError:
+                    delay = float(2**attempt)
+                response.close()
+                time.sleep(delay)
+                continue
+            try:
+                response.raise_for_status()
+                if response.status_code != 200:
+                    raise ValueError("Unexpected OpenSea response status")
+                data = response.json()
+                if not isinstance(data, dict):
+                    raise ValueError("Expected an OpenSea response object")
+                return data
+            finally:
+                response.close()
+        raise RuntimeError("OpenSea retry limit reached")
+
+    def collection(self, slug: str) -> dict:
+        return self._get("/collections/" + quote(slug, safe=""))
+
+    def nft(self, chain: str, contract: str, token_id: str) -> dict:
+        path = "/chain/{}/contract/{}/nfts/{}".format(
+            *(quote(v, safe="") for v in (chain, contract, token_id))
+        )
+        return self._get(path)["nft"]
+
+    def iter_nfts(
+        self, slug: str, *, page_size: int = 200, max_pages: int = 10000
+    ) -> Iterator[dict]:
+        if not 1 <= page_size <= 200 or max_pages < 1:
+            raise ValueError("page_size must be 1..200 and max_pages must be positive")
+        cursor = None
+        cursors: set[str] = set()
+        seen: set[tuple[str, str]] = set()
+        for _ in range(max_pages):
+            params: dict = {"limit": page_size}
+            if cursor is not None:
+                params["next"] = cursor
+            page = self._get("/collection/" + quote(slug, safe="") + "/nfts", params)
+            if not isinstance(page.get("nfts"), list):
+                raise ValueError("OpenSea page is missing its nfts array")
+            for nft in page["nfts"]:
+                identity = (nft["contract"].lower(), nft["identifier"])
+                if identity in seen:
+                    raise ValueError(
+                        "Duplicate NFT across OpenSea pages; retry the snapshot"
+                    )
+                seen.add(identity)
+                yield nft
+            cursor = page.get("next")
+            if not cursor:
+                return
+            if not isinstance(cursor, str) or cursor in cursors:
+                raise ValueError("OpenSea pagination cursor repeated or is invalid")
+            cursors.add(cursor)
+        raise ValueError("OpenSea pagination exceeded max_pages; no complete snapshot")
 
 
-def fetch_opensea_assets_data(slug: str, token_ids: list[int], limit=30) -> list[dict]:
-    """Fetches asset data from Opensea's GET assets endpoint for the given token ids
-
-    Parameters
-    ----------
-    slug: str
-        Opensea collection slug
-    token_ids: list[int]
-        the token id
-    limit: int, optional
-        How many to fetch at once. Defaults to 30, with a max of 30, by default 30.
-
-    Returns
-    -------
-    list[dict]
-        list of asset data dictionaries, e.g. the response in "assets" field,
-        sorted by token_id asc
-
-    Raises
-    ------
-        Exception: If api request fails
+def _contract_chain(collection: dict, chain: str | None) -> tuple[str, set[str]]:
+    contracts = collection["contracts"]
+    chains = {c["chain"] for c in contracts}
+    if chain is None:
+        if len(chains) != 1:
+            raise ValueError("Specify chain for a multi-chain collection")
+        chain = next(iter(chains))
+    addresses = {c["address"].lower() for c in contracts if c["chain"] == chain}
+    if not addresses:
+        raise ValueError("Collection has no contracts on the requested chain")
+    # Collection pagination lacks a chain field, so identical addresses on two chains
+    # cannot be distinguished safely.
+    if any(
+        c["chain"] != chain and c["address"].lower() in addresses for c in contracts
+    ):
+        raise ValueError("Collection has ambiguous contract addresses across chains")
+    return chain, addresses
 
 
-    """
-    assert len(token_ids) <= limit
-    # Max 30 limit enforced on API
-    assert limit <= 30
-    querystring = {
-        "token_ids": token_ids,
-        "collection_slug": slug,
-        "offset": "0",
-        "limit": limit,
-    }
-
-    response = requests.request(
-        "GET",
-        OS_ASSETS_URL,
-        headers=HEADERS,
-        params=querystring,
+def _token(nft: dict) -> Token:
+    if nft["token_standard"].lower() != "erc721":
+        raise ERCStandardError("Only ERC721 collection scoring is supported")
+    return Token(
+        EVMContractTokenIdentifier(nft["contract"], int(nft["identifier"])),
+        TokenStandard.ERC721,
+        opensea_traits_to_token_metadata(nft["traits"]),
     )
 
-    if response.status_code != 200:
-        logger.debug(
-            f"[Opensea] Failed to resolve assets for {slug}."
-            f"Received {response.status_code}: {response.reason}. {response.json()}"
-        )
-        response.raise_for_status()
 
-    # The API does not sort return value assets by token ID, so sort then return
-    return sorted(response.json()["assets"], key=(lambda a: int(a["token_id"])))
+def fetch_opensea_collection_data(slug: str, *, testnet: bool = False) -> dict:
+    """Return the v2 collection response (no v1 wrapper)."""
+    with OpenSeaClient(testnet=testnet) as client:
+        return client.collection(slug)
+
+
+def get_collection_from_opensea(
+    slug: str,
+    batch_size: int = 200,
+    use_cache: bool = False,
+    *,
+    chain: str | None = None,
+    testnet: bool = False,
+) -> Collection:
+    """Fetch every cursor page, including sparse IDs. Legacy disk caches are retired."""
+    return get_collection_with_metadata_from_opensea(
+        slug, use_cache, chain=chain, testnet=testnet, batch_size=batch_size
+    ).collection
+
+
+def get_collection_with_metadata_from_opensea(
+    opensea_collection_slug: str,
+    use_cache: bool = False,
+    *,
+    chain: str | None = None,
+    testnet: bool = False,
+    batch_size: int = 200,
+) -> CollectionWithMetadata:
+    # Never reuse the v1 cache: it can omit sparse IDs and empty metadata tokens.
+    with OpenSeaClient(testnet=testnet) as client:
+        data = client.collection(opensea_collection_slug)
+        _, addresses = _contract_chain(data, chain)
+        tokens = [
+            _token(nft)
+            for nft in client.iter_nfts(opensea_collection_slug, page_size=batch_size)
+            if nft["contract"].lower() in addresses
+        ]
+    collection = Collection(name=data["name"], tokens=tokens)
+    return CollectionWithMetadata(
+        collection, sorted(addresses), len(tokens), opensea_collection_slug
+    )
+
+
+def get_tokens_from_opensea(
+    opensea_slug: str,
+    token_ids: list[int],
+    *,
+    chain: str | None = None,
+    contract: str | None = None,
+    testnet: bool = False,
+) -> list[Token]:
+    """Fetch explicit identifiers without assuming a contiguous supply."""
+    with OpenSeaClient(testnet=testnet) as client:
+        chain, addresses = _contract_chain(client.collection(opensea_slug), chain)
+        if contract is None:
+            if len(addresses) != 1:
+                raise ValueError("Specify contract for a multi-contract collection")
+            contract = next(iter(addresses))
+        if contract.lower() not in addresses:
+            raise ValueError("Contract is not in this collection on this chain")
+        nfts = [client.nft(chain, contract, str(i)) for i in token_ids]
+        if any(nft["collection"] != opensea_slug for nft in nfts):
+            raise ValueError("NFT does not belong to the requested collection")
+        return [_token(nft) for nft in nfts]
 
 
 def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
@@ -164,298 +275,6 @@ def opensea_traits_to_token_metadata(asset_traits: list) -> TokenMetadata:
         numeric_attributes=numeric_attr,
         date_attributes=date_attr,
     )
-
-
-def get_all_collection_tokens(
-    slug: str,
-    total_supply: int,
-    batch_size: int = 30,
-    use_cache: bool = True,
-) -> list[Token]:
-    """Returns a list of Token's with all metadata filled, either populated
-    from Opensea API or fetched from a local cache file.
-    """
-    tokens: list[Token] = []
-
-    # For performance optimization and re-runs for the same collection,
-    # we optionally check if an already cached file for the collection
-    # data exists since they tend to be static.
-    if use_cache:
-        tokens = read_collection_data_from_file(expected_supply=total_supply, slug=slug)
-    else:
-        logger.info(f"Not using cache for fetching collection tokens for: {slug}")
-
-    # This means either cache file didn't exist or did not have data.
-    # Fetch all token trait data from opensea.
-    if len(tokens) == 0:
-        tokens = []
-        num_batches = math.ceil(total_supply / batch_size)
-        initial_token_id = 0
-
-        # Returns a list of `batch_size` token IDs, such that no token ID
-        # can exceed `max_token_id` (in which case len(return_value) < `batch_size`)
-        def get_token_ids(
-            batch_id: int, max_token_id: int = total_supply - 1
-        ) -> list[int]:
-            token_id_start = initial_token_id + (batch_id * batch_size)
-            token_id_end = int(min(token_id_start + batch_size - 1, max_token_id))
-            return list(range(token_id_start, token_id_end + 1))
-
-        for batch_id in range(num_batches):
-            token_ids = get_token_ids(batch_id)
-            tokens_batch = get_tokens_from_opensea(
-                opensea_slug=slug,
-                token_ids=token_ids,
-            )
-
-            tokens.extend(tokens_batch)
-
-        # It's possible for some collections to start at token id 1 instead of 0,
-        # so attempt fetch of more tokens if they exist
-        token_id = total_supply
-        while True:
-            try:
-                extra_tokens = get_tokens_from_opensea(
-                    opensea_slug=slug,
-                    token_ids=[token_id],
-                )
-                if len(extra_tokens) == 0:
-                    break
-                tokens.extend(extra_tokens)
-                token_id += 1
-            except Exception:
-                break
-
-        if len(tokens) > total_supply:
-            logger.warning(
-                f"Warning: Found more tokens ({len(tokens)}) than "
-                f"token supply ({total_supply}) fetched from collection stats"
-            )
-
-        # Write to local disk the fetched data for later caching
-        if use_cache:
-            write_collection_data_to_file(slug=slug, tokens=tokens)
-
-    return tokens
-
-
-def get_tokens_from_opensea(opensea_slug: str, token_ids: list[int]) -> list[Token]:
-    """Fetches eth nft data from opensea API and stores them into Token objects
-
-    Parameters
-    ----------
-    opensea_slug : str
-        Opensea collection slug
-    token_ids : list[int]
-        List of token ids to fetch for
-
-    Returns
-    -------
-    list[Token]
-        Returns list of tokens if request is successful.
-
-    Raises
-    ------
-    ValueError
-        if request is made to a non ERC721 or ERC1155 collection
-    HTTPError
-        if request to opensea fails
-    """
-    try:
-        assets = fetch_opensea_assets_data(slug=opensea_slug, token_ids=token_ids)
-    except HTTPError as e:
-        logger.exception(
-            "FAILED: get_assets: could not fetch opensea assets for %s: %s",
-            token_ids,
-            e,
-            exc_info=True,
-        )
-        raise
-
-    tokens = []
-    for asset in assets:
-        token_metadata = opensea_traits_to_token_metadata(asset_traits=asset["traits"])
-        asset_contract_address = asset["asset_contract"]["address"]
-        asset_contract_type = asset["asset_contract"]["asset_contract_type"]
-        if asset_contract_type == "non-fungible":
-            token_standard = TokenStandard.ERC721
-        elif asset_contract_type == "semi-fungible":
-            token_standard = TokenStandard.ERC1155
-        else:
-            raise ValueError(f"Unexpected asset contrat type: {asset_contract_type}")
-        tokens.append(
-            Token(
-                token_identifier=EVMContractTokenIdentifier(
-                    identifier_type="evm_contract",
-                    contract_address=asset_contract_address,
-                    token_id=int(asset["token_id"]),
-                ),
-                token_standard=token_standard,
-                metadata=token_metadata,
-            )
-        )
-
-    return tokens
-
-
-def get_collection_with_metadata_from_opensea(
-    opensea_collection_slug: str,
-    use_cache: bool,
-) -> CollectionWithMetadata:
-    """Fetches collection metadata with OpenSea endpoint and API key
-    and stores it in the Collection object with 0 tokens.
-
-    Parameters
-    ----------
-    opensea_collection_slug : str
-        collection slug on opensea's system
-    use_cache: bool
-        If true, reads the token trait data from local cache file if it exists, or
-        fetches from opensea api and stores the data in a local cached file for
-        future reuse.
-
-    Returns
-    -------
-    CollectionWithMetadata
-        collection with metadata, but with no tokens
-
-    """
-    collection_obj = fetch_opensea_collection_data(slug=opensea_collection_slug)
-    contracts = collection_obj["primary_asset_contracts"]
-    interfaces = set([contract["schema_name"] for contract in contracts])
-    stats = collection_obj["stats"]
-    if not interfaces.issubset(set(["ERC721", "ERC1155"])):
-        raise ERCStandardError(
-            "We currently do not support non EVM standards at the moment"
-        )
-    total_supply = int(stats["total_supply"])
-    tokens = get_all_collection_tokens(
-        slug=opensea_collection_slug,
-        total_supply=total_supply,
-        use_cache=use_cache,
-    )
-
-    collection = Collection(
-        name=collection_obj["name"],
-        attributes_frequency_counts=collection_obj["traits"],
-        tokens=tokens,
-    )
-
-    collection_with_metadata = CollectionWithMetadata(
-        collection=collection,
-        contract_addresses=[contract["address"] for contract in contracts],
-        token_total_supply=max(total_supply, collection.token_total_supply),
-        opensea_slug=opensea_collection_slug,
-    )
-
-    return collection_with_metadata
-
-
-def get_collection_from_opensea(
-    slug: str, batch_size: int = 30, use_cache: bool = True
-) -> Collection:
-    """Fetches collection and token data with OpenSea endpoint and API key
-    and stores it in the Collection object. If local cache file is used and
-    contains all collection token data, that data will be used instead.
-
-    Parameters
-    ----------
-    slug : str
-        collection slug on opensea's system
-
-    batch_size: int
-        batch size for the opensea API requests
-        maximum value is 30
-
-    use_cache: bool
-        set to True to look for a local cached version of the collection and token
-        metadata fetched from opensea to prevent re-fetching.
-
-    Returns
-    -------
-    Collection
-        collection abstraction
-
-    """
-    # Fetch collection metadata
-    collection_obj = fetch_opensea_collection_data(slug=slug)
-    contracts = collection_obj["primary_asset_contracts"]
-    interfaces = set([contract["schema_name"] for contract in contracts])
-    stats = collection_obj["stats"]
-    if not interfaces.issubset(set(["ERC721"])):
-        raise ERCStandardError(
-            "We currently do not support non ERC721 standards at the moment"
-        )
-
-    total_supply = int(stats["total_supply"])
-    tokens = get_all_collection_tokens(
-        slug=slug,
-        total_supply=total_supply,
-        batch_size=batch_size,
-        use_cache=use_cache,
-    )
-
-    return Collection(name=collection_obj["name"], tokens=tokens)
-
-
-def get_cache_filename(slug: str) -> str:
-    return OS_CACHE_FILENAME_FORMAT % slug
-
-
-def write_collection_data_to_file(slug: str, tokens: list[Token]):
-    cache_filename = get_cache_filename(slug)
-    json_output = []
-    for token in tokens:
-        # Note: We assume EVM token here
-        json_output.append(token.to_dict())
-    with open(cache_filename, "w+") as jsonfile:
-        json.dump(json_output, jsonfile, indent=4)
-    logger.debug(f"Wrote token data to cache file: {cache_filename}")
-
-
-def read_collection_data_from_file(expected_supply: int, slug: str) -> list[Token]:
-    cache_filename = get_cache_filename(slug)
-    tokens = []
-    try:
-        with open(cache_filename) as jsonfile:
-            tokens_data = json.load(jsonfile)
-            if len(tokens_data) != expected_supply:
-                logger.warning(
-                    "Warning: Data cache file for %s collection has data for %s tokens "
-                    "but total supply fetched from opensea is %s",
-                    slug,
-                    len(tokens_data),
-                    expected_supply,
-                )
-            non_null_tokens = 0
-            if len(tokens_data) > 0:
-                for token_data in tokens_data:
-                    if token_data["metadata_dict"]:
-                        non_null_tokens += 1
-                        tokens.append(Token.from_dict(token_data))
-            null_tokens = len(tokens_data) - non_null_tokens
-            if null_tokens:
-                msg = (
-                    f"Warning: Data cache file had empty metadata for {null_tokens} "
-                    "tokens. This is expected if those tokens are burned or "
-                    "unrevealed. However, they are not taken into account into "
-                    "rarity. Please check the cache file for errors."
-                )
-                logger.warning(msg)
-                print(msg)
-        logger.debug(f"Read {len(tokens)} tokens from cache file: {cache_filename}")
-    except FileNotFoundError:
-        logger.warning(f"No opensea cache file found for {slug}: {cache_filename}")
-    except Exception:
-        logger.exception(
-            "Failed to parse valid cache data for %s from %s",
-            slug,
-            cache_filename,
-            exc_info=True,
-        )
-        return []
-
-    return tokens
 
 
 # NFT metadata standard type definitions described here:
