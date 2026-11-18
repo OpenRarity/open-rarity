@@ -4,13 +4,16 @@ Pure NFT rarity scoring for Node.js 24+ and modern browsers. This package is in
 1.0 development and is not yet published to npm. Build from this repository with
 `npm ci && npm run build` in `typescript/`.
 
+Save this as `score.mjs` inside `typescript/` and run `node score.mjs`.
+
 ```js
-import {parseCollectionJson, parseCreatorRarityConfig, scoreCollection, explainCollection} from './dist/index.js';
+import { parseCollectionJson, scoreCollection, explainCollection } from "./dist/index.js";
+
+const source = '{"tokens":[{"token_id":"1","traits":[{"trait_type":"Hat","value":"Crown"}]},{"token_id":"2","traits":[]}]}';
 
 const input = parseCollectionJson(source);
-const config = parseCreatorRarityConfig(JSON.parse(source));
-const ranked = scoreCollection(input, config);
-const explained = explainCollection(input, config);
+console.log(scoreCollection(input));
+console.log(explainCollection(input)[0].traits);
 ```
 
 Supply a complete collection. Keep token IDs as strings and pass original JSON
@@ -23,17 +26,16 @@ source values are strings tagged with `value_kind`, preserving duplicate order.
 
 ## Fetch a collection from OpenSea
 
-Use the optional `open-rarity/opensea` export in Node.js. From a built checkout,
-import the same function from `./dist/opensea.js`.
+Use the optional OpenSea helper from a built checkout in Node.js.
 
 ```js
-import { fetchOpenSeaCollection } from "open-rarity/opensea";
-import { scoreCollection } from "open-rarity";
+import { fetchOpenSeaCollection } from "./dist/opensea.js";
+import { scoreCollection } from "./dist/index.js";
 
 const collection = await fetchOpenSeaCollection("doodles-official", {
   apiKey: process.env.OPENSEA_API_KEY,
 });
-const scores = scoreCollection(collection);
+console.log(scoreCollection(collection));
 ```
 
 Keep the API key on the server. The helper reads [collection
