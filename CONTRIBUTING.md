@@ -1,21 +1,20 @@
-# Contributions guide
+# Contributing to OpenRarity
 
-OpenRarity is a cross-company effort to improve rarity computation for NFTs (Non-Fungible Tokens). The core collaboration group consists of four primary contributors: Curio, icy.tools, OpenSea and Proof
+Use [GitHub Discussions](https://github.com/OpenRarity/open-rarity/discussions) for
+questions and [GitHub Issues](https://github.com/OpenRarity/open-rarity/issues/new/choose)
+for reproducible bugs or proposals. For scoring bugs, include the version,
+a small collection fixture, creator settings, and expected and actual ranks.
+Remove private metadata and credentials before posting.
 
-OpenRarity is an open-source project with Apache 2.0 license and all contributions are welcome. Consider following steps when you request/propose contribution:
+For a pull request, explain the behavior change and the checks you ran. Follow
+[repository setup and validation](AGENTS.md). Scoring changes should update the
+[specification](SPEC.md), [changelog](CHANGELOG.md), and shared conformance
+fixtures so both runtimes check the same behavior. See the
+[code of conduct](CODE_OF_CONDUCT.md) and [release guide](docs/RELEASING.md).
 
-* Have a question? Submit it on OpenRarity GitHub discussions page
-* Create GitHub issue/bug with description of the problem link
-* Submit Pull Request with proposed changes
-* To merge the change in the main branch you required to get at least 2 approvals from the project maintainer list
-* Always add a unit test with your changes.
+## Maintaining the project
 
-
-# Code formatting
-We use git-precommit hooks in OpenRarity repo. Install it with the following command
-
-`poetry run pre-commit install`
-
-
-# IDE
-We recommend to use VS Ccode with python support enabled.
+Reply when closing an issue or PR. Give the reason, link the fix or the active
+tracker where applicable, and invite a fresh issue with a current reproduction
+if the problem persists. Keep outstanding 1.0 work in the
+[release tracker](https://github.com/OpenRarity/open-rarity/issues/154).

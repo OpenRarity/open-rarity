@@ -50,7 +50,8 @@ Rarity measures trait frequency, not market value.
 - [Migrating to 1.0](docs/migration.md) and [local CLI](docs/cli.md)
 - [Scoring rules](SPEC.md) and [changelog](CHANGELOG.md)
 - [Agent guide](docs/agents.md), [API and schemas](docs/api.md), and [llms.txt](llms.txt)
-- [Contributing and validation](AGENTS.md)
+- [Contributing](CONTRIBUTING.md) and [validation](AGENTS.md)
+- [Community integrations](docs/community.md)
 - [Release process](docs/RELEASING.md)
 
 Licensed under [Apache 2.0](LICENSE).
