@@ -24,6 +24,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./opensea": {
+      "types": "./dist/opensea.d.ts",
+      "default": "./dist/opensea.js"
     }
   },
   "scripts": {

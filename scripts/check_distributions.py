@@ -97,6 +97,9 @@ def main():
         )
         (consumer / "smoke.mts").write_text(
             'import {explainCollection, type ExplainedToken} from "open-rarity";\n'
+            'import {fetchOpenSeaCollection} from "open-rarity/opensea";\n'
+            'import type {OpenSeaCollectionOptions} from "open-rarity/opensea";\n'
+            "const fetcher: (slug: string, options: OpenSeaCollectionOptions) => Promise<unknown> = fetchOpenSeaCollection;\n"
             "const rows: ExplainedToken[] = explainCollection({tokens: []});\n"
         )
         run(
@@ -115,7 +118,14 @@ def main():
             "node",
             "--input-type=module",
             "-e",
-            'import {scoreCollection,explainCollection,parseCollectionJson} from \'open-rarity\';const c=parseCollectionJson(\'{"tokens":[{"token_id":"1","traits":[]}]}\');if(scoreCollection(c)[0].rank!==1||explainCollection(c)[0].result.rank!==1)throw Error(\'Package smoke failed\');',
+            """
+            import { fetchOpenSeaCollection } from "open-rarity/opensea";
+            import { scoreCollection, explainCollection, parseCollectionJson } from "open-rarity";
+            if (typeof fetchOpenSeaCollection !== "function") throw Error("Missing OpenSea export");
+            const collection = parseCollectionJson('{"tokens":[{"token_id":"1","traits":[]}]}');
+            if (scoreCollection(collection)[0].rank !== 1 || explainCollection(collection)[0].result.rank !== 1)
+              throw Error("Package smoke failed");
+            """,
             cwd=consumer,
         )
     print(

@@ -7,6 +7,8 @@
 
 ### Added
 
+- Add the optional TypeScript OpenSea v2 helper for fetching ordered ERC721 collection input.
+
 - Add Python/TypeScript per-trait explanations and expandable playground details without changing score/rank calculations.
 - Add a local JSON/CSV CLI, creator-config and explanation schemas, and repeatable 10k/100k benchmarks.
 - Validate actual wheel, sdist and npm installations in CI; label source packages as 1.0 development builds.
