@@ -6,7 +6,7 @@ Rarity measures traits, not price or investment value.
 ## Choose the right version
 
 - Released PyPI 0.7.5 uses `Token`, `Collection`, and `RarityRanker`. Follow the [Python guide](python.md).
-- For 1.0 development, this repository and the browser playground use the ordered 1.0 API below. TypeScript is available from source, not npm. Follow the [migration examples](migration.md) for both languages.
+- The browser playground previews the ordered 1.0 API. The [migration examples](migration.md) show how to build and run it locally in Python and TypeScript.
 
 ## Use the scorer
 

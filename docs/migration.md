@@ -32,6 +32,10 @@ retains its historical scoring behavior.
 
 ## Ordered input example
 
+Save this as `collection.json` in the repository root. From there, install the
+Python checkout with `python -m pip install -e .`, or build TypeScript with
+`npm ci --prefix typescript` and `npm run build --prefix typescript`.
+
 ```json
 {
   "tokens": [
@@ -49,26 +53,33 @@ Python:
 
 ```python
 import json
+from pathlib import Path
 
 from open_rarity.collection_input import parse_collection_json
 from open_rarity.collection_scorer import score_collection
 from open_rarity.creator_config import parse_rarity_config
 
-# source is the JSON text above.
+source = Path("collection.json").read_text(encoding="utf-8")
 results = score_collection(
     parse_collection_json(source), parse_rarity_config(json.loads(source))
 )
+print([(entry.token_id, entry.rank) for entry in results])
 ```
 
-TypeScript (from a built repository checkout):
+TypeScript (save as `score.mjs` in the repository root and run `node score.mjs`):
 
 ```js
+import { readFileSync } from "node:fs";
 import { parseCollectionJson, parseCreatorRarityConfig, scoreCollection } from "./typescript/dist/index.js";
 
+const source = readFileSync("collection.json", "utf8");
 const results = scoreCollection(
   parseCollectionJson(source), parseCreatorRarityConfig(JSON.parse(source))
 );
+console.log(results.map(({ token_id, rank }) => [token_id, rank]));
 ```
+
+Both examples rank token 2 first and token 1 second.
 
 Use these parsers for numeric JSON so large integers and decimals are not rounded
 before scoring. TypeScript requires modern JSON reviver-source support (Node 24 or

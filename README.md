@@ -9,24 +9,21 @@
 
 # OpenRarity
 
-An open standard and library for reproducible NFT rarity. Rank a complete collection
-from its traits, with public scoring rules and matching Python/TypeScript fixtures.
+OpenRarity ranks NFTs by how common their traits are within a collection.
+Try it in your browser or run the scoring library locally.
 
 [Try the scorer](https://openrarity.github.io/open-rarity/) ·
 [Releases](https://github.com/OpenRarity/open-rarity/releases) ·
 [Scoring specification](SPEC.md) · [Report an issue](https://github.com/OpenRarity/open-rarity/issues)
 
-## Install
+## Quick start
+
+Install the [released Python package](https://pypi.org/project/open-rarity/0.7.5/)
+with Python 3.10–3.12.
 
 ```sh
-pip install open-rarity
+python -m pip install open-rarity==0.7.5
 ```
-
-[PyPI 0.7.5](https://pypi.org/project/open-rarity/) is the current release. This
-repository contains 1.0 development work, including the v2 OpenSea helper and
-[TypeScript scorer](typescript/). TypeScript is not yet published to npm.
-
-## Quick start
 
 ```python
 from open_rarity import Collection, Token
@@ -38,16 +35,19 @@ tokens = [
     Token.from_erc721("0x0", 3, {"Hat": "Cap"}),
 ]
 for result in RarityRanker.rank_collection(Collection(tokens=tokens)):
-    print(result.token.token_identifier, result.rank, result.score)
+    print(result.token.token_identifier.token_id, result.rank)
 ```
 
-Unique traits take priority, then score. Supply every token you want compared.
-Rarity measures trait frequency, not market value.
+Token 2 ranks first. Tokens 1 and 3 tie. Supply the full collection so trait
+frequencies reflect all the tokens you want ranked.
+
+The browser scorer and this repository preview 1.0, including the ordered input
+API, explanations, and CLI. Build [TypeScript from source](typescript/) to try it.
 
 ## Guides
 
 - [Python and OpenSea fetching](docs/python.md)
-- [Migrating to 1.0](docs/migration.md) and [local CLI](docs/cli.md)
+- [1.0 quick start and migration](docs/migration.md) · [Local CLI](docs/cli.md)
 - [Scoring rules](SPEC.md) and [changelog](CHANGELOG.md)
 - [Agent guide](docs/agents.md), [API and schemas](docs/api.md), and [llms.txt](llms.txt)
 - [Contributing](CONTRIBUTING.md) and [validation](AGENTS.md)
